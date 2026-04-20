@@ -1,0 +1,58 @@
+{
+  "name": "@blockchainacademics/mcp",
+  "version": "0.1.0",
+  "description": "The canonical crypto MCP server for AI agents — 3,501+ editorial articles, 200+ entity dossiers, 43 academy lessons.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "bca-mcp": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "engines": {
+    "node": ">=18.17"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "test": "node --test --import=tsx test/**/*.test.ts",
+    "prepublishOnly": "npm run build && npm test"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "crypto",
+    "blockchain",
+    "ai-agents",
+    "claude",
+    "anthropic",
+    "blockchainacademics"
+  ],
+  "author": "Blockchain Academics <hello@blockchainacademics.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/blockchainacademics/bca-mcp-ts#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blockchainacademics/bca-mcp-ts.git"
+  },
+  "bugs": {
+    "url": "https://github.com/blockchainacademics/bca-mcp-ts/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.0"
+  }
+}

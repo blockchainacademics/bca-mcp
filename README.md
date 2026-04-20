@@ -1,0 +1,142 @@
+# @blockchainacademics/mcp
+
+The canonical crypto MCP server for AI agents. 3,501+ editorial articles, 200+ entity dossiers, 43 academy lessons — all accessible as MCP tools your AI agent can call natively.
+
+## Why
+
+LLMs hallucinate about crypto. BCA ships ground-truth editorial content with full attribution. Plug this MCP server into Claude Desktop, LangChain, Eliza, or any MCP-compatible agent and your model queries the BCA corpus like any other tool — with citations, timestamps, and source hashes on every response.
+
+## Install
+
+### Claude Desktop
+
+Add to `claude_desktop_config.json` (macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "blockchainacademics": {
+      "command": "npx",
+      "args": ["-y", "@blockchainacademics/mcp"],
+      "env": { "BCA_API_KEY": "bca_live_xxxxxxxxxxxxxxxx" }
+    }
+  }
+}
+```
+
+Restart Claude Desktop. The three tools appear in the tool picker.
+
+### Programmatic (LangChain, Eliza, custom agents)
+
+```bash
+npm install @blockchainacademics/mcp
+```
+
+```ts
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+
+const transport = new StdioClientTransport({
+  command: "npx",
+  args: ["-y", "@blockchainacademics/mcp"],
+  env: { BCA_API_KEY: process.env.BCA_API_KEY! },
+});
+const client = new Client({ name: "my-agent", version: "0.0.1" }, { capabilities: {} });
+await client.connect(transport);
+
+const res = await client.callTool({
+  name: "search_news",
+  arguments: { query: "stablecoin regulation", limit: 5 },
+});
+console.log(res.content);
+```
+
+See [`examples/research-agent.ts`](./examples/research-agent.ts) for a full tool-chaining loop.
+
+## Tools
+
+### `search_news`
+
+Full-text search across 3,501+ editorial crypto articles.
+
+| arg | type | required | description |
+|---|---|---|---|
+| `query` | string (1-512) | yes | Search query |
+| `entity` | string | no | Entity slug filter (e.g. `ethereum`) |
+| `since` | ISO 8601 | no | Earliest publish date |
+| `topic` | string | no | Topic filter (e.g. `regulation`) |
+| `limit` | number (1-50) | no | Default 10 |
+
+Example: `{ "query": "circle IPO", "since": "2026-01-01T00:00:00Z", "limit": 5 }`
+
+### `get_entity`
+
+Fetch a canonical entity dossier. Provide exactly one of:
+
+| arg | type | description |
+|---|---|---|
+| `slug` | string | e.g. `"vitalik-buterin"`, `"circle"` |
+| `ticker` | string | e.g. `"ETH"`, `"SOL"` (case-insensitive) |
+
+Aliases resolve automatically (`CZ` → `changpeng-zhao`, `Maker` → `makerdao`, `BSC` → `bnb-chain`, …).
+
+### `get_explainer`
+
+Fetch a canonical academy lesson. Provide exactly one of:
+
+| arg | type | description |
+|---|---|---|
+| `slug` | string | Lesson slug, e.g. `"what-is-a-blockchain"` |
+| `topic` | string | Topic keyword that resolves to the canonical lesson |
+
+## Attribution
+
+Every response includes a structured `attribution` block:
+
+```json
+{
+  "data": { ... },
+  "attribution": {
+    "cite_url": "https://blockchainacademics.com/...",
+    "as_of": "2026-04-19T12:34:56Z",
+    "source_hash": "sha256:..."
+  }
+}
+```
+
+When your agent surfaces BCA content to a user, attribute via the `cite_url`. Fields are preserved as `null` when upstream omits them so downstream agents can detect missing provenance.
+
+## API Key
+
+Get an API key at https://blockchainacademics.com/api (free tier: 1,000 calls/month). Paid tiers unlock agent-backed research generation and proprietary on-chain indicators.
+
+Set `BCA_API_KEY` in your MCP client env. Optionally override `BCA_API_BASE_URL` (default `https://api.blockchainacademics.com`).
+
+## Errors
+
+The server never crashes the stdio process. All failures surface as MCP responses with `isError: true` and a JSON body:
+
+```json
+{ "error": { "code": "BCA_AUTH", "message": "..." } }
+```
+
+| Code | Meaning |
+|---|---|
+| `BCA_AUTH` | Missing/invalid `BCA_API_KEY` (HTTP 401/403) |
+| `BCA_RATE_LIMIT` | Rate limit exceeded (HTTP 429 — honor `Retry-After`) |
+| `BCA_UPSTREAM` | BCA API returned 5xx or malformed JSON |
+| `BCA_NETWORK` | Network failure or 20s timeout exceeded |
+| `BCA_BAD_REQUEST` | Invalid tool arguments |
+
+## Development
+
+```bash
+npm install
+npm run build    # tsc -> dist/
+npm test         # node:test smoke suite
+npm run dev      # tsx src/index.ts (stdio)
+```
+
+## License
+
+MIT © 2026 Blockchain Academics

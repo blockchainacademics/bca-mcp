@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "blockchainacademics": {
+      "command": "npx",
+      "args": ["-y", "@blockchainacademics/mcp"],
+      "env": {
+        "BCA_API_KEY": "bca_live_xxxxxxxxxxxxxxxx"
+      }
+    }
+  }
+}
