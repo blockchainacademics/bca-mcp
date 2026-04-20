@@ -29,6 +29,7 @@ import * as onchain from "./tools/onchain.js";
 import * as sentiment from "./tools/sentiment.js";
 import * as indicators from "./tools/indicators.js";
 import * as agentJobs from "./tools/agent_jobs.js";
+import * as ext from "./tools/extended.js";
 
 // --- zod -> JSON Schema (minimal, MCP-compatible) ---------------------------
 // Uses zod's built-in toJSONSchema when present (zod 3.23+), else a minimal
@@ -252,6 +253,105 @@ const TOOLS: ReadonlyArray<ToolEntry> = [
     agentJobs.runMonitorKeyword,
   ),
   entry(agentJobs.getAgentJobInputSchema, agentJobs.getAgentJobDefinition, agentJobs.runGetAgentJob),
+
+  // --- Directories (category 7) --------------------------------------------
+  entry(ext.listStablecoinsInputSchema, ext.listStablecoinsDefinition, ext.runListStablecoins),
+  entry(ext.listNftCommunitiesInputSchema, ext.listNftCommunitiesDefinition, ext.runListNftCommunities),
+  entry(ext.listYieldsInputSchema, ext.listYieldsDefinition, ext.runListYields),
+  entry(ext.listAggregatorsInputSchema, ext.listAggregatorsDefinition, ext.runListAggregators),
+  entry(ext.listMcpsInputSchema, ext.listMcpsDefinition, ext.runListMcps),
+  entry(ext.listTradingBotsInputSchema, ext.listTradingBotsDefinition, ext.runListTradingBots),
+  entry(ext.listVcsInputSchema, ext.listVcsDefinition, ext.runListVcs),
+  entry(ext.listJobsInputSchema, ext.listJobsDefinition, ext.runListJobs),
+  entry(ext.listSmartContractTemplatesInputSchema, ext.listSmartContractTemplatesDefinition, ext.runListSmartContractTemplates),
+  entry(ext.getSmartContractTemplateInputSchema, ext.getSmartContractTemplateDefinition, ext.runGetSmartContractTemplate),
+  entry(ext.listMarketingTemplatesInputSchema, ext.listMarketingTemplatesDefinition, ext.runListMarketingTemplates),
+  entry(ext.getMarketingTemplateInputSchema, ext.getMarketingTemplateDefinition, ext.runGetMarketingTemplate),
+  entry(ext.buildCustomIndicatorInputSchema, ext.buildCustomIndicatorDefinition, ext.runBuildCustomIndicator),
+
+  // --- Fundamentals (category 8) -------------------------------------------
+  entry(ext.getTokenomicsInputSchema, ext.getTokenomicsDefinition, ext.runGetTokenomics),
+  entry(ext.getAuditReportsInputSchema, ext.getAuditReportsDefinition, ext.runGetAuditReports),
+  entry(ext.getTeamInfoInputSchema, ext.getTeamInfoDefinition, ext.runGetTeamInfo),
+  entry(ext.getRoadmapInputSchema, ext.getRoadmapDefinition, ext.runGetRoadmap),
+  entry(ext.compareProtocolsInputSchema, ext.compareProtocolsDefinition, ext.runCompareProtocols),
+  entry(ext.checkRugpullRiskInputSchema, ext.checkRugpullRiskDefinition, ext.runCheckRugpullRisk),
+
+  // --- Chain-specific ------------------------------------------------------
+  entry(ext.getSolanaEcosystemInputSchema, ext.getSolanaEcosystemDefinition, ext.runGetSolanaEcosystem),
+  entry(ext.getL2ComparisonInputSchema, ext.getL2ComparisonDefinition, ext.runGetL2Comparison),
+  entry(ext.getBitcoinL2StatusInputSchema, ext.getBitcoinL2StatusDefinition, ext.runGetBitcoinL2Status),
+  entry(ext.getTonEcosystemInputSchema, ext.getTonEcosystemDefinition, ext.runGetTonEcosystem),
+
+  // --- Compute / AI crypto -------------------------------------------------
+  entry(ext.getComputePricingInputSchema, ext.getComputePricingDefinition, ext.runGetComputePricing),
+  entry(ext.getAiCryptoMetricsInputSchema, ext.getAiCryptoMetricsDefinition, ext.runGetAiCryptoMetrics),
+
+  // --- Memes ---------------------------------------------------------------
+  entry(ext.trackPumpfunInputSchema, ext.trackPumpfunDefinition, ext.runTrackPumpfun),
+  entry(ext.trackBonkfunInputSchema, ext.trackBonkfunDefinition, ext.runTrackBonkfun),
+  entry(ext.checkMemecoinRiskInputSchema, ext.checkMemecoinRiskDefinition, ext.runCheckMemecoinRisk),
+  entry(ext.getDegenLeaderboardInputSchema, ext.getDegenLeaderboardDefinition, ext.runGetDegenLeaderboard),
+
+  // --- Microstructure ------------------------------------------------------
+  entry(ext.getFundingRatesInputSchema, ext.getFundingRatesDefinition, ext.runGetFundingRates),
+  entry(ext.getOptionsFlowInputSchema, ext.getOptionsFlowDefinition, ext.runGetOptionsFlow),
+  entry(ext.getLiquidationHeatmapInputSchema, ext.getLiquidationHeatmapDefinition, ext.runGetLiquidationHeatmap),
+  entry(ext.getExchangeFlowsInputSchema, ext.getExchangeFlowsDefinition, ext.runGetExchangeFlows),
+  entry(ext.predictListingInputSchema, ext.predictListingDefinition, ext.runPredictListing),
+
+  // --- Narrative -----------------------------------------------------------
+  entry(ext.trackNarrativeInputSchema, ext.trackNarrativeDefinition, ext.runTrackNarrative),
+  entry(ext.getAiAgentTokensInputSchema, ext.getAiAgentTokensDefinition, ext.runGetAiAgentTokens),
+  entry(ext.getDepinProjectsInputSchema, ext.getDepinProjectsDefinition, ext.runGetDepinProjects),
+  entry(ext.getRwaTokensInputSchema, ext.getRwaTokensDefinition, ext.runGetRwaTokens),
+  entry(ext.getPredictionMarketsInputSchema, ext.getPredictionMarketsDefinition, ext.runGetPredictionMarkets),
+
+  // --- Regulatory ----------------------------------------------------------
+  entry(ext.getRegulatoryStatusInputSchema, ext.getRegulatoryStatusDefinition, ext.runGetRegulatoryStatus),
+  entry(ext.trackSecFilingsInputSchema, ext.trackSecFilingsDefinition, ext.runTrackSecFilings),
+  entry(ext.getMicaStatusInputSchema, ext.getMicaStatusDefinition, ext.runGetMicaStatus),
+  entry(ext.getTaxRulesInputSchema, ext.getTaxRulesDefinition, ext.runGetTaxRules),
+
+  // --- Security ------------------------------------------------------------
+  entry(ext.checkExploitHistoryInputSchema, ext.checkExploitHistoryDefinition, ext.runCheckExploitHistory),
+  entry(ext.checkPhishingDomainInputSchema, ext.checkPhishingDomainDefinition, ext.runCheckPhishingDomain),
+  entry(ext.getBugBountyProgramsInputSchema, ext.getBugBountyProgramsDefinition, ext.runGetBugBountyPrograms),
+  entry(ext.scanContractInputSchema, ext.scanContractDefinition, ext.runScanContract),
+
+  // --- Services (POST, revenue plays) --------------------------------------
+  entry(ext.bookKolCampaignInputSchema, ext.bookKolCampaignDefinition, ext.runBookKolCampaign),
+  entry(ext.requestCustomResearchInputSchema, ext.requestCustomResearchDefinition, ext.runRequestCustomResearch),
+  entry(ext.submitListingInputSchema, ext.submitListingDefinition, ext.runSubmitListing),
+
+  // --- History time series -------------------------------------------------
+  entry(ext.getHistoryPricesInputSchema, ext.getHistoryPricesDefinition, ext.runGetHistoryPrices),
+  entry(ext.getHistorySentimentInputSchema, ext.getHistorySentimentDefinition, ext.runGetHistorySentiment),
+  entry(ext.getHistoryCorrelationInputSchema, ext.getHistoryCorrelationDefinition, ext.runGetHistoryCorrelation),
+  entry(ext.getHistoryCoverageInputSchema, ext.getHistoryCoverageDefinition, ext.runGetHistoryCoverage),
+
+  // --- Corpus meta ---------------------------------------------------------
+  entry(ext.listEntitiesInputSchema, ext.listEntitiesDefinition, ext.runListEntities),
+  entry(ext.getTopicInputSchema, ext.getTopicDefinition, ext.runGetTopic),
+  entry(ext.searchAcademyInputSchema, ext.searchAcademyDefinition, ext.runSearchAcademy),
+  entry(ext.getTrendingInputSchema, ext.getTrendingDefinition, ext.runGetTrending),
+  entry(ext.getUnifiedFeedInputSchema, ext.getUnifiedFeedDefinition, ext.runGetUnifiedFeed),
+  entry(ext.listSourcesInputSchema, ext.listSourcesDefinition, ext.runListSources),
+  entry(ext.getRecentStoriesInputSchema, ext.getRecentStoriesDefinition, ext.runGetRecentStories),
+
+  // --- Memos + theses ------------------------------------------------------
+  entry(ext.listMemosInputSchema, ext.listMemosDefinition, ext.runListMemos),
+  entry(ext.getMemoInputSchema, ext.getMemoDefinition, ext.runGetMemo),
+  entry(ext.listThesesInputSchema, ext.listThesesDefinition, ext.runListTheses),
+  entry(ext.getThesisInputSchema, ext.getThesisDefinition, ext.runGetThesis),
+
+  // --- Social signals ------------------------------------------------------
+  entry(ext.getSocialSignalsInputSchema, ext.getSocialSignalsDefinition, ext.runGetSocialSignals),
+  entry(ext.getSocialSignalsDetailInputSchema, ext.getSocialSignalsDetailDefinition, ext.runGetSocialSignalsDetail),
+
+  // --- Currencies ----------------------------------------------------------
+  entry(ext.listCurrenciesInputSchema, ext.listCurrenciesDefinition, ext.runListCurrencies),
+  entry(ext.getCurrencyFeedInputSchema, ext.getCurrencyFeedDefinition, ext.runGetCurrencyFeed),
 ];
 
 const server = new Server(

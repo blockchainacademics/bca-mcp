@@ -6,7 +6,14 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ## [0.2.0-draft] — 2026-04-20
 
-### Added — 26 new tools across 5 categories (total surface: 29 tools)
+### Added — 96 new tools across 13 categories (total surface: 99 tools)
+
+Phase 3c/3d/3e expansion: wired every /v1/* endpoint the backend exposes (119
+total) as an MCP tool. Matches ~100% of backend surface. A handful of spec
+tools (e.g. get_nft_floor, trace_funds, get_mcp_recipe) are not wired because
+their backend endpoints do not yet exist.
+
+### Added — 26 new tools across 5 categories (initial batch)
 
 Content & corpus:
 - `get_article`, `list_entity_mentions`, `list_topics`, `get_as_of_snapshot`
