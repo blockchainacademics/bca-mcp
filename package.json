@@ -35,13 +35,13 @@
   ],
   "author": "Blockchain Academics <hello@blockchainacademics.com>",
   "license": "MIT",
-  "homepage": "https://github.com/blockchainacademics/bca-mcp-ts#readme",
+  "homepage": "https://github.com/blockchainacademics/bca-mcp#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/blockchainacademics/bca-mcp-ts.git"
+    "url": "git+https://github.com/blockchainacademics/bca-mcp.git"
   },
   "bugs": {
-    "url": "https://github.com/blockchainacademics/bca-mcp-ts/issues"
+    "url": "https://github.com/blockchainacademics/bca-mcp/issues"
   },
   "publishConfig": {
     "access": "public"

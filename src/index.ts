@@ -23,6 +23,12 @@ import {
   getExplainerDefinition,
   runGetExplainer,
 } from "./tools/get_explainer.js";
+import * as content from "./tools/content.js";
+import * as market from "./tools/market.js";
+import * as onchain from "./tools/onchain.js";
+import * as sentiment from "./tools/sentiment.js";
+import * as indicators from "./tools/indicators.js";
+import * as agentJobs from "./tools/agent_jobs.js";
 
 // --- zod -> JSON Schema (minimal, MCP-compatible) ---------------------------
 // Uses zod's built-in toJSONSchema when present (zod 3.23+), else a minimal
@@ -108,29 +114,148 @@ interface ToolEntry {
   }>;
 }
 
+/** Factory that produces a ToolEntry from a (schema, definition, runner) triad. */
+function entry<T>(
+  schema: any,
+  def: { name: string; description: string },
+  runner: (input: T) => Promise<any>,
+): ToolEntry {
+  return {
+    name: def.name,
+    description: def.description,
+    inputSchema: zodToJsonSchema(schema),
+    run: async (args) => runner(schema.parse(args ?? {})),
+  };
+}
+
 const TOOLS: ReadonlyArray<ToolEntry> = [
-  {
-    name: searchNewsDefinition.name,
-    description: searchNewsDefinition.description,
-    inputSchema: zodToJsonSchema(searchNewsInputSchema),
-    run: async (args) => runSearchNews(searchNewsInputSchema.parse(args)),
-  },
-  {
-    name: getEntityDefinition.name,
-    description: getEntityDefinition.description,
-    inputSchema: zodToJsonSchema(getEntityInputSchema),
-    run: async (args) => runGetEntity(getEntityInputSchema.parse(args)),
-  },
-  {
-    name: getExplainerDefinition.name,
-    description: getExplainerDefinition.description,
-    inputSchema: zodToJsonSchema(getExplainerInputSchema),
-    run: async (args) => runGetExplainer(getExplainerInputSchema.parse(args)),
-  },
+  // --- v0.1 core (already shipped) -----------------------------------------
+  entry(searchNewsInputSchema, searchNewsDefinition, runSearchNews),
+  entry(getEntityInputSchema, getEntityDefinition, runGetEntity),
+  entry(getExplainerInputSchema, getExplainerDefinition, runGetExplainer),
+
+  // --- Content & corpus (category 1) ---------------------------------------
+  entry(content.getArticleInputSchema, content.getArticleDefinition, content.runGetArticle),
+  entry(
+    content.listEntityMentionsInputSchema,
+    content.listEntityMentionsDefinition,
+    content.runListEntityMentions,
+  ),
+  entry(content.listTopicsInputSchema, content.listTopicsDefinition, content.runListTopics),
+  entry(
+    content.getAsOfSnapshotInputSchema,
+    content.getAsOfSnapshotDefinition,
+    content.runGetAsOfSnapshot,
+  ),
+
+  // --- Market data (category 2) --------------------------------------------
+  entry(market.getPriceInputSchema, market.getPriceDefinition, market.runGetPrice),
+  entry(market.getOhlcInputSchema, market.getOhlcDefinition, market.runGetOhlc),
+  entry(
+    market.getMarketOverviewInputSchema,
+    market.getMarketOverviewDefinition,
+    market.runGetMarketOverview,
+  ),
+  entry(market.getPairDataInputSchema, market.getPairDataDefinition, market.runGetPairData),
+
+  // --- On-chain (category 3) -----------------------------------------------
+  entry(
+    onchain.getWalletProfileInputSchema,
+    onchain.getWalletProfileDefinition,
+    onchain.runGetWalletProfile,
+  ),
+  entry(onchain.getTxInputSchema, onchain.getTxDefinition, onchain.runGetTx),
+  entry(
+    onchain.getTokenHoldersInputSchema,
+    onchain.getTokenHoldersDefinition,
+    onchain.runGetTokenHolders,
+  ),
+  entry(
+    onchain.getDefiProtocolInputSchema,
+    onchain.getDefiProtocolDefinition,
+    onchain.runGetDefiProtocol,
+  ),
+
+  // --- Sentiment (category 4) ----------------------------------------------
+  entry(
+    sentiment.getSentimentInputSchema,
+    sentiment.getSentimentDefinition,
+    sentiment.runGetSentiment,
+  ),
+  entry(
+    sentiment.getSocialPulseInputSchema,
+    sentiment.getSocialPulseDefinition,
+    sentiment.runGetSocialPulse,
+  ),
+  entry(
+    sentiment.getFearGreedInputSchema,
+    sentiment.getFearGreedDefinition,
+    sentiment.runGetFearGreed,
+  ),
+
+  // --- Proprietary indicators (category 5) ---------------------------------
+  entry(
+    indicators.getCoverageIndexInputSchema,
+    indicators.getCoverageIndexDefinition,
+    indicators.runGetCoverageIndex,
+  ),
+  entry(
+    indicators.getNarrativeStrengthInputSchema,
+    indicators.getNarrativeStrengthDefinition,
+    indicators.runGetNarrativeStrength,
+  ),
+  entry(
+    indicators.getSentimentVelocityInputSchema,
+    indicators.getSentimentVelocityDefinition,
+    indicators.runGetSentimentVelocity,
+  ),
+  entry(
+    indicators.getEditorialPremiumInputSchema,
+    indicators.getEditorialPremiumDefinition,
+    indicators.runGetEditorialPremium,
+  ),
+  entry(
+    indicators.getKolInfluenceInputSchema,
+    indicators.getKolInfluenceDefinition,
+    indicators.runGetKolInfluence,
+  ),
+  entry(
+    indicators.getRiskScoreInputSchema,
+    indicators.getRiskScoreDefinition,
+    indicators.runGetRiskScore,
+  ),
+
+  // --- Agent-backed generation (category 6) --------------------------------
+  entry(
+    agentJobs.generateDueDiligenceInputSchema,
+    agentJobs.generateDueDiligenceDefinition,
+    agentJobs.runGenerateDueDiligence,
+  ),
+  entry(
+    agentJobs.generateTokenomicsModelInputSchema,
+    agentJobs.generateTokenomicsModelDefinition,
+    agentJobs.runGenerateTokenomicsModel,
+  ),
+  entry(
+    agentJobs.summarizeWhitepaperInputSchema,
+    agentJobs.summarizeWhitepaperDefinition,
+    agentJobs.runSummarizeWhitepaper,
+  ),
+  entry(
+    agentJobs.translateContractInputSchema,
+    agentJobs.translateContractDefinition,
+    agentJobs.runTranslateContract,
+  ),
+  entry(
+    agentJobs.monitorKeywordInputSchema,
+    agentJobs.monitorKeywordDefinition,
+    agentJobs.runMonitorKeyword,
+  ),
+  entry(agentJobs.getAgentJobInputSchema, agentJobs.getAgentJobDefinition, agentJobs.runGetAgentJob),
 ];
 
 const server = new Server(
-  { name: "@blockchainacademics/mcp", version: "0.1.0" },
+  { name: "@blockchainacademics/mcp", version: "0.2.0-draft" },
   { capabilities: { tools: {} } },
 );
 
