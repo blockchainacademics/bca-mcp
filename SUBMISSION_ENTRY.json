@@ -1,0 +1,68 @@
+{
+  "_comment": "Entry to add to modelcontextprotocol/servers upstream. Upstream has historically used a bulleted README list (Community Servers section) but has been restructured repeatedly in 2025-2026. Pick the variant that matches the CURRENT state of main before editing. All three formats below are semantically equivalent — Wael only commits ONE of them to the upstream repo.",
+
+  "target_repo": "https://github.com/modelcontextprotocol/servers",
+  "insert_position": "alphabetical under B (sorts as 'Blockchain Academics')",
+  "insert_section": "🌎 Community Servers (or equivalent current heading)",
+
+  "variant_a_readme_bullet": "- **[Blockchain Academics](https://github.com/blockchainacademics/bca-mcp)** — Canonical crypto MCP: 99 tools across news, entities, academy lessons, market data, on-chain, sentiment, proprietary indicators, and agent-backed research generation. Every response carries `cite_url`, `as_of`, and `source_hash` for ground-truth attribution. `npx -y @blockchainacademics/mcp`",
+
+  "variant_b_readme_table_row": "| [Blockchain Academics](https://github.com/blockchainacademics/bca-mcp) | `@blockchainacademics/mcp` | Canonical crypto MCP — 99 tools spanning news, entities, academy, market data, on-chain, sentiment, proprietary indicators, and agent-backed generation. Cited, timestamped, hashed responses. |",
+
+  "variant_c_manifest_entry": {
+    "name": "Blockchain Academics",
+    "slug": "blockchainacademics",
+    "description": "Canonical crypto MCP — 99 tools spanning news, entities, academy, market data, on-chain, sentiment, proprietary indicators, and agent-backed generation. Wraps api.blockchainacademics.com with attribution envelope (cite_url, as_of, source_hash) on every tool response.",
+    "repository": "https://github.com/blockchainacademics/bca-mcp",
+    "package": {
+      "registry": "npm",
+      "name": "@blockchainacademics/mcp",
+      "version": "0.2.2"
+    },
+    "install": {
+      "claude_desktop": {
+        "command": "npx",
+        "args": ["-y", "@blockchainacademics/mcp"],
+        "env": {
+          "BCA_API_KEY": "bca_live_xxxxxxxxxxxxxxxx"
+        }
+      },
+      "one_liner": "npx -y @blockchainacademics/mcp"
+    },
+    "transport": "stdio",
+    "license": "MIT",
+    "homepage": "https://blockchainacademics.com",
+    "docs": "https://docs.blockchainacademics.com",
+    "categories": [
+      "crypto",
+      "blockchain",
+      "news",
+      "research",
+      "education",
+      "trading",
+      "defi",
+      "on-chain"
+    ],
+    "tool_count": 99,
+    "highlights": [
+      "99 tools across 19 categories (news, market data, on-chain, sentiment, proprietary indicators, agent-backed generation, directories, fundamentals, chain-specific, microstructure, narrative, regulatory, security, memes, compute/AI, services, history, corpus meta, memos/theses/social/currencies)",
+      "Attribution envelope on every response: cite_url, as_of (time-travel snapshot), source_hash (content integrity)",
+      "Graceful degradation for pending integrations: stub tools return {status: 'integration_pending', reason, eta} instead of failing",
+      "Zero runtime crashes — all errors surface as MCP responses with isError: true"
+    ],
+    "maintainer": {
+      "name": "Blockchain Academics",
+      "email": "dev@blockchainacademics.com",
+      "url": "https://blockchainacademics.com"
+    },
+    "server_json_schema": "https://static.modelcontextprotocol.io/schemas/2025-09-01/server.schema.json",
+    "server_json_url": "https://github.com/blockchainacademics/bca-mcp/blob/main/server.json"
+  },
+
+  "decision_notes": [
+    "If upstream README.md on main uses a plain bulleted list under 'Community Servers', use variant_a_readme_bullet.",
+    "If upstream switched to a markdown table with columns (Server | Package | Description), use variant_b_readme_table_row.",
+    "If upstream migrated to a JSON/YAML manifest (e.g. community-servers.json) for programmatic listing, adapt variant_c_manifest_entry to the current schema. The fields in variant_c are a superset — prune to match.",
+    "In all cases: keep the diff to a single file and a minimal addition (1 line for README variants; 1 entry for manifest variants). Reviewers reject mega-diffs."
+  ]
+}
