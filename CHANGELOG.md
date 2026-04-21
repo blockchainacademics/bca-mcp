@@ -4,6 +4,15 @@ All notable changes to `@blockchainacademics/mcp` are documented here.
 
 This project follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.2.1] — 2026-04-21
+
+### Fixed
+- `get_editorial_premium` and `get_kol_influence` now default `window` to `30d`
+  instead of `7d`. Backend only rolls these two indicators at 30d/90d today, so
+  the previous default caused a 404 for any agent that didn't pass `window`.
+  Supported windows noted in each tool's description. Live-verified against
+  `api.blockchainacademics.com`: schema parse → runtime call → envelope data.
+
 ## [0.2.0] — 2026-04-21
 
 ### Verified against production prior to publish

@@ -8,11 +8,19 @@ import type { ResponseEnvelope } from "../types.js";
 
 const windowEnum = z.enum(["1d", "7d", "30d", "90d"]);
 
-function indicatorTool(path: string, requireWindow = true) {
+function indicatorTool(
+  path: string,
+  requireWindow = true,
+  defaultWindow: "1d" | "7d" | "30d" | "90d" = "7d",
+) {
   const schema = z.object({
     entity_slug: z.string().min(1).describe("Entity slug."),
     ...(requireWindow
-      ? { window: windowEnum.default("7d").describe("Rolling window.") }
+      ? {
+          window: windowEnum
+            .default(defaultWindow)
+            .describe("Rolling window."),
+        }
       : {}),
   });
   return {
@@ -63,29 +71,40 @@ export const runGetSentimentVelocity = indicatorTool(
 ).run;
 
 // --- get_editorial_premium -------------------------------------------------
+// Backed only by 30d / 90d rollups today — 7d window isn't computed yet, so
+// default to 30d here to avoid a 404 for agents that don't pass window.
 export const getEditorialPremiumInputSchema = indicatorTool(
   "/v1/indicators/editorial-premium",
+  true,
+  "30d",
 ).schema;
 export const getEditorialPremiumDefinition = {
   name: "get_editorial_premium",
   description:
-    "Correlation of price return to coverage delta (lagged -1 to +3 days). Pro tier. Measures pre-coverage accumulation edge.",
+    "Correlation of price return to coverage delta (lagged -1 to +3 days). Pro tier. Measures pre-coverage accumulation edge. Supported windows: 30d, 90d.",
 };
 export const runGetEditorialPremium = indicatorTool(
   "/v1/indicators/editorial-premium",
+  true,
+  "30d",
 ).run;
 
 // --- get_kol_influence -----------------------------------------------------
+// Same 30d/90d-only availability as editorial_premium. Default to 30d.
 export const getKolInfluenceInputSchema = indicatorTool(
   "/v1/indicators/kol-influence",
+  true,
+  "30d",
 ).schema;
 export const getKolInfluenceDefinition = {
   name: "get_kol_influence",
   description:
-    "KOL influence score: reach × engagement × historical pick accuracy. Pro tier. Param: entity_slug (the KOL's canonical entity slug).",
+    "KOL influence score: reach × engagement × historical pick accuracy. Pro tier. Param: entity_slug (the KOL's canonical entity slug). Supported windows: 30d, 90d.",
 };
 export const runGetKolInfluence = indicatorTool(
   "/v1/indicators/kol-influence",
+  true,
+  "30d",
 ).run;
 
 // --- get_risk_score --------------------------------------------------------

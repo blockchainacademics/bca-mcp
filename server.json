@@ -1,17 +1,17 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-09-01/server.schema.json",
   "name": "io.github.blockchainacademics/mcp",
-  "description": "Canonical crypto MCP — news, entities, academy corpus, proprietary indicators. Wraps api.blockchainacademics.com with attribution envelope on every tool response.",
+  "description": "Canonical crypto MCP — 99 tools spanning news, entities, academy, market data, on-chain, sentiment, proprietary indicators, and agent-backed generation. Wraps api.blockchainacademics.com with attribution envelope on every tool response.",
   "repository": {
     "url": "https://github.com/blockchainacademics/bca-mcp",
     "source": "github"
   },
-  "version": "0.1.0",
+  "version": "0.2.0",
   "packages": [
     {
       "registry_type": "npm",
       "identifier": "@blockchainacademics/mcp",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "transport": {
         "type": "stdio"
       },
@@ -35,26 +35,34 @@
     "io.modelcontextprotocol.registry/publisher-provided": {
       "tool": {
         "name": "BCA MCP",
-        "version": "0.1.0"
+        "version": "0.2.0"
       },
-      "tools": [
-        {
-          "name": "search_news",
-          "description": "Full-text search across 3,501+ BCA editorial articles. Filters: topic, entity, date range, tier."
-        },
-        {
-          "name": "get_entity",
-          "description": "Canonical entity dossier (chain / project / person / ticker / protocol / exchange / fund) with alias folding."
-        },
-        {
-          "name": "get_explainer",
-          "description": "Academy lesson content — 43 lessons across 9 full courses, markdown + Lexical body + lesson metadata."
-        }
+      "tool_count": 99,
+      "tool_categories": [
+        { "name": "Content & corpus", "count": 7, "examples": ["search_news", "get_article", "get_entity", "get_explainer", "list_entity_mentions", "get_as_of_snapshot", "list_topics"] },
+        { "name": "Market data", "count": 4, "examples": ["get_price", "get_ohlc", "get_market_overview", "get_pair_data"] },
+        { "name": "On-chain", "count": 4, "examples": ["get_wallet_profile", "get_tx", "get_token_holders", "get_defi_protocol"] },
+        { "name": "Sentiment", "count": 3, "examples": ["get_sentiment", "get_social_pulse", "get_fear_greed"] },
+        { "name": "Proprietary indicators", "count": 6, "examples": ["get_coverage_index", "get_narrative_strength", "get_sentiment_velocity", "get_editorial_premium", "get_kol_influence", "get_risk_score"] },
+        { "name": "Agent-backed generation (async)", "count": 6, "examples": ["generate_due_diligence", "generate_tokenomics_model", "summarize_whitepaper", "translate_contract", "monitor_keyword", "get_agent_job"] },
+        { "name": "Directories", "count": 13, "examples": ["list_stablecoins", "list_yields", "list_aggregators", "list_mcps", "list_vcs", "list_jobs", "build_custom_indicator"] },
+        { "name": "Fundamentals", "count": 6, "examples": ["get_tokenomics", "get_audit_reports", "get_team_info", "compare_protocols", "check_rugpull_risk", "get_roadmap"] },
+        { "name": "Chain-specific", "count": 4, "examples": ["get_solana_ecosystem", "get_l2_comparison", "get_bitcoin_l2_status", "get_ton_ecosystem"] },
+        { "name": "Microstructure", "count": 5, "examples": ["get_funding_rates", "get_options_flow", "get_liquidation_heatmap", "get_exchange_flows", "predict_listing"] },
+        { "name": "Narrative / meta", "count": 5, "examples": ["track_narrative", "get_ai_agent_tokens", "get_depin_projects", "get_rwa_tokens", "get_prediction_markets"] },
+        { "name": "Regulatory", "count": 4, "examples": ["get_regulatory_status", "track_sec_filings", "get_mica_status", "get_tax_rules"] },
+        { "name": "Security", "count": 4, "examples": ["check_exploit_history", "check_phishing_domain", "get_bug_bounty_programs", "scan_contract"] },
+        { "name": "Memes / degen", "count": 4, "examples": ["track_pumpfun", "track_bonkfun", "check_memecoin_risk", "get_degen_leaderboard"] },
+        { "name": "Compute / AI crypto", "count": 2, "examples": ["get_compute_pricing", "get_ai_crypto_metrics"] },
+        { "name": "Services (revenue)", "count": 3, "examples": ["book_kol_campaign", "request_custom_research", "submit_listing"] },
+        { "name": "History time-series", "count": 4, "examples": ["get_history_prices", "get_history_sentiment", "get_history_correlation", "get_history_coverage"] },
+        { "name": "Corpus meta", "count": 7, "examples": ["list_entities", "get_topic", "search_academy", "get_trending", "get_unified_feed", "list_sources", "get_recent_stories"] },
+        { "name": "Memos / theses / social / currencies", "count": 8, "examples": ["list_memos", "get_memo", "list_theses", "get_thesis", "get_social_signals", "get_social_signals_detail", "list_currencies", "get_currency_feed"] }
       ],
       "homepage": "https://blockchainacademics.com",
-      "docs_url": "https://blockchainacademics.com/docs/mcp",
+      "docs_url": "https://docs.blockchainacademics.com",
       "license": "MIT",
-      "categories": ["crypto", "blockchain", "news", "research", "education"],
+      "categories": ["crypto", "blockchain", "news", "research", "education", "trading", "defi", "on-chain"],
       "authors": [
         {
           "name": "Blockchain Academics",
