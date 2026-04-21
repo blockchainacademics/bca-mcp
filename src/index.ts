@@ -355,7 +355,7 @@ const TOOLS: ReadonlyArray<ToolEntry> = [
 ];
 
 const server = new Server(
-  { name: "@blockchainacademics/mcp", version: "0.2.0-draft" },
+  { name: "@blockchainacademics/mcp", version: "0.2.0" },
   { capabilities: { tools: {} } },
 );
 

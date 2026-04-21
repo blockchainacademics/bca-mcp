@@ -4,6 +4,17 @@ All notable changes to `@blockchainacademics/mcp` are documented here.
 
 This project follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.2.0] — 2026-04-21
+
+### Verified against production prior to publish
+- All 5 agent-job skills smoke-tested against `api.blockchainacademics.com`:
+  `summarize_whitepaper`, `due_diligence`, `monitor_keyword`, `translate_contract` → done.
+  `tokenomics_model` → clean SkillError until fundamentals ingester lands.
+- Migration 015 (`keyword_monitors`) applied on prod Neon via `preDeployCommand`.
+- Stub endpoints (Twitter social, DEXTools, bonk.fun, Bittensor) now return
+  `{status: "integration_pending", reason, eta}` with an `X-BCA-Integration-Status: pending`
+  header instead of 501/NotImplementedError.
+
 ## [0.2.0-draft] — 2026-04-20
 
 ### Added — 96 new tools across 13 categories (total surface: 99 tools)

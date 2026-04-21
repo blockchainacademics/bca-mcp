@@ -1,6 +1,35 @@
 # @blockchainacademics/mcp
 
-The canonical crypto MCP server for AI agents. 3,501+ editorial articles, 200+ entity dossiers, 43 academy lessons — all accessible as MCP tools your AI agent can call natively.
+The canonical crypto MCP server for AI agents. **99 tools** spanning 3,501+ editorial articles, 200+ entity dossiers, 43 academy lessons, aggregated market + on-chain data, proprietary indicators, and async agent-backed generation — all accessible as MCP tools your AI agent can call natively.
+
+## Tool categories (v0.2.0)
+
+| Category | Count | Examples |
+|---|---|---|
+| Content & corpus | 7 | `search_news`, `get_article`, `get_entity`, `get_explainer`, `list_entity_mentions`, `get_as_of_snapshot` |
+| Market data | 4 | `get_price`, `get_ohlc`, `get_market_overview`, `get_pair_data` |
+| On-chain | 4 | `get_wallet_profile`, `get_tx`, `get_token_holders`, `get_defi_protocol` |
+| Sentiment | 3 | `get_sentiment`, `get_social_pulse`, `get_fear_greed` |
+| Proprietary indicators | 6 | `get_coverage_index`, `get_narrative_strength`, `get_sentiment_velocity`, `get_editorial_premium`, `get_kol_influence`, `get_risk_score` |
+| Agent-backed (async, Pro+) | 6 | `generate_due_diligence`, `generate_tokenomics_model`, `summarize_whitepaper`, `translate_contract`, `monitor_keyword`, `get_agent_job` |
+| Directories | 13 | `list_stablecoins`, `list_yields`, `list_aggregators`, `list_mcps`, `list_vcs`, `list_jobs`, `build_custom_indicator`, … |
+| Fundamentals | 6 | `get_tokenomics`, `get_audit_reports`, `get_team_info`, `compare_protocols`, `check_rugpull_risk` |
+| Chain-specific | 4 | `get_solana_ecosystem`, `get_l2_comparison`, `get_bitcoin_l2_status`, `get_ton_ecosystem` |
+| Markets microstructure | 5 | `get_funding_rates`, `get_options_flow`, `get_liquidation_heatmap`, `get_exchange_flows`, `predict_listing` |
+| Narrative / meta | 5 | `track_narrative`, `get_ai_agent_tokens`, `get_depin_projects`, `get_rwa_tokens`, `get_prediction_markets` |
+| Regulatory | 4 | `get_regulatory_status`, `track_sec_filings`, `get_mica_status`, `get_tax_rules` |
+| Security | 4 | `check_exploit_history`, `check_phishing_domain`, `get_bug_bounty_programs`, `scan_contract` |
+| Memes / degen | 4 | `track_pumpfun`, `track_bonkfun`, `check_memecoin_risk`, `get_degen_leaderboard` |
+| Services (revenue) | 3 | `book_kol_campaign`, `request_custom_research`, `submit_listing` |
+| History time-series | 4 | `get_history_prices`, `get_history_sentiment`, `get_history_correlation`, `get_history_coverage` |
+| Compute / AI crypto | 2 | `get_compute_pricing`, `get_ai_crypto_metrics` |
+| Corpus meta | 7 | `list_entities`, `get_topic`, `search_academy`, `get_trending`, `get_unified_feed`, `list_sources`, `get_recent_stories` |
+| Memos + theses + social | 6 | `list_memos`, `get_memo`, `list_theses`, `get_thesis`, `get_social_signals`, `get_social_signals_detail` |
+| Currencies | 2 | `list_currencies`, `get_currency_feed` |
+
+Every tool response carries `cite_url` (with UTM src attribution), `as_of` (time-travel snapshot), and `source_hash` (content integrity).
+
+Tools for unreleased integrations (Twitter social pulse, DEXTools, bonk.fun, Bittensor) return `{status: "integration_pending", reason, eta}` rather than failing. The MCP server is fully usable today.
 
 ## Why
 
@@ -24,7 +53,7 @@ Add to `claude_desktop_config.json` (macOS: `~/Library/Application Support/Claud
 }
 ```
 
-Restart Claude Desktop. The three tools appear in the tool picker.
+Restart Claude Desktop. All 99 tools appear in the tool picker.
 
 ### Programmatic (LangChain, Eliza, custom agents)
 
