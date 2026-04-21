@@ -8,7 +8,7 @@ import type { ResponseEnvelope } from "./types.js";
 
 const DEFAULT_BASE = "https://api.blockchainacademics.com";
 const USER_AGENT =
-  "@blockchainacademics/mcp/0.1.0 (+https://github.com/blockchainacademics/bca-mcp-ts)";
+  "@blockchainacademics/mcp/0.1.0 (+https://github.com/blockchainacademics/bca-mcp)";
 
 export interface BcaClientOptions {
   baseUrl?: string;
@@ -36,7 +36,23 @@ export class BcaClient {
 
   async request<T>(
     path: string,
-    params?: Record<string, string | number | undefined>,
+    params?: Record<string, string | number | boolean | undefined>,
+  ): Promise<ResponseEnvelope<T>> {
+    return this.call<T>("GET", path, params);
+  }
+
+  async post<T>(
+    path: string,
+    body?: Record<string, unknown>,
+  ): Promise<ResponseEnvelope<T>> {
+    return this.call<T>("POST", path, undefined, body);
+  }
+
+  private async call<T>(
+    method: "GET" | "POST",
+    path: string,
+    params?: Record<string, string | number | boolean | undefined>,
+    body?: Record<string, unknown>,
   ): Promise<ResponseEnvelope<T>> {
     if (!this.apiKey) {
       throw new BcaAuthError("BCA_API_KEY env var is not set");
@@ -55,15 +71,20 @@ export class BcaClient {
 
     let res: Response;
     try {
-      res = await this.fetchImpl(url, {
-        method: "GET",
+      const init: RequestInit = {
+        method,
         headers: {
           "X-API-Key": this.apiKey,
           Accept: "application/json",
           "User-Agent": USER_AGENT,
+          ...(method === "POST" ? { "Content-Type": "application/json" } : {}),
         },
         signal: AbortSignal.timeout(this.timeoutMs),
-      });
+      };
+      if (method === "POST" && body) {
+        init.body = JSON.stringify(body);
+      }
+      res = await this.fetchImpl(url, init);
     } catch (err) {
       throw new BcaNetworkError(err);
     }

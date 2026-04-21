@@ -4,6 +4,42 @@ All notable changes to `@blockchainacademics/mcp` are documented here.
 
 This project follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.2.0-draft] — 2026-04-20
+
+### Added — 96 new tools across 13 categories (total surface: 99 tools)
+
+Phase 3c/3d/3e expansion: wired every /v1/* endpoint the backend exposes (119
+total) as an MCP tool. Matches ~100% of backend surface. A handful of spec
+tools (e.g. get_nft_floor, trace_funds, get_mcp_recipe) are not wired because
+their backend endpoints do not yet exist.
+
+### Added — 26 new tools across 5 categories (initial batch)
+
+Content & corpus:
+- `get_article`, `list_entity_mentions`, `list_topics`, `get_as_of_snapshot`
+
+Market data (CoinGecko + DexScreener free tiers):
+- `get_price`, `get_ohlc`, `get_market_overview`, `get_pair_data`
+
+On-chain (Etherscan + Helius + DefiLlama):
+- `get_wallet_profile`, `get_tx`, `get_token_holders`, `get_defi_protocol`
+
+Sentiment:
+- `get_sentiment`, `get_social_pulse`, `get_fear_greed`
+
+Proprietary indicators (Pro+ tier):
+- `get_coverage_index`, `get_narrative_strength`, `get_sentiment_velocity`,
+  `get_editorial_premium`, `get_kol_influence`, `get_risk_score`
+
+Agent-backed async generation (Pro/Team tier):
+- `generate_due_diligence`, `generate_tokenomics_model`, `summarize_whitepaper`,
+  `translate_contract`, `monitor_keyword`, `get_agent_job` (status poll)
+
+### Changed
+- HTTP client supports POST via new `post()` method (required for agent-job tools).
+- Each tool category now lives in its own module under `src/tools/`.
+- Draft version — do not publish to npm until integration-tested against prod.
+
 ## [0.1.0] — 2026-04-19
 
 ### Added
