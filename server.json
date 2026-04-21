@@ -1,0 +1,67 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-09-01/server.schema.json",
+  "name": "io.github.blockchainacademics/mcp",
+  "description": "Canonical crypto MCP — news, entities, academy corpus, proprietary indicators. Wraps api.blockchainacademics.com with attribution envelope on every tool response.",
+  "repository": {
+    "url": "https://github.com/blockchainacademics/bca-mcp",
+    "source": "github"
+  },
+  "version": "0.1.0",
+  "packages": [
+    {
+      "registry_type": "npm",
+      "identifier": "@blockchainacademics/mcp",
+      "version": "0.1.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environment_variables": [
+        {
+          "name": "BCA_API_KEY",
+          "description": "BCA API key from api.blockchainacademics.com — free tier issues 2,000 calls/month with mandatory attribution. Get one at https://blockchainacademics.com (dev console launching Q2 2026; contact dev@blockchainacademics.com for early access).",
+          "is_required": true,
+          "is_secret": true
+        },
+        {
+          "name": "BCA_API_BASE",
+          "description": "Override the API base URL. Defaults to https://api.blockchainacademics.com. Only set when testing against staging.",
+          "is_required": false,
+          "default": "https://api.blockchainacademics.com"
+        }
+      ]
+    }
+  ],
+  "_meta": {
+    "io.modelcontextprotocol.registry/publisher-provided": {
+      "tool": {
+        "name": "BCA MCP",
+        "version": "0.1.0"
+      },
+      "tools": [
+        {
+          "name": "search_news",
+          "description": "Full-text search across 3,501+ BCA editorial articles. Filters: topic, entity, date range, tier."
+        },
+        {
+          "name": "get_entity",
+          "description": "Canonical entity dossier (chain / project / person / ticker / protocol / exchange / fund) with alias folding."
+        },
+        {
+          "name": "get_explainer",
+          "description": "Academy lesson content — 43 lessons across 9 full courses, markdown + Lexical body + lesson metadata."
+        }
+      ],
+      "homepage": "https://blockchainacademics.com",
+      "docs_url": "https://blockchainacademics.com/docs/mcp",
+      "license": "MIT",
+      "categories": ["crypto", "blockchain", "news", "research", "education"],
+      "authors": [
+        {
+          "name": "Blockchain Academics",
+          "url": "https://blockchainacademics.com",
+          "email": "dev@blockchainacademics.com"
+        }
+      ]
+    }
+  }
+}
