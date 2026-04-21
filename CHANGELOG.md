@@ -4,6 +4,28 @@ All notable changes to `@blockchainacademics/mcp` are documented here.
 
 This project follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.2.2] — 2026-04-21
+
+### Fixed — 10 tool input schemas surfaced via live production audit
+
+Live audit of 99 tools against `api.blockchainacademics.com` revealed 10
+tools where the MCP-side Zod schema disagreed with the backend Pydantic
+contract. Each fix below resolves an HTTP 422 that agents previously hit:
+
+- `generate_due_diligence` — `depth` enum: `brief|standard|deep` → `light|standard|deep`
+- `translate_contract` — renamed `source_lang` → `source_language`, `target_lang` → `target_language`
+- `monitor_keyword` — `webhook_url` now required (was optional)
+- `list_aggregators` — `kind` enum: `swap|bridge|all` → `dex|bridge|yield`, now required
+- `check_rugpull_risk` — field: `contract`+`chain` → `entity_slug`
+- `check_memecoin_risk` — field: `contract`+`chain` → `mint` (Solana token mint)
+- `scan_contract` — field: `contract`+`chain` → `address` (0x EVM, regex-validated)
+- `book_kol_campaign` — added required `contact_email`
+- `request_custom_research` — added required `contact_email`; `depth` enum aligned to `light|standard|deep`
+- `submit_listing` — added required `listing_name`
+
+Tool descriptions now document required fields + enum values inline so LLM
+callers can self-correct before an API roundtrip.
+
 ## [0.2.1] — 2026-04-21
 
 ### Fixed

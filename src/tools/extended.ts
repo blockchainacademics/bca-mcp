@@ -53,11 +53,11 @@ export const listYieldsDefinition = {
 export const runListYields = (i: any) => clientGet(`/v1/directories/yields`, i);
 
 export const listAggregatorsInputSchema = z.object({
-  kind: z.enum(["swap", "bridge", "all"]).default("all"),
+  kind: z.enum(["dex", "bridge", "yield"]).describe("Required. Aggregator kind: dex|bridge|yield."),
 });
 export const listAggregatorsDefinition = {
   name: "list_aggregators",
-  description: "Swap + bridge aggregators ranked by volume, fees, chain support.",
+  description: "DEX, bridge, or yield aggregators ranked by volume, fees, chain support. Required: kind ∈ {dex, bridge, yield}.",
 };
 export const runListAggregators = (i: any) =>
   clientGet(`/v1/directories/aggregators`, { kind: i.kind });
@@ -201,13 +201,12 @@ export const compareProtocolsDefinition = {
 export const runCompareProtocols = (i: any) => clientGet(`/v1/fundamentals/compare`, i);
 
 export const checkRugpullRiskInputSchema = z.object({
-  contract: z.string().min(1),
-  chain: z.string().default("ethereum"),
+  entity_slug: z.string().min(1).describe("Required. Target entity slug."),
 });
 export const checkRugpullRiskDefinition = {
   name: "check_rugpull_risk",
   description:
-    "Composite rugpull risk: honeypot + LP lock + ownership renounce + contract verification + team risk. Pro tier.",
+    "Composite rugpull risk: honeypot + LP lock + ownership renounce + contract verification + team risk. Required: entity_slug. Pro tier.",
 };
 export const runCheckRugpullRisk = (i: any) => clientGet(`/v1/fundamentals/rugpull`, i);
 
@@ -288,13 +287,12 @@ export const trackBonkfunDefinition = {
 export const runTrackBonkfun = (i: any) => clientGet(`/v1/memes/bonkfun`, i);
 
 export const checkMemecoinRiskInputSchema = z.object({
-  contract: z.string().min(1),
-  chain: z.string().default("solana"),
+  mint: z.string().min(1).describe("Required. Solana token mint address."),
 });
 export const checkMemecoinRiskDefinition = {
   name: "check_memecoin_risk",
   description:
-    "Memecoin-specific risk: bundler detection, dev sells, sniper detection. Pro tier.",
+    "Memecoin-specific risk: bundler detection, dev sells, sniper detection. Required: mint (Solana token mint address). Pro tier.",
 };
 export const runCheckMemecoinRisk = (i: any) => clientGet(`/v1/memes/risk`, i);
 
@@ -491,13 +489,12 @@ export const getBugBountyProgramsDefinition = {
 export const runGetBugBountyPrograms = (i: any) => clientGet(`/v1/security/bug-bounties`, i);
 
 export const scanContractInputSchema = z.object({
-  contract: z.string().min(1),
-  chain: z.string().default("ethereum"),
+  address: z.string().regex(/^0x[a-fA-F0-9]{40}$/).describe("Required. EVM contract address (0x + 40 hex chars)."),
 });
 export const scanContractDefinition = {
   name: "scan_contract",
   description:
-    "Basic static analysis on any address: bytecode verification, honeypot check. Starter tier.",
+    "Basic static analysis on any EVM address: bytecode verification, honeypot check. Required: address (0x EVM address). Starter tier.",
 };
 export const runScanContract = (i: any) => clientGet(`/v1/security/scan-contract`, i);
 
@@ -506,6 +503,7 @@ export const runScanContract = (i: any) => clientGet(`/v1/security/scan-contract
 // =========================================================================
 
 export const bookKolCampaignInputSchema = z.object({
+  contact_email: z.string().email().describe("Required. Contact email for campaign coordination."),
   budget_usd: z.number().min(100),
   objective: z.string().min(1),
   target_audience: z.string().optional(),
@@ -514,25 +512,27 @@ export const bookKolCampaignInputSchema = z.object({
 export const bookKolCampaignDefinition = {
   name: "book_kol_campaign",
   description:
-    "Broker a KOL campaign via BCA Studio CRM. Pro tier. Returns campaign_id + next steps.",
+    "Broker a KOL campaign via BCA Studio CRM. Required: contact_email, budget_usd, objective. Pro tier. Returns campaign_id + next steps.",
 };
 export const runBookKolCampaign = (i: any) =>
   clientPost(`/v1/services/book-kol-campaign`, i);
 
 export const requestCustomResearchInputSchema = z.object({
+  contact_email: z.string().email().describe("Required. Contact email for report delivery."),
   topic: z.string().min(1),
-  depth: z.enum(["brief", "standard", "deep"]).default("standard"),
+  depth: z.enum(["light", "standard", "deep"]).default("standard"),
   deadline_days: z.number().int().min(1).max(30).default(7),
 });
 export const requestCustomResearchDefinition = {
   name: "request_custom_research",
   description:
-    "Escalate to BCA deep-researcher skill. Pro tier. Returns order_id + pricing.",
+    "Escalate to BCA deep-researcher skill. Required: contact_email, topic. Pro tier. Returns order_id + pricing.",
 };
 export const runRequestCustomResearch = (i: any) =>
   clientPost(`/v1/services/custom-research`, i);
 
 export const submitListingInputSchema = z.object({
+  listing_name: z.string().min(1).describe("Required. Display name for the listing."),
   directory: z.string().min(1).describe("Target directory, e.g. 'vcs', 'aggregators'."),
   entity: z.string().min(1),
   contact_email: z.string().email(),
@@ -540,7 +540,7 @@ export const submitListingInputSchema = z.object({
 export const submitListingDefinition = {
   name: "submit_listing",
   description:
-    "Submit a listing to a BCA directory (vcs, aggregators, trading-bots, etc.). Free to call, paid to feature.",
+    "Submit a listing to a BCA directory (vcs, aggregators, trading-bots, etc.). Required: listing_name, directory, entity, contact_email. Free to call, paid to feature.",
 };
 export const runSubmitListing = (i: any) =>
   clientPost(`/v1/services/submit-listing`, i);
