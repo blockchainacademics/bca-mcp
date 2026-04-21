@@ -8,6 +8,7 @@ import {
 import { z } from "zod";
 
 import { BcaError } from "./errors.js";
+import { VERSION } from "./version.js";
 import {
   searchNewsInputSchema,
   searchNewsDefinition,
@@ -355,7 +356,7 @@ const TOOLS: ReadonlyArray<ToolEntry> = [
 ];
 
 const server = new Server(
-  { name: "@blockchainacademics/mcp", version: "0.2.0" },
+  { name: "@blockchainacademics/mcp", version: VERSION },
   { capabilities: { tools: {} } },
 );
 

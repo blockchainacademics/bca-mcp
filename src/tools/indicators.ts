@@ -4,6 +4,7 @@
  */
 import { z } from "zod";
 import { getClient } from "../client.js";
+import { slugSchema } from "../schema.js";
 import type { ResponseEnvelope } from "../types.js";
 
 const windowEnum = z.enum(["1d", "7d", "30d", "90d"]);
@@ -14,7 +15,7 @@ function indicatorTool(
   defaultWindow: "1d" | "7d" | "30d" | "90d" = "7d",
 ) {
   const schema = z.object({
-    entity_slug: z.string().min(1).describe("Entity slug."),
+    entity_slug: slugSchema("entity_slug").describe("Entity slug."),
     ...(requireWindow
       ? {
           window: windowEnum
@@ -109,7 +110,7 @@ export const runGetKolInfluence = indicatorTool(
 
 // --- get_risk_score --------------------------------------------------------
 export const getRiskScoreInputSchema = z.object({
-  entity_slug: z.string().min(1),
+  entity_slug: slugSchema("entity_slug"),
 });
 export const getRiskScoreDefinition = {
   name: "get_risk_score",

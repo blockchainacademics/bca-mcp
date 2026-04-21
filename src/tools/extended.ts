@@ -8,6 +8,7 @@
  */
 import { z } from "zod";
 import { getClient } from "../client.js";
+import { slugSchema, tickerSchema } from "../schema.js";
 import type { ResponseEnvelope } from "../types.js";
 
 const clientGet = (path: string, params?: Record<string, any>) =>
@@ -41,7 +42,7 @@ export const runListNftCommunities = (i: any) =>
   clientGet(`/v1/directories/nft-communities`, { limit: i.limit });
 
 export const listYieldsInputSchema = z.object({
-  chain: z.string().optional(),
+  chain: slugSchema("chain").optional(),
   min_apy: z.number().optional(),
   limit: z.number().int().min(1).max(100).default(20),
 });
@@ -81,8 +82,8 @@ export const runListTradingBots = (i: any) =>
   clientGet(`/v1/directories/trading-bots`, { limit: i.limit });
 
 export const listVcsInputSchema = z.object({
-  focus: z.string().optional(),
-  stage: z.string().optional(),
+  focus: z.string().max(128).optional(),
+  stage: z.string().max(64).optional(),
   limit: z.number().int().min(1).max(100).default(50),
 });
 export const listVcsDefinition = {
@@ -94,8 +95,8 @@ export const runListVcs = (i: any) => clientGet(`/v1/directories/vcs`, i);
 
 export const listJobsInputSchema = z.object({
   remote: z.boolean().optional(),
-  seniority: z.string().optional(),
-  chain: z.string().optional(),
+  seniority: z.string().max(64).optional(),
+  chain: slugSchema("chain").optional(),
   limit: z.number().int().min(1).max(100).default(50),
 });
 export const listJobsDefinition = {
@@ -115,7 +116,7 @@ export const runListSmartContractTemplates = () =>
   clientGet(`/v1/directories/smart-contract-templates`);
 
 export const getSmartContractTemplateInputSchema = z.object({
-  slug: z.string().min(1),
+  slug: slugSchema("slug"),
 });
 export const getSmartContractTemplateDefinition = {
   name: "get_smart_contract_template",
@@ -134,7 +135,7 @@ export const runListMarketingTemplates = () =>
   clientGet(`/v1/directories/marketing-templates`);
 
 export const getMarketingTemplateInputSchema = z.object({
-  slug: z.string().min(1),
+  slug: slugSchema("slug"),
 });
 export const getMarketingTemplateDefinition = {
   name: "get_marketing_template",
@@ -144,8 +145,12 @@ export const runGetMarketingTemplate = (i: any) =>
   clientGet(`/v1/directories/marketing-templates/${encodeURIComponent(i.slug)}`);
 
 export const buildCustomIndicatorInputSchema = z.object({
-  formula: z.string().min(1).describe("Formula over data primitives, e.g. 'coverage_index(X)/price_change_7d(X)'."),
-  target: z.string().optional(),
+  formula: z
+    .string()
+    .min(1)
+    .max(512)
+    .describe("Formula over data primitives, e.g. 'coverage_index(X)/price_change_7d(X)'."),
+  target: z.string().max(256).optional(),
 });
 export const buildCustomIndicatorDefinition = {
   name: "build_custom_indicator",
@@ -159,7 +164,7 @@ export const runBuildCustomIndicator = (i: any) =>
 // Fundamentals (category 8a)
 // =========================================================================
 
-export const getTokenomicsInputSchema = z.object({ entity_slug: z.string().min(1) });
+export const getTokenomicsInputSchema = z.object({ entity_slug: slugSchema("entity_slug") });
 export const getTokenomicsDefinition = {
   name: "get_tokenomics",
   description:
@@ -167,7 +172,7 @@ export const getTokenomicsDefinition = {
 };
 export const runGetTokenomics = (i: any) => clientGet(`/v1/fundamentals/tokenomics`, i);
 
-export const getAuditReportsInputSchema = z.object({ entity_slug: z.string().min(1) });
+export const getAuditReportsInputSchema = z.object({ entity_slug: slugSchema("entity_slug") });
 export const getAuditReportsDefinition = {
   name: "get_audit_reports",
   description:
@@ -175,7 +180,7 @@ export const getAuditReportsDefinition = {
 };
 export const runGetAuditReports = (i: any) => clientGet(`/v1/fundamentals/audits`, i);
 
-export const getTeamInfoInputSchema = z.object({ entity_slug: z.string().min(1) });
+export const getTeamInfoInputSchema = z.object({ entity_slug: slugSchema("entity_slug") });
 export const getTeamInfoDefinition = {
   name: "get_team_info",
   description:
@@ -183,7 +188,7 @@ export const getTeamInfoDefinition = {
 };
 export const runGetTeamInfo = (i: any) => clientGet(`/v1/fundamentals/team`, i);
 
-export const getRoadmapInputSchema = z.object({ entity_slug: z.string().min(1) });
+export const getRoadmapInputSchema = z.object({ entity_slug: slugSchema("entity_slug") });
 export const getRoadmapDefinition = {
   name: "get_roadmap",
   description: "Project roadmap with BCA editorial fact-check. Starter tier.",
@@ -191,7 +196,15 @@ export const getRoadmapDefinition = {
 export const runGetRoadmap = (i: any) => clientGet(`/v1/fundamentals/roadmap`, i);
 
 export const compareProtocolsInputSchema = z.object({
-  entity_slugs: z.string().describe("Comma-separated entity slugs."),
+  entity_slugs: z
+    .string()
+    .min(1)
+    .max(512)
+    .regex(
+      /^[a-z0-9]+(?:-[a-z0-9]+)*(?:,[a-z0-9]+(?:-[a-z0-9]+)*)*$/,
+      "entity_slugs must be comma-separated kebab-case slugs",
+    )
+    .describe("Comma-separated entity slugs."),
 });
 export const compareProtocolsDefinition = {
   name: "compare_protocols",
@@ -201,7 +214,7 @@ export const compareProtocolsDefinition = {
 export const runCompareProtocols = (i: any) => clientGet(`/v1/fundamentals/compare`, i);
 
 export const checkRugpullRiskInputSchema = z.object({
-  entity_slug: z.string().min(1).describe("Required. Target entity slug."),
+  entity_slug: slugSchema("entity_slug").describe("Required. Target entity slug."),
 });
 export const checkRugpullRiskDefinition = {
   name: "check_rugpull_risk",
@@ -249,7 +262,12 @@ export const runGetTonEcosystem = () => clientGet(`/v1/chains/ton`);
 // =========================================================================
 
 export const getComputePricingInputSchema = z.object({
-  gpu: z.string().optional().describe("GPU type filter (e.g. 'A100', 'H100')."),
+  gpu: z
+    .string()
+    .max(32)
+    .regex(/^[A-Za-z0-9]{1,32}$/, "gpu must be alphanumeric (e.g. 'A100', 'H100')")
+    .optional()
+    .describe("GPU type filter (e.g. 'A100', 'H100')."),
 });
 export const getComputePricingDefinition = {
   name: "get_compute_pricing",
@@ -287,7 +305,12 @@ export const trackBonkfunDefinition = {
 export const runTrackBonkfun = (i: any) => clientGet(`/v1/memes/bonkfun`, i);
 
 export const checkMemecoinRiskInputSchema = z.object({
-  mint: z.string().min(1).describe("Required. Solana token mint address."),
+  mint: z
+    .string()
+    .min(1)
+    .max(64)
+    .regex(/^[1-9A-HJ-NP-Za-km-z]+$/, "mint must be Solana base58 address")
+    .describe("Required. Solana token mint address."),
 });
 export const checkMemecoinRiskDefinition = {
   name: "check_memecoin_risk",
@@ -311,8 +334,12 @@ export const runGetDegenLeaderboard = (i: any) => clientGet(`/v1/memes/leaderboa
 // =========================================================================
 
 export const getFundingRatesInputSchema = z.object({
-  symbol: z.string().min(1).describe("e.g. 'BTC', 'ETH'."),
-  exchanges: z.string().optional().describe("Comma-separated exchange list."),
+  symbol: tickerSchema().describe("e.g. 'BTC', 'ETH'."),
+  exchanges: z
+    .string()
+    .max(256)
+    .optional()
+    .describe("Comma-separated exchange list."),
 });
 export const getFundingRatesDefinition = {
   name: "get_funding_rates",
@@ -323,7 +350,7 @@ export const runGetFundingRates = (i: any) =>
   clientGet(`/v1/microstructure/funding-rates`, i);
 
 export const getOptionsFlowInputSchema = z.object({
-  symbol: z.string().min(1),
+  symbol: tickerSchema(),
 });
 export const getOptionsFlowDefinition = {
   name: "get_options_flow",
@@ -332,7 +359,7 @@ export const getOptionsFlowDefinition = {
 export const runGetOptionsFlow = (i: any) => clientGet(`/v1/microstructure/options-flow`, i);
 
 export const getLiquidationHeatmapInputSchema = z.object({
-  symbol: z.string().min(1),
+  symbol: tickerSchema(),
 });
 export const getLiquidationHeatmapDefinition = {
   name: "get_liquidation_heatmap",
@@ -342,7 +369,7 @@ export const runGetLiquidationHeatmap = (i: any) =>
   clientGet(`/v1/microstructure/liquidation-heatmap`, i);
 
 export const getExchangeFlowsInputSchema = z.object({
-  symbol: z.string().min(1),
+  symbol: tickerSchema(),
   window: z.enum(["1d", "7d", "30d"]).default("7d"),
 });
 export const getExchangeFlowsDefinition = {
@@ -353,7 +380,7 @@ export const runGetExchangeFlows = (i: any) =>
   clientGet(`/v1/microstructure/exchange-flows`, i);
 
 export const predictListingInputSchema = z.object({
-  entity_slug: z.string().min(1),
+  entity_slug: slugSchema("entity_slug"),
 });
 export const predictListingDefinition = {
   name: "predict_listing",
@@ -367,7 +394,9 @@ export const runPredictListing = (i: any) =>
 // =========================================================================
 
 export const trackNarrativeInputSchema = z.object({
-  narrative: z.string().min(1).describe("e.g. 'ai-agents', 'rwa', 'depin', 'modular'."),
+  narrative: slugSchema("narrative").describe(
+    "e.g. 'ai-agents', 'rwa', 'depin', 'modular'.",
+  ),
   window: z.enum(["1d", "7d", "30d"]).default("7d"),
 });
 export const trackNarrativeDefinition = {
@@ -406,7 +435,7 @@ export const getRwaTokensDefinition = {
 export const runGetRwaTokens = (i: any) => clientGet(`/v1/narrative/rwa`, i);
 
 export const getPredictionMarketsInputSchema = z.object({
-  topic: z.string().optional(),
+  topic: slugSchema("topic").optional(),
   limit: z.number().int().min(1).max(100).default(50),
 });
 export const getPredictionMarketsDefinition = {
@@ -421,7 +450,12 @@ export const runGetPredictionMarkets = (i: any) =>
 // =========================================================================
 
 export const getRegulatoryStatusInputSchema = z.object({
-  country: z.string().min(2).describe("ISO country code or name."),
+  country: z
+    .string()
+    .min(2)
+    .max(64)
+    .regex(/^[A-Za-z][A-Za-z \-']*$/, "country must be ISO code or name")
+    .describe("ISO country code or name."),
 });
 export const getRegulatoryStatusDefinition = {
   name: "get_regulatory_status",
@@ -430,7 +464,7 @@ export const getRegulatoryStatusDefinition = {
 export const runGetRegulatoryStatus = (i: any) => clientGet(`/v1/regulatory/status`, i);
 
 export const trackSecFilingsInputSchema = z.object({
-  ticker: z.string().min(1).describe("e.g. MSTR, COIN, HOOD."),
+  ticker: tickerSchema().describe("e.g. MSTR, COIN, HOOD."),
 });
 export const trackSecFilingsDefinition = {
   name: "track_sec_filings",
@@ -439,7 +473,7 @@ export const trackSecFilingsDefinition = {
 export const runTrackSecFilings = (i: any) => clientGet(`/v1/regulatory/sec-filings`, i);
 
 export const getMicaStatusInputSchema = z.object({
-  entity_slug: z.string().min(1),
+  entity_slug: slugSchema("entity_slug"),
 });
 export const getMicaStatusDefinition = {
   name: "get_mica_status",
@@ -448,7 +482,11 @@ export const getMicaStatusDefinition = {
 export const runGetMicaStatus = (i: any) => clientGet(`/v1/regulatory/mica`, i);
 
 export const getTaxRulesInputSchema = z.object({
-  country: z.string().min(2),
+  country: z
+    .string()
+    .min(2)
+    .max(64)
+    .regex(/^[A-Za-z][A-Za-z \-']*$/, "country must be ISO code or name"),
 });
 export const getTaxRulesDefinition = {
   name: "get_tax_rules",
@@ -461,7 +499,7 @@ export const runGetTaxRules = (i: any) => clientGet(`/v1/regulatory/tax-rules`, 
 // =========================================================================
 
 export const checkExploitHistoryInputSchema = z.object({
-  entity_slug: z.string().min(1),
+  entity_slug: slugSchema("entity_slug"),
 });
 export const checkExploitHistoryDefinition = {
   name: "check_exploit_history",
@@ -470,7 +508,14 @@ export const checkExploitHistoryDefinition = {
 export const runCheckExploitHistory = (i: any) => clientGet(`/v1/security/exploits`, i);
 
 export const checkPhishingDomainInputSchema = z.object({
-  domain: z.string().min(1),
+  domain: z
+    .string()
+    .min(1)
+    .max(253)
+    .regex(
+      /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+$/,
+      "domain must be a valid hostname",
+    ),
 });
 export const checkPhishingDomainDefinition = {
   name: "check_phishing_domain",
@@ -503,10 +548,14 @@ export const runScanContract = (i: any) => clientGet(`/v1/security/scan-contract
 // =========================================================================
 
 export const bookKolCampaignInputSchema = z.object({
-  contact_email: z.string().email().describe("Required. Contact email for campaign coordination."),
+  contact_email: z
+    .string()
+    .email()
+    .max(254)
+    .describe("Required. Contact email for campaign coordination."),
   budget_usd: z.number().min(100),
-  objective: z.string().min(1),
-  target_audience: z.string().optional(),
+  objective: z.string().min(1).max(512),
+  target_audience: z.string().max(256).optional(),
   launch_window_days: z.number().int().min(1).max(365).default(30),
 });
 export const bookKolCampaignDefinition = {
@@ -518,8 +567,12 @@ export const runBookKolCampaign = (i: any) =>
   clientPost(`/v1/services/book-kol-campaign`, i);
 
 export const requestCustomResearchInputSchema = z.object({
-  contact_email: z.string().email().describe("Required. Contact email for report delivery."),
-  topic: z.string().min(1),
+  contact_email: z
+    .string()
+    .email()
+    .max(254)
+    .describe("Required. Contact email for report delivery."),
+  topic: z.string().min(1).max(256),
   depth: z.enum(["light", "standard", "deep"]).default("standard"),
   deadline_days: z.number().int().min(1).max(30).default(7),
 });
@@ -532,10 +585,16 @@ export const runRequestCustomResearch = (i: any) =>
   clientPost(`/v1/services/custom-research`, i);
 
 export const submitListingInputSchema = z.object({
-  listing_name: z.string().min(1).describe("Required. Display name for the listing."),
-  directory: z.string().min(1).describe("Target directory, e.g. 'vcs', 'aggregators'."),
-  entity: z.string().min(1),
-  contact_email: z.string().email(),
+  listing_name: z
+    .string()
+    .min(1)
+    .max(128)
+    .describe("Required. Display name for the listing."),
+  directory: slugSchema("directory").describe(
+    "Target directory, e.g. 'vcs', 'aggregators'.",
+  ),
+  entity: slugSchema("entity"),
+  contact_email: z.string().email().max(254),
 });
 export const submitListingDefinition = {
   name: "submit_listing",
@@ -550,7 +609,7 @@ export const runSubmitListing = (i: any) =>
 // =========================================================================
 
 export const getHistoryPricesInputSchema = z.object({
-  symbol: z.string().min(1),
+  symbol: tickerSchema(),
   days: z.number().int().min(1).max(3650).default(365),
 });
 export const getHistoryPricesDefinition = {
@@ -561,7 +620,7 @@ export const runGetHistoryPrices = (i: any) =>
   clientGet(`/v1/history/prices/${encodeURIComponent(i.symbol)}`, { days: i.days });
 
 export const getHistorySentimentInputSchema = z.object({
-  symbol: z.string().min(1),
+  symbol: tickerSchema(),
   days: z.number().int().min(1).max(3650).default(365),
 });
 export const getHistorySentimentDefinition = {
@@ -572,8 +631,8 @@ export const runGetHistorySentiment = (i: any) =>
   clientGet(`/v1/history/sentiment/${encodeURIComponent(i.symbol)}`, { days: i.days });
 
 export const getHistoryCorrelationInputSchema = z.object({
-  symbol: z.string().min(1),
-  peer: z.string().min(1).describe("Peer symbol to correlate against."),
+  symbol: tickerSchema(),
+  peer: tickerSchema().describe("Peer symbol to correlate against."),
   days: z.number().int().min(7).max(3650).default(365),
 });
 export const getHistoryCorrelationDefinition = {
@@ -588,7 +647,7 @@ export const runGetHistoryCorrelation = (i: any) =>
   });
 
 export const getHistoryCoverageInputSchema = z.object({
-  entity_slug: z.string().min(1),
+  entity_slug: slugSchema("entity_slug"),
   days: z.number().int().min(1).max(3650).default(365),
 });
 export const getHistoryCoverageDefinition = {
@@ -614,7 +673,7 @@ export const listEntitiesDefinition = {
 };
 export const runListEntities = (i: any) => clientGet(`/v1/entities`, i);
 
-export const getTopicInputSchema = z.object({ slug: z.string().min(1) });
+export const getTopicInputSchema = z.object({ slug: slugSchema("slug") });
 export const getTopicDefinition = {
   name: "get_topic",
   description: "Fetch a topic node from the taxonomy (articles under it, parents, siblings).",
@@ -623,7 +682,7 @@ export const runGetTopic = (i: any) =>
   clientGet(`/v1/topics/${encodeURIComponent(i.slug)}`);
 
 export const searchAcademyInputSchema = z.object({
-  q: z.string().min(1),
+  q: z.string().min(1).max(512),
   limit: z.number().int().min(1).max(50).default(10),
 });
 export const searchAcademyDefinition = {
@@ -681,7 +740,7 @@ export const listMemosDefinition = {
 };
 export const runListMemos = (i: any) => clientGet(`/v1/memos`, i);
 
-export const getMemoInputSchema = z.object({ slug: z.string().min(1) });
+export const getMemoInputSchema = z.object({ slug: slugSchema("slug") });
 export const getMemoDefinition = {
   name: "get_memo",
   description: "Fetch a specific investment memo by slug.",
@@ -698,7 +757,7 @@ export const listThesesDefinition = {
 };
 export const runListTheses = (i: any) => clientGet(`/v1/theses`, i);
 
-export const getThesisInputSchema = z.object({ slug: z.string().min(1) });
+export const getThesisInputSchema = z.object({ slug: slugSchema("slug") });
 export const getThesisDefinition = {
   name: "get_thesis",
   description: "Fetch a specific trade thesis by slug.",
@@ -719,7 +778,7 @@ export const getSocialSignalsDefinition = {
 export const runGetSocialSignals = (i: any) => clientGet(`/v1/social-signals`, i);
 
 export const getSocialSignalsDetailInputSchema = z.object({
-  symbol: z.string().min(1),
+  symbol: tickerSchema(),
 });
 export const getSocialSignalsDetailDefinition = {
   name: "get_social_signals_detail",
@@ -742,7 +801,7 @@ export const listCurrenciesDefinition = {
 export const runListCurrencies = (i: any) => clientGet(`/v1/currencies`, i);
 
 export const getCurrencyFeedInputSchema = z.object({
-  symbol: z.string().min(1),
+  symbol: tickerSchema(),
   limit: z.number().int().min(1).max(100).default(50),
 });
 export const getCurrencyFeedDefinition = {

@@ -1,19 +1,16 @@
 import { z } from "zod";
 import { getClient } from "../client.js";
+import { slugSchema, tickerSchema } from "../schema.js";
 import type { Entity, ResponseEnvelope } from "../types.js";
 
 export const getEntityInputSchema = z
   .object({
-    slug: z
-      .string()
-      .min(1)
+    slug: slugSchema("slug")
       .optional()
       .describe(
         "Canonical entity slug (e.g. 'vitalik-buterin', 'ethereum', 'circle').",
       ),
-    ticker: z
-      .string()
-      .min(1)
+    ticker: tickerSchema()
       .optional()
       .describe("Ticker symbol (e.g. 'ETH', 'SOL'). Case-insensitive."),
   })
@@ -33,12 +30,18 @@ export async function runGetEntity(
   input: GetEntityInput,
 ): Promise<ResponseEnvelope<Entity>> {
   const client = getClient();
-  if (input.slug) {
-    return client.request<Entity>(
-      `/v1/entities/${encodeURIComponent(input.slug)}`,
-    );
+  const res = input.slug
+    ? await client.request<Entity>(
+        `/v1/entities/${encodeURIComponent(input.slug)}`,
+      )
+    : await client.request<Entity>("/v1/entities", {
+        ticker: input.ticker!.toUpperCase(),
+      });
+  // A-3: entity `summary` may include third-party excerpts ingested into the
+  // dossier. Wrap so an LLM consumer treats it as data, not instructions.
+  if (res?.data && typeof res.data.summary === "string" && res.data.summary.length > 0) {
+    res.data.summary =
+      `<untrusted_content source="get_entity">\n${res.data.summary}\n</untrusted_content>`;
   }
-  return client.request<Entity>("/v1/entities", {
-    ticker: input.ticker!.toUpperCase(),
-  });
+  return res;
 }

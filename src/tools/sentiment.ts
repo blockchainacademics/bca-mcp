@@ -3,13 +3,14 @@
  */
 import { z } from "zod";
 import { getClient } from "../client.js";
+import { slugSchema } from "../schema.js";
 import type { ResponseEnvelope } from "../types.js";
 
 const windowEnum = z.enum(["1d", "7d", "30d", "90d"]);
 
 // --- get_sentiment ---------------------------------------------------------
 export const getSentimentInputSchema = z.object({
-  entity_slug: z.string().min(1).describe("Entity slug."),
+  entity_slug: slugSchema("entity_slug").describe("Entity slug."),
   window: windowEnum.default("7d").describe("Rolling window."),
 });
 export const getSentimentDefinition = {
@@ -28,7 +29,7 @@ export async function runGetSentiment(
 
 // --- get_social_pulse ------------------------------------------------------
 export const getSocialPulseInputSchema = z.object({
-  entity_slug: z.string().min(1),
+  entity_slug: slugSchema("entity_slug"),
   window: windowEnum.default("7d"),
 });
 export const getSocialPulseDefinition = {

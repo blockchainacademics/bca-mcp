@@ -1,0 +1,43 @@
+version: 2
+updates:
+  # --- npm ---
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: "UTC"
+    target-branch: main
+    open-pull-requests-limit: 5
+    assignees:
+      - waelrajab # TODO: confirm GitHub handle — placeholder until verified
+    labels:
+      - dependencies
+      - javascript
+    groups:
+      npm-minor-patch:
+        update-types:
+          - minor
+          - patch
+
+  # --- GitHub Actions ---
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: "UTC"
+    target-branch: main
+    open-pull-requests-limit: 5
+    assignees:
+      - waelrajab # TODO: confirm GitHub handle
+    labels:
+      - dependencies
+      - github-actions
+    groups:
+      actions-minor-patch:
+        update-types:
+          - minor
+          - patch

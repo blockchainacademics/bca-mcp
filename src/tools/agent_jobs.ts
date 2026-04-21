@@ -7,14 +7,16 @@
  */
 import { z } from "zod";
 import { getClient } from "../client.js";
+import { slugSchema } from "../schema.js";
 import type { ResponseEnvelope } from "../types.js";
 
 // --- generate_due_diligence -----------------------------------------------
 export const generateDueDiligenceInputSchema = z.object({
-  entity_slug: z.string().min(1).describe("Target entity slug."),
+  entity_slug: slugSchema("entity_slug").describe("Target entity slug."),
   depth: z.enum(["light", "standard", "deep"]).default("standard").describe("Depth of the report: light|standard|deep."),
   focus: z
-    .array(z.string())
+    .array(z.string().min(1).max(64))
+    .max(16)
     .optional()
     .describe("Optional focus areas (e.g. ['tokenomics', 'audits'])."),
 });
@@ -35,7 +37,7 @@ export async function runGenerateDueDiligence(
 
 // --- generate_tokenomics_model --------------------------------------------
 export const generateTokenomicsModelInputSchema = z.object({
-  entity_slug: z.string().min(1),
+  entity_slug: slugSchema("entity_slug"),
   horizon_days: z.number().int().min(30).max(3650).default(365),
   scenarios: z
     .array(z.enum(["base", "bull", "bear"]))
@@ -54,7 +56,11 @@ export async function runGenerateTokenomicsModel(
 
 // --- summarize_whitepaper --------------------------------------------------
 export const summarizeWhitepaperInputSchema = z.object({
-  url: z.string().url().describe("Public URL of the whitepaper (PDF or HTML)."),
+  url: z
+    .string()
+    .url()
+    .max(2048)
+    .describe("Public URL of the whitepaper (PDF or HTML)."),
   length: z.enum(["brief", "standard", "deep"]).default("standard"),
 });
 export const summarizeWhitepaperDefinition = {
@@ -70,7 +76,7 @@ export async function runSummarizeWhitepaper(
 
 // --- translate_contract ----------------------------------------------------
 export const translateContractInputSchema = z.object({
-  source_code: z.string().min(10),
+  source_code: z.string().min(10).max(200_000),
   source_language: z.enum(["solidity", "vyper", "move", "rust-anchor"]).describe("Source contract language."),
   target_language: z.enum(["solidity", "vyper", "move", "rust-anchor"]).describe("Target contract language."),
 });
@@ -88,7 +94,11 @@ export async function runTranslateContract(
 // --- monitor_keyword -------------------------------------------------------
 export const monitorKeywordInputSchema = z.object({
   keyword: z.string().min(1).max(200),
-  webhook_url: z.string().url().describe("HTTPS webhook URL for notifications (required)."),
+  webhook_url: z
+    .string()
+    .url()
+    .max(2048)
+    .describe("HTTPS webhook URL for notifications (required)."),
   window_hours: z.number().int().min(1).max(168).default(24),
 });
 export const monitorKeywordDefinition = {
@@ -104,7 +114,12 @@ export async function runMonitorKeyword(
 
 // --- get_agent_job ---------------------------------------------------------
 export const getAgentJobInputSchema = z.object({
-  job_id: z.string().min(1).describe("Job ID returned from any generate_* tool."),
+  job_id: z
+    .string()
+    .min(1)
+    .max(128)
+    .regex(/^[A-Za-z0-9_-]+$/, "job_id must be [A-Za-z0-9_-]")
+    .describe("Job ID returned from any generate_* tool."),
 });
 export const getAgentJobDefinition = {
   name: "get_agent_job",
@@ -114,5 +129,29 @@ export const getAgentJobDefinition = {
 export async function runGetAgentJob(
   input: z.infer<typeof getAgentJobInputSchema>,
 ): Promise<ResponseEnvelope<unknown>> {
-  return getClient().request(`/v1/agent-jobs/${encodeURIComponent(input.job_id)}`);
+  const res = await getClient().request(
+    `/v1/agent-jobs/${encodeURIComponent(input.job_id)}`,
+  );
+  // A-3: summarize_whitepaper output is synthesized from an external document
+  // (the whitepaper itself is third-party content), so its `summary` fields
+  // must be fenced as untrusted before the LLM consumes them.
+  const data = res?.data as Record<string, unknown> | undefined;
+  const jobKind =
+    typeof data?.kind === "string"
+      ? (data.kind as string)
+      : typeof data?.job_type === "string"
+        ? (data.job_type as string)
+        : "";
+  if (jobKind === "summarize-whitepaper" || jobKind === "summarize_whitepaper") {
+    const output = data?.output as Record<string, unknown> | undefined;
+    if (output) {
+      for (const key of ["summary", "abstract", "body", "body_markdown"]) {
+        if (typeof output[key] === "string" && (output[key] as string).length > 0) {
+          output[key] =
+            `<untrusted_content source="summarize_whitepaper">\n${output[key]}\n</untrusted_content>`;
+        }
+      }
+    }
+  }
+  return res;
 }

@@ -1,17 +1,14 @@
 import { z } from "zod";
 import { getClient } from "../client.js";
+import { slugSchema } from "../schema.js";
 import type { Explainer, ResponseEnvelope } from "../types.js";
 
 export const getExplainerInputSchema = z
   .object({
-    slug: z
-      .string()
-      .min(1)
+    slug: slugSchema("slug")
       .optional()
       .describe("Academy lesson slug (e.g. 'what-is-a-blockchain')."),
-    topic: z
-      .string()
-      .min(1)
+    topic: slugSchema("topic")
       .optional()
       .describe(
         "Topic keyword — resolves to the canonical lesson (e.g. 'liquidity-pools').",

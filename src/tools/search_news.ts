@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { getClient } from "../client.js";
+import { slugSchema } from "../schema.js";
 import type { ResponseEnvelope, SearchNewsResult } from "../types.js";
 
 export const searchNewsInputSchema = z.object({
@@ -8,8 +9,7 @@ export const searchNewsInputSchema = z.object({
     .min(1)
     .max(512)
     .describe("Full-text search query (1-512 chars)."),
-  entity: z
-    .string()
+  entity: slugSchema("entity")
     .optional()
     .describe("Entity slug filter (e.g. 'ethereum', 'circle')."),
   since: z
@@ -19,8 +19,7 @@ export const searchNewsInputSchema = z.object({
     .describe(
       "ISO 8601 date; return articles published on or after this timestamp.",
     ),
-  topic: z
-    .string()
+  topic: slugSchema("topic")
     .optional()
     .describe("Topic filter (e.g. 'regulation', 'defi')."),
   limit: z
@@ -44,11 +43,23 @@ export async function runSearchNews(
   input: SearchNewsInput,
 ): Promise<ResponseEnvelope<SearchNewsResult>> {
   const client = getClient();
-  return client.request<SearchNewsResult>("/v1/articles/search", {
+  const res = await client.request<SearchNewsResult>("/v1/articles/search", {
     q: input.query,
     entity: input.entity,
     since: input.since,
     topic: input.topic,
     limit: input.limit,
   });
+  // A-3: wrap third-party article summaries so an LLM consumer treats them
+  // as data, not instructions. Only the `summary` field flows from external
+  // article bodies; titles/slugs are editorial metadata.
+  if (res?.data?.articles && Array.isArray(res.data.articles)) {
+    for (const a of res.data.articles) {
+      if (typeof a.summary === "string" && a.summary.length > 0) {
+        a.summary =
+          `<untrusted_content source="search_news">\n${a.summary}\n</untrusted_content>`;
+      }
+    }
+  }
+  return res;
 }

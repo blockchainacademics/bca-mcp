@@ -11,8 +11,19 @@ export const getPriceInputSchema = z.object({
   ids: z
     .string()
     .min(1)
+    .max(512)
+    .regex(
+      /^[a-z0-9]+(?:-[a-z0-9]+)*(?:,[a-z0-9]+(?:-[a-z0-9]+)*)*$/,
+      "ids must be comma-separated kebab-case CoinGecko IDs",
+    )
     .describe("CoinGecko id(s), comma-separated. E.g. 'bitcoin,ethereum'."),
-  vs: z.string().default("usd").describe("Quote currency (default usd)."),
+  vs: z
+    .string()
+    .min(1)
+    .max(16)
+    .regex(/^[a-zA-Z0-9]{1,16}$/, "vs must be 1-16 alphanumerics")
+    .default("usd")
+    .describe("Quote currency (default usd)."),
 });
 export const getPriceDefinition = {
   name: "get_price",
@@ -27,9 +38,19 @@ export async function runGetPrice(
 
 // --- get_ohlc --------------------------------------------------------------
 export const getOhlcInputSchema = z.object({
-  id: z.string().min(1).describe("CoinGecko id (e.g. 'bitcoin')."),
+  id: z
+    .string()
+    .min(1)
+    .max(128)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "id must be kebab-case CoinGecko id")
+    .describe("CoinGecko id (e.g. 'bitcoin')."),
   days: z.number().int().min(1).max(365).default(30).describe("Lookback days (1-365)."),
-  vs: z.string().default("usd"),
+  vs: z
+    .string()
+    .min(1)
+    .max(16)
+    .regex(/^[a-zA-Z0-9]{1,16}$/, "vs must be 1-16 alphanumerics")
+    .default("usd"),
 });
 export const getOhlcDefinition = {
   name: "get_ohlc",
@@ -63,8 +84,18 @@ export async function runGetMarketOverview(
 
 // --- get_pair_data ---------------------------------------------------------
 export const getPairDataInputSchema = z.object({
-  chain: z.string().min(1).describe("Chain slug (e.g. 'ethereum', 'solana', 'bsc')."),
-  pair: z.string().min(1).describe("Pair contract address."),
+  chain: z
+    .string()
+    .min(1)
+    .max(64)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "chain must be kebab-case slug")
+    .describe("Chain slug (e.g. 'ethereum', 'solana', 'bsc')."),
+  pair: z
+    .string()
+    .min(1)
+    .max(128)
+    .regex(/^[A-Za-z0-9]+$/, "pair must be alphanumeric address")
+    .describe("Pair contract address."),
 });
 export const getPairDataDefinition = {
   name: "get_pair_data",

@@ -6,12 +6,12 @@
     "url": "https://github.com/blockchainacademics/bca-mcp",
     "source": "github"
   },
-  "version": "0.2.0",
+  "version": "0.2.2",
   "packages": [
     {
       "registry_type": "npm",
       "identifier": "@blockchainacademics/mcp",
-      "version": "0.2.0",
+      "version": "0.2.2",
       "transport": {
         "type": "stdio"
       },
@@ -35,7 +35,7 @@
     "io.modelcontextprotocol.registry/publisher-provided": {
       "tool": {
         "name": "BCA MCP",
-        "version": "0.2.0"
+        "version": "0.2.2"
       },
       "tool_count": 99,
       "tool_categories": [

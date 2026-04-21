@@ -137,9 +137,9 @@ When your agent surfaces BCA content to a user, attribute via the `cite_url`. Fi
 
 ## API Key
 
-Get an API key at https://blockchainacademics.com/api (free tier: 1,000 calls/month). Paid tiers unlock agent-backed research generation and proprietary on-chain indicators.
+Get an API key at https://blockchainacademics.com/api (free tier: 2,000 calls/month). Paid tiers unlock agent-backed research generation and proprietary on-chain indicators.
 
-Set `BCA_API_KEY` in your MCP client env. Optionally override `BCA_API_BASE_URL` (default `https://api.blockchainacademics.com`).
+Set `BCA_API_KEY` in your MCP client env. Optionally override `BCA_API_BASE` (default `https://api.blockchainacademics.com`). `BCA_API_BASE_URL` is also accepted for backward compatibility.
 
 ## Errors
 
@@ -165,6 +165,22 @@ npm run build    # tsc -> dist/
 npm test         # node:test smoke suite
 npm run dev      # tsx src/index.ts (stdio)
 ```
+
+### Pre-commit hooks
+
+This repo uses [`pre-commit`](https://pre-commit.com) to enforce formatting, lint, secret scanning, and large-file caps before every commit. Install once per clone:
+
+```bash
+pip install pre-commit          # or: brew install pre-commit
+pre-commit install              # wires .git/hooks/pre-commit
+pre-commit run --all-files      # optional: lint the full tree now
+```
+
+Hooks configured in [`.pre-commit-config.yaml`](./.pre-commit-config.yaml): `prettier --check`, `eslint`, `gitleaks`, `detect-private-key`, `check-added-large-files` (500KB cap).
+
+## Security
+
+See [`SECURITY.md`](./SECURITY.md) for vulnerability reporting, supported versions, and our 90-day coordinated disclosure policy.
 
 ## License
 

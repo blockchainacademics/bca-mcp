@@ -5,10 +5,10 @@ import {
   BcaUpstreamError,
 } from "./errors.js";
 import type { ResponseEnvelope } from "./types.js";
+import { VERSION } from "./version.js";
 
 const DEFAULT_BASE = "https://api.blockchainacademics.com";
-const USER_AGENT =
-  "@blockchainacademics/mcp/0.1.0 (+https://github.com/blockchainacademics/bca-mcp)";
+const USER_AGENT = `@blockchainacademics/mcp/${VERSION} (+https://github.com/blockchainacademics/bca-mcp)`;
 
 export interface BcaClientOptions {
   baseUrl?: string;
@@ -26,6 +26,7 @@ export class BcaClient {
   constructor(opts: BcaClientOptions = {}) {
     this.baseUrl = (
       opts.baseUrl ??
+      process.env["BCA_API_BASE"] ??
       process.env["BCA_API_BASE_URL"] ??
       DEFAULT_BASE
     ).replace(/\/+$/, "");

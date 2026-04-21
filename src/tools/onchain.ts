@@ -4,11 +4,17 @@
  */
 import { z } from "zod";
 import { getClient } from "../client.js";
+import { slugSchema } from "../schema.js";
 import type { ResponseEnvelope } from "../types.js";
 
 // --- get_wallet_profile ----------------------------------------------------
 export const getWalletProfileInputSchema = z.object({
-  address: z.string().min(1).describe("Wallet address (EVM 0x… or Solana base58)."),
+  address: z
+    .string()
+    .min(1)
+    .max(128)
+    .regex(/^[A-Za-z0-9]+$/, "address must be alphanumeric (EVM hex or base58)")
+    .describe("Wallet address (EVM 0x… or Solana base58)."),
   chain: z
     .enum(["ethereum", "solana", "arbitrum", "base", "optimism", "polygon", "bsc"])
     .default("ethereum"),
@@ -29,7 +35,12 @@ export async function runGetWalletProfile(
 
 // --- get_tx ----------------------------------------------------------------
 export const getTxInputSchema = z.object({
-  hash: z.string().min(1).describe("Transaction hash."),
+  hash: z
+    .string()
+    .min(1)
+    .max(128)
+    .regex(/^[A-Za-z0-9]+$/, "hash must be alphanumeric")
+    .describe("Transaction hash."),
   chain: z
     .enum(["ethereum", "solana", "arbitrum", "base", "optimism", "polygon", "bsc"])
     .default("ethereum"),
@@ -47,7 +58,12 @@ export async function runGetTx(
 
 // --- get_token_holders -----------------------------------------------------
 export const getTokenHoldersInputSchema = z.object({
-  contract: z.string().min(1).describe("Token contract address (EVM)."),
+  contract: z
+    .string()
+    .min(1)
+    .max(128)
+    .regex(/^0x[a-fA-F0-9]{40}$/, "contract must be EVM address (0x + 40 hex)")
+    .describe("Token contract address (EVM)."),
   chain: z
     .enum(["ethereum", "arbitrum", "base", "optimism", "polygon", "bsc"])
     .default("ethereum")
@@ -71,7 +87,9 @@ export async function runGetTokenHolders(
 
 // --- get_defi_protocol -----------------------------------------------------
 export const getDefiProtocolInputSchema = z.object({
-  protocol: z.string().min(1).describe("DefiLlama protocol slug (e.g. 'aave', 'uniswap')."),
+  protocol: slugSchema("protocol").describe(
+    "DefiLlama protocol slug (e.g. 'aave', 'uniswap').",
+  ),
 });
 export const getDefiProtocolDefinition = {
   name: "get_defi_protocol",
