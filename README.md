@@ -2,7 +2,7 @@
 
 The canonical crypto MCP server for AI agents. **99 tools** spanning 3,501+ editorial articles, 200+ entity dossiers, 43 academy lessons, aggregated market + on-chain data, proprietary indicators, and async agent-backed generation — all accessible as MCP tools your AI agent can call natively.
 
-## Tool categories (v0.2.0)
+## Tool categories (v0.3.1)
 
 | Category | Count | Examples |
 |---|---|---|
