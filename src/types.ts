@@ -1,9 +1,44 @@
+export type EnvelopeStatus = "complete" | "unseeded" | "partial" | "error";
+
 export interface ResponseEnvelope<T> {
   data: T;
+  status?: EnvelopeStatus; // optional for tool authors; middleware default-fills to "complete"
   cite_url?: string;
   as_of?: string; // ISO 8601
   source_hash?: string;
   meta?: Record<string, unknown>;
+}
+
+/**
+ * Resolve the final envelope status. Tool authors may set `status` explicitly;
+ * otherwise we auto-detect "unseeded" from empty payloads, falling back to "complete".
+ * Middleware uses this to guarantee every wire response carries a status field.
+ */
+export function resolveEnvelopeStatus<T>(
+  data: T,
+  explicit?: EnvelopeStatus,
+): EnvelopeStatus {
+  if (explicit) return explicit;
+  if (data === null || data === undefined) return "unseeded";
+  if (Array.isArray(data) && data.length === 0) return "unseeded";
+  if (
+    typeof data === "object" &&
+    data !== null &&
+    !Array.isArray(data) &&
+    Object.keys(data as object).length === 0
+  ) {
+    return "unseeded";
+  }
+  // Object with an obvious empty collection field (articles/entities/items/results)
+  if (typeof data === "object" && data !== null && !Array.isArray(data)) {
+    const d = data as Record<string, unknown>;
+    const collections = ["articles", "entities", "items", "results", "rows", "events"];
+    for (const key of collections) {
+      const v = d[key];
+      if (Array.isArray(v) && v.length === 0) return "unseeded";
+    }
+  }
+  return "complete";
 }
 
 export interface Article {

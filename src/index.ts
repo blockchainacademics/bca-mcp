@@ -9,6 +9,7 @@ import { z } from "zod";
 
 import { BcaError } from "./errors.js";
 import { VERSION } from "./version.js";
+import { resolveEnvelopeStatus, type EnvelopeStatus } from "./types.js";
 import {
   searchNewsInputSchema,
   searchNewsDefinition,
@@ -109,6 +110,7 @@ interface ToolEntry {
   readonly inputSchema: Record<string, unknown>;
   readonly run: (args: unknown) => Promise<{
     data: unknown;
+    status?: EnvelopeStatus;
     cite_url?: string;
     as_of?: string;
     source_hash?: string;
@@ -391,8 +393,13 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
     const envelope = await tool.run(req.params.arguments ?? {});
     // Attribution surfacing: cite_url/as_of/source_hash always present
     // (null when upstream omits) so downstream agents can detect provenance.
+    // `status` is always present on the wire — middleware default-fills to
+    // "complete", auto-detects "unseeded" on empty payloads, and respects
+    // explicit values set by tool authors (e.g. "partial", "error").
+    const status = resolveEnvelopeStatus(envelope.data, envelope.status);
     const payload = {
       data: envelope.data,
+      status,
       attribution: {
         cite_url: envelope.cite_url ?? null,
         as_of: envelope.as_of ?? null,
