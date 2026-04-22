@@ -338,6 +338,15 @@ export class BcaClient {
           "User-Agent": USER_AGENT,
           ...(method === "POST" ? { "Content-Type": "application/json" } : {}),
         },
+        // MCP-TS-2: never follow redirects automatically. WHATWG fetch
+        // strips only a small allow-list of headers (Authorization,
+        // Cookie, Proxy-Authorization) on cross-origin redirects — our
+        // custom X-API-Key would be replayed to whatever Location the
+        // response points at. A compromised or misconfigured upstream
+        // could therefore exfiltrate the key to an attacker-controlled
+        // host. Setting `redirect: "manual"` surfaces the 3xx as a
+        // response status we explicitly reject below.
+        redirect: "manual",
         signal: AbortSignal.timeout(this.timeoutMs),
       };
       if (method === "POST" && body) {
@@ -346,6 +355,16 @@ export class BcaClient {
       res = await this.fetchImpl(url, init);
     } catch (err) {
       throw new BcaNetworkError(err);
+    }
+
+    // Explicitly reject redirects — see MCP-TS-2 note above. `res.type === "opaqueredirect"`
+    // is what browser fetch returns under manual-redirect; Node's undici surfaces the
+    // raw 3xx status. Handle both shapes.
+    if (res.type === "opaqueredirect" || (res.status >= 300 && res.status < 400)) {
+      throw new BcaUpstreamError(
+        res.status || 302,
+        "BCA API redirect blocked — refusing to replay X-API-Key to a new origin",
+      );
     }
 
     if (res.status === 401 || res.status === 403) throw new BcaAuthError();
