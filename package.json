@@ -1,7 +1,7 @@
 {
   "name": "@blockchainacademics/mcp",
-  "version": "0.2.3",
-  "description": "The canonical crypto MCP server for AI agents \u2014 98 tools spanning news, entities, academy, market data, on-chain, sentiment, proprietary indicators, and agent-backed generation.",
+  "version": "0.2.4",
+  "description": "The canonical crypto MCP server for AI agents — 98 tools spanning news, entities, academy, market data, on-chain, sentiment, proprietary indicators, and agent-backed generation.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
