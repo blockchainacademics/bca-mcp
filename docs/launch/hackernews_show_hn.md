@@ -11,11 +11,11 @@ Show HN: bca-mcp – 98 crypto tools for AI agents with a proprietary corpus
 
 Hi HN,
 
-I'm Wael, previously on the DEXTools team. For the past several months we've been building bca-mcp, a Model Context Protocol server (plus open REST API) exposing 98 tools for AI agents that need to reason about crypto markets.
+I'm Wael, previously on the DEXTools team. For the past several months we've been building bca-mcp, a Model Context Protocol server (plus open REST API) exposing 99 tools for AI agents that need to reason about crypto markets.
 
 What makes it different from the existing MCPs in this space is the data layer. Most crypto MCPs I've seen are thin wrappers over CoinGecko, Etherscan, or DEXTools. Ours sits on top of a proprietary editorial corpus: ~3,500 curated and deduplicated articles, 200+ entity dossiers with alias resolution (e.g., "CZ" and "Changpeng Zhao" collapse to the same entity), 43 academy lessons, a cross-domain entity graph, and a history API for backtesting sentiment and narrative features.
 
-Tool breakdown (9 categories, 98 total):
+Tool breakdown (19 categories, 99 total):
 - news (6), market (4), on-chain (4), sentiment (5)
 - indicators (6), fundamentals (6), agent-jobs (6)
 - extended (61): directories, chains, compute, memes, microstructure, narrative, regulatory, security, history, memos, theses, currencies

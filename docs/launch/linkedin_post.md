@@ -10,7 +10,7 @@ That's not intelligence. That's a liability wearing a trench coat.
 
 So we built the thing I wished existed.
 
-Today we're launching Blockchain Academics MCP — 98 tools across 9 categories, designed from day one for AI agents that need to reason, cite, and be audited. News, market, on-chain, sentiment, indicators, fundamentals, agent jobs, plus 61 extended tools covering directories, narrative, regulatory, security, memos, and more.
+Today we're launching Blockchain Academics MCP — 99 tools across 19 categories, designed from day one for AI agents that need to reason, cite, and be audited. News, market, on-chain, sentiment, indicators, fundamentals, agent jobs, directories, narrative, regulatory, security, memos, and more.
 
 The difference: a proprietary editorial corpus underneath it. 3,500+ curated articles, 200+ entity dossiers, 43 academy lessons, an alias-resolved entity graph, and a history API for backtesting. Not a wrapper. A substrate.
 

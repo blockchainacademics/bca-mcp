@@ -5,7 +5,7 @@
 ---
 
 **Title:**
-I built a crypto tool layer for AI agents — 98 tools, backed by a curated corpus instead of CoinGecko wrappers [OC]
+I built a crypto tool layer for AI agents — 99 tools, backed by a curated corpus instead of CoinGecko wrappers [OC]
 
 ---
 
@@ -15,11 +15,11 @@ Been lurking here for years. Finally shipping something I wish existed when I wa
 
 Short version: most AI agents that "analyze crypto" are running on paper-thin data — CoinGecko price, maybe an Etherscan call, a Twitter scrape if they're ambitious. Then the LLM hallucinates a narrative and nobody can trace where the "facts" came from. That's fine for a demo. It's useless for anything serious.
 
-So we built bca-mcp. 98 tools across 9 categories, for agents that need to actually reason about this market.
+So we built bca-mcp. 99 tools across 19 categories, for agents that need to actually reason about this market.
 
 **What's in it:**
 - news, market data, on-chain, sentiment, indicators, fundamentals, agent jobs
-- 61 extended tools: narrative tracking, regulatory, security, memes, microstructure, memos, theses, history API
+- 69 extended tools: narrative tracking, regulatory, security, memes, microstructure, memos, theses, history API
 - Proprietary editorial corpus underneath: ~3,500 curated articles, 200+ entity dossiers with alias resolution, 43 academy lessons
 
 **The part devs will care about:**

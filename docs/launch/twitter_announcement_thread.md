@@ -8,16 +8,16 @@ Most crypto MCPs are just CoinGecko wrappers in a trench coat.
 We built the opposite: an MCP backed by a proprietary editorial corpus — 3,500+ curated articles, 200+ entity dossiers, 43 academy lessons. Shipping today.
 
 **2/**
-Meet bca-mcp — 98 tools across 9 categories for AI agents that actually need to reason about crypto:
+Meet bca-mcp — 99 tools across 19 categories for AI agents that actually need to reason about crypto:
 
-- news (6)
-- market (4)
-- on-chain (4)
-- sentiment (5)
-- indicators (6)
+- content & corpus (7)
+- directories (13)
+- memos / theses / social (8)
+- corpus meta (7)
 - fundamentals (6)
-- agent-jobs (6)
-- extended (61)
+- indicators (6)
+- agent-backed generation (6)
+- + 12 more categories (memes, security, regulatory, microstructure, …)
 
 Not a demo. Production infra.
 

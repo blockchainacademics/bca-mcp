@@ -1,6 +1,6 @@
 /**
  * Extended tool surface (Phase 3c/3d/3e). Wraps the remaining /v1/* endpoints
- * beyond the core 29 tools. Each tool is one (schema, definition, run) triad.
+ * beyond the core 30 tools. Each tool is one (schema, definition, run) triad.
  *
  * Design note: tools here are packed densely (one file per category would be
  * ~15 files of near-identical boilerplate). Schemas + descriptions stay rich

@@ -84,4 +84,4 @@ Set `BCA_API_KEY` in your environment. Free tier + paid plans at https://brain.b
 - Streamable HTTP (MCP spec 2025-06-18)
 
 ## Why List It
-First MCP server covering the full crypto intelligence stack in a single install — previously required 6+ separate API integrations (CoinGecko, Etherscan, LunarCrush, Messari, TokenTerminal, news aggregator). One key, one server, 98 tools.
+First MCP server covering the full crypto intelligence stack in a single install — previously required 6+ separate API integrations (CoinGecko, Etherscan, LunarCrush, Messari, TokenTerminal, news aggregator). One key, one server, 99 tools.
