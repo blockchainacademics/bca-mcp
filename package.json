@@ -1,7 +1,7 @@
 {
   "name": "@blockchainacademics/mcp",
   "version": "0.2.3",
-  "description": "The canonical crypto MCP server for AI agents — 99 tools spanning news, entities, academy, market data, on-chain, sentiment, proprietary indicators, and agent-backed generation.",
+  "description": "The canonical crypto MCP server for AI agents \u2014 98 tools spanning news, entities, academy, market data, on-chain, sentiment, proprietary indicators, and agent-backed generation.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -21,7 +21,8 @@
     "build": "tsc",
     "dev": "tsx src/index.ts",
     "test": "node --test --import=tsx test/**/*.test.ts",
-    "prepublishOnly": "npm run build && npm test"
+    "prepublishOnly": "npm run build && npm run version:check && npm test",
+    "version:check": "node -e \"const pkg=require(\"./package.json\"); const v=require(\"./dist/version.js\").VERSION; if(pkg.version!==v){console.error(\"VERSION mismatch: pkg=\"+pkg.version+\" src=\"+v); process.exit(1)} else console.log(\"version ok: \"+v)\""
   },
   "keywords": [
     "mcp",
