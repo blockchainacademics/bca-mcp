@@ -4,6 +4,18 @@ All notable changes to `@blockchainacademics/mcp` are documented here.
 
 This project follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.3.2] — 2026-04-22
+
+### Security
+
+- **MCP-TS-2 — X-API-Key redirect hardening.** All upstream requests now set
+  `redirect: "manual"` and explicitly reject 3xx responses rather than
+  following them. Prevents a compromised or mis-configured upstream from
+  301/302-redirecting the MCP client to a host that would receive the user's
+  `X-API-Key` header. The allowlist on `BCA_API_BASE` (H-1, 0.3.1) already
+  bounds the *initial* host; this closes the redirect-based escape from that
+  bound.
+
 ## [0.3.1] — 2026-04-22
 
 ### Security

@@ -2,4 +2,4 @@
 // (User-Agent header) and advertised in the MCP handshake (Server name/version).
 // Keep in sync with package.json on every release — the prepublishOnly script
 // in package.json verifies they match.
-export const VERSION = "0.3.1";
+export const VERSION = "0.3.2";
