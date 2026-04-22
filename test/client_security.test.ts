@@ -4,12 +4,31 @@ import assert from "node:assert/strict";
 import {
   BcaClient,
   __resetNonDefaultBaseWarning,
+  isAllowedBase,
+  formatAllowlistError,
 } from "../src/client.js";
 import { BcaError } from "../src/errors.js";
 
 const DEFAULT_BASE = "https://api.blockchainacademics.com";
 
-describe("BcaClient — BCA_API_BASE hardening", () => {
+function envelopeBody() {
+  return JSON.stringify({
+    data: {},
+    attribution: { citations: [] },
+    meta: {
+      status: "complete",
+      request_id: "req_t",
+      pageInfo: {
+        hasNextPage: false,
+        hasPreviousPage: false,
+        startCursor: null,
+        endCursor: null,
+      },
+    },
+  });
+}
+
+describe("BcaClient — H-1 BCA_API_BASE allowlist (v0.3.1)", () => {
   // Each test restores process.env entries we mutate so ordering is irrelevant.
   const saved: Record<string, string | undefined> = {};
   beforeEach(() => {
@@ -31,36 +50,89 @@ describe("BcaClient — BCA_API_BASE hardening", () => {
     __resetNonDefaultBaseWarning();
   });
 
-  it("throws when baseUrl is http:// and opt-in flag is not set", () => {
+  it("isAllowedBase accepts prod, staging, localhost, 127.0.0.1", () => {
+    assert.equal(isAllowedBase("https://api.blockchainacademics.com"), true);
+    assert.equal(
+      isAllowedBase("https://staging-api.blockchainacademics.com"),
+      true,
+    );
+    assert.equal(isAllowedBase("http://localhost"), true);
+    assert.equal(isAllowedBase("http://localhost:8000"), true);
+    assert.equal(isAllowedBase("http://127.0.0.1"), true);
+    assert.equal(isAllowedBase("http://127.0.0.1:3000"), true);
+  });
+
+  it("isAllowedBase rejects arbitrary https hosts, bare https, prefix-bypass", () => {
+    assert.equal(isAllowedBase("https://attacker.example.com"), false);
+    assert.equal(isAllowedBase("https://"), false);
+    // Prefix-bypass attempts — must NOT be mistaken for localhost.
+    assert.equal(isAllowedBase("http://localhost.evil.com"), false);
+    assert.equal(isAllowedBase("http://127.0.0.1.evil.com"), false);
+    assert.equal(isAllowedBase("http://127.0.0.1:"), false);
+    assert.equal(isAllowedBase("http://127.0.0.1:abc"), false);
+    assert.equal(isAllowedBase("http://localhost:99999999"), false);
+    // http:// to a non-loopback host is rejected.
+    assert.equal(isAllowedBase("http://1.2.3.4"), false);
+    // Protocol confusion.
+    assert.equal(isAllowedBase("ftp://api.blockchainacademics.com"), false);
+  });
+
+  it("constructor throws BcaError with allowlist message for arbitrary https host", () => {
     assert.throws(
-      () => new BcaClient({ apiKey: "k", baseUrl: "http://attacker.local" }),
+      () =>
+        new BcaClient({ apiKey: "k", baseUrl: "https://attacker.example.com" }),
       (err: unknown) => {
         assert.ok(err instanceof BcaError, "expected BcaError");
         assert.match(
           (err as BcaError).message,
-          /Refusing to use non-HTTPS BCA_API_BASE='http:\/\/attacker\.local'/,
+          /Refusing to use BCA_API_BASE='https:\/\/attacker\.example\.com'/,
         );
-        assert.match(
-          (err as BcaError).message,
-          /BCA_ALLOW_INSECURE_BASE=1/,
-        );
+        assert.match((err as BcaError).message, /Allowed values/);
         return true;
       },
     );
   });
 
-  it("throws when env BCA_API_BASE is http:// and opt-in not set", () => {
-    process.env["BCA_API_BASE"] = "http://localhost:8000";
+  it("constructor throws for http://attacker.local (non-loopback http)", () => {
     assert.throws(
-      () => new BcaClient({ apiKey: "k" }),
+      () => new BcaClient({ apiKey: "k", baseUrl: "http://attacker.local" }),
       (err: unknown) => err instanceof BcaError,
     );
   });
 
-  it("allows http:// when BCA_ALLOW_INSECURE_BASE=1 is set (local dev)", () => {
-    process.env["BCA_ALLOW_INSECURE_BASE"] = "1";
-    const c = new BcaClient({ apiKey: "k", baseUrl: "http://localhost:8000" });
+  it("env BCA_API_BASE=http://localhost:8000 is accepted (no opt-in flag needed)", () => {
+    process.env["BCA_API_BASE"] = "http://localhost:8000";
+    const c = new BcaClient({ apiKey: "k" });
     assert.ok(c);
+  });
+
+  it("env BCA_API_BASE=http://127.0.0.1:3000 is accepted", () => {
+    process.env["BCA_API_BASE"] = "http://127.0.0.1:3000";
+    const c = new BcaClient({ apiKey: "k" });
+    assert.ok(c);
+  });
+
+  it("staging base is accepted", () => {
+    process.env["BCA_API_BASE"] = "https://staging-api.blockchainacademics.com";
+    const c = new BcaClient({ apiKey: "k" });
+    assert.ok(c);
+  });
+
+  it("BCA_ALLOW_INSECURE_BASE=1 no longer rescues arbitrary http hosts", () => {
+    process.env["BCA_ALLOW_INSECURE_BASE"] = "1";
+    assert.throws(
+      () => new BcaClient({ apiKey: "k", baseUrl: "http://attacker.local" }),
+      (err: unknown) => err instanceof BcaError,
+    );
+  });
+
+  it("formatAllowlistError contains the rejected URL and the allowed set", () => {
+    const msg = formatAllowlistError("https://evil.io");
+    assert.match(msg, /https:\/\/evil\.io/);
+    assert.match(msg, /api\.blockchainacademics\.com/);
+    assert.match(msg, /staging-api\.blockchainacademics\.com/);
+    assert.match(msg, /localhost/);
+    assert.match(msg, /127\.0\.0\.1/);
   });
 
   it("does not warn when using the hardcoded default base", async () => {
@@ -71,7 +143,7 @@ describe("BcaClient — BCA_API_BASE hardening", () => {
     };
     try {
       const fake: typeof fetch = async () =>
-        new Response(JSON.stringify({ data: {} }), {
+        new Response(envelopeBody(), {
           status: 200,
           headers: { "content-type": "application/json" },
         });
@@ -95,13 +167,13 @@ describe("BcaClient — BCA_API_BASE hardening", () => {
     };
     try {
       const fake: typeof fetch = async () =>
-        new Response(JSON.stringify({ data: {} }), {
+        new Response(envelopeBody(), {
           status: 200,
           headers: { "content-type": "application/json" },
         });
       const c = new BcaClient({
         apiKey: "k",
-        baseUrl: "https://staging.blockchainacademics.com",
+        baseUrl: "https://staging-api.blockchainacademics.com",
         fetchImpl: fake,
       });
       await c.request("/v1/ping");
@@ -109,7 +181,7 @@ describe("BcaClient — BCA_API_BASE hardening", () => {
       await c.request("/v1/ping");
       const matched = warnings.filter((w) =>
         w.includes(
-          "warning: using non-default BCA_API_BASE='https://staging.blockchainacademics.com'",
+          "warning: using non-default BCA_API_BASE='https://staging-api.blockchainacademics.com'",
         ),
       );
       assert.equal(matched.length, 1, "should warn exactly once per process");
@@ -148,7 +220,20 @@ describe("BcaClient — response size cap", () => {
   });
 
   it("accepts small responses under the cap (no regression)", async () => {
-    const body = JSON.stringify({ data: { ok: true } });
+    const body = JSON.stringify({
+      data: { ok: true },
+      attribution: { citations: [] },
+      meta: {
+        status: "complete",
+        request_id: "req_ok",
+        pageInfo: {
+          hasNextPage: false,
+          hasPreviousPage: false,
+          startCursor: null,
+          endCursor: null,
+        },
+      },
+    });
     const fake: typeof fetch = async () =>
       new Response(body, {
         status: 200,
@@ -164,6 +249,8 @@ describe("module exports smoke", () => {
   it("BcaClient and reset helper are exported", () => {
     assert.equal(typeof BcaClient, "function");
     assert.equal(typeof __resetNonDefaultBaseWarning, "function");
+    assert.equal(typeof isAllowedBase, "function");
+    assert.equal(typeof formatAllowlistError, "function");
     assert.equal(DEFAULT_BASE, "https://api.blockchainacademics.com");
   });
 });

@@ -5,10 +5,26 @@ import { BcaClient, setClient } from "../src/client.js";
 import { runGetAgentJob } from "../src/tools/agent_jobs.js";
 
 function envelopeResponse(payload: unknown): Response {
-  return new Response(JSON.stringify({ data: payload }), {
-    status: 200,
-    headers: { "content-type": "application/json" },
-  });
+  return new Response(
+    JSON.stringify({
+      data: payload,
+      attribution: { citations: [] },
+      meta: {
+        status: "complete",
+        request_id: "req_test",
+        pageInfo: {
+          hasNextPage: false,
+          hasPreviousPage: false,
+          startCursor: null,
+          endCursor: null,
+        },
+      },
+    }),
+    {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    },
+  );
 }
 
 describe("get_agent_job — untrusted content fencing", () => {

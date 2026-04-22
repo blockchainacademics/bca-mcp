@@ -1,7 +1,11 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 
-import { BcaClient, setClient } from "../src/client.js";
+import {
+  BcaClient,
+  setClient,
+  __resetFlatEnvelopeWarning,
+} from "../src/client.js";
 import { BcaAuthError } from "../src/errors.js";
 import {
   searchNewsInputSchema,
@@ -40,7 +44,7 @@ describe("input schemas", () => {
 });
 
 describe("client", () => {
-  it("injects X-API-Key header and parses response envelope", async () => {
+  it("injects X-API-Key header and parses canonical response envelope", async () => {
     const fake: typeof fetch = async (_url, init) => {
       const headers = new Headers(init?.headers);
       assert.equal(headers.get("x-api-key"), "test-key");
@@ -48,8 +52,25 @@ describe("client", () => {
       return new Response(
         JSON.stringify({
           data: { articles: [], total: 0 },
-          cite_url: "https://x.test/c",
-          as_of: "2026-04-19T00:00:00Z",
+          attribution: {
+            citations: [
+              {
+                cite_url: "https://x.test/c",
+                as_of: "2026-04-22T00:00:00Z",
+                source_hash: "sha256:deadbeef",
+              },
+            ],
+          },
+          meta: {
+            status: "unseeded",
+            request_id: "req_abc123",
+            pageInfo: {
+              hasNextPage: false,
+              hasPreviousPage: false,
+              startCursor: null,
+              endCursor: null,
+            },
+          },
         }),
         {
           status: 200,
@@ -60,8 +81,12 @@ describe("client", () => {
     const c = new BcaClient({ apiKey: "test-key", fetchImpl: fake });
     setClient(c);
     const out = await runSearchNews({ query: "ethereum", limit: 10 });
-    assert.equal(out.cite_url, "https://x.test/c");
-    assert.equal(out.as_of, "2026-04-19T00:00:00Z");
+    assert.equal(out.attribution.citations[0]!.cite_url, "https://x.test/c");
+    assert.equal(out.attribution.citations[0]!.as_of, "2026-04-22T00:00:00Z");
+    assert.equal(out.attribution.citations[0]!.source_hash, "sha256:deadbeef");
+    assert.equal(out.meta.status, "unseeded");
+    assert.equal(out.meta.request_id, "req_abc123");
+    assert.equal(out.meta.pageInfo.hasNextPage, false);
     assert.equal(out.data.total, 0);
   });
 
@@ -75,7 +100,7 @@ describe("client", () => {
     );
   });
 
-  it("wraps non-enveloped JSON responses under { data }", async () => {
+  it("wraps non-enveloped JSON responses under canonical envelope", async () => {
     const fake: typeof fetch = async () =>
       new Response(JSON.stringify({ articles: [], total: 0 }), {
         status: 200,
@@ -85,7 +110,124 @@ describe("client", () => {
     const out = await c.request<{ articles: unknown[]; total: number }>(
       "/v1/articles/search",
     );
+    // Raw payload is lifted into data, attribution has empty citations array,
+    // meta is synthesised with a default status + request_id + pageInfo.
     assert.equal(out.data.total, 0);
-    assert.equal(out.cite_url, undefined);
+    assert.deepEqual(out.attribution.citations, []);
+    assert.equal(out.meta.status, "complete");
+    assert.equal(typeof out.meta.request_id, "string");
+    assert.ok(out.meta.request_id.length > 0);
+    assert.equal(out.meta.pageInfo.hasNextPage, false);
+  });
+
+  it("auto-lifts legacy flat envelope into canonical (shim path)", async () => {
+    __resetFlatEnvelopeWarning();
+    const origWarn = console.warn;
+    const warnings: string[] = [];
+    console.warn = (msg: unknown) => {
+      warnings.push(String(msg));
+    };
+    try {
+      const fake: typeof fetch = async () =>
+        new Response(
+          JSON.stringify({
+            data: { ok: true },
+            cite_url: "https://legacy.test/c",
+            as_of: "2026-04-20T00:00:00Z",
+            source_hash: "sha256:legacyhash",
+            status: "partial",
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        );
+      const c = new BcaClient({ apiKey: "k", fetchImpl: fake });
+      const out = await c.request<{ ok: boolean }>("/v1/ping");
+
+      assert.equal(out.data.ok, true);
+      assert.equal(out.attribution.citations.length, 1);
+      assert.equal(out.attribution.citations[0]!.cite_url, "https://legacy.test/c");
+      assert.equal(out.attribution.citations[0]!.as_of, "2026-04-20T00:00:00Z");
+      assert.equal(out.attribution.citations[0]!.source_hash, "sha256:legacyhash");
+      assert.equal(out.meta.status, "partial");
+      assert.equal(typeof out.meta.request_id, "string");
+
+      const matched = warnings.filter((w) =>
+        w.includes("legacy flat envelope shape"),
+      );
+      assert.equal(matched.length, 1, "should warn exactly once");
+    } finally {
+      console.warn = origWarn;
+      __resetFlatEnvelopeWarning();
+    }
+  });
+});
+
+describe("envelope shape canonical contract", () => {
+  it("MCP tool call returns exact canonical shape end-to-end", async () => {
+    const fake: typeof fetch = async () =>
+      new Response(
+        JSON.stringify({
+          data: { articles: [{ slug: "btc-x", title: "BTC X" }], total: 1 },
+          attribution: {
+            citations: [
+              {
+                cite_url: "https://blockchainacademics.com/articles/btc-x",
+                as_of: "2026-04-22T12:00:00Z",
+                source_hash: "sha256:abc",
+              },
+              {
+                cite_url: "https://other.test/ref",
+                as_of: "2026-04-22T11:59:00Z",
+                source_hash: null,
+              },
+            ],
+          },
+          meta: {
+            status: "complete",
+            request_id: "req_xyz",
+            pageInfo: {
+              hasNextPage: true,
+              hasPreviousPage: false,
+              startCursor: "cur_a",
+              endCursor: "cur_b",
+            },
+            diagnostic: { notes: "primary citation index 0" },
+          },
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      );
+    const c = new BcaClient({ apiKey: "k", fetchImpl: fake });
+    setClient(c);
+
+    const out = await runSearchNews({ query: "bitcoin", limit: 10 });
+
+    // Top-level canonical keys: data, attribution, meta — nothing else.
+    const keys = Object.keys(out).sort();
+    assert.deepEqual(keys, ["attribution", "data", "meta"]);
+
+    // attribution.citations is array-only. citations[0] = primary.
+    assert.ok(Array.isArray(out.attribution.citations));
+    assert.equal(out.attribution.citations.length, 2);
+    assert.equal(
+      out.attribution.citations[0]!.cite_url,
+      "https://blockchainacademics.com/articles/btc-x",
+    );
+    // Singular attribution.cite_url must NOT exist at root.
+    assert.equal((out.attribution as any).cite_url, undefined);
+
+    // meta contract: status + request_id (string) + pageInfo + optional diagnostic.
+    assert.equal(out.meta.status, "complete");
+    assert.equal(out.meta.request_id, "req_xyz");
+    assert.equal(typeof out.meta.request_id, "string");
+    assert.equal(out.meta.pageInfo.hasNextPage, true);
+    assert.equal(out.meta.pageInfo.startCursor, "cur_a");
+    assert.equal(out.meta.pageInfo.endCursor, "cur_b");
+    assert.deepEqual(out.meta.diagnostic, { notes: "primary citation index 0" });
+
+    // Errors do NOT appear as envelope status. "error" is not a valid value.
+    const allowed = new Set(["complete", "unseeded", "partial", "stale"]);
+    assert.ok(allowed.has(out.meta.status));
+
+    // data is passed through verbatim.
+    assert.equal(out.data.total, 1);
   });
 });

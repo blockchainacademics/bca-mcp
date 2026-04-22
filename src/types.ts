@@ -1,18 +1,41 @@
-export type EnvelopeStatus = "complete" | "unseeded" | "partial" | "error";
+// Canonical response envelope (JSON:API-inspired, locked 2026-04-22).
+// Every BCA surface (REST, MCP, CLI, SDK) emits this exact shape. Errors are
+// carried via HTTP 4xx/5xx — never as an envelope status. Rate-limit state
+// lives in HTTP headers, never in the body.
+
+export type EnvelopeStatus = "complete" | "unseeded" | "partial" | "stale";
+
+export interface Citation {
+  cite_url: string | null;
+  as_of: string | null; // ISO 8601
+  source_hash: string | null; // "sha256:..."
+}
+
+export interface PageInfo {
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+  startCursor: string | null;
+  endCursor: string | null;
+}
+
+export interface EnvelopeMeta {
+  status: EnvelopeStatus;
+  request_id: string; // always a string, never null
+  pageInfo: PageInfo;
+  diagnostic?: Record<string, unknown>; // present on unseeded/partial
+}
 
 export interface ResponseEnvelope<T> {
   data: T;
-  status?: EnvelopeStatus; // optional for tool authors; middleware default-fills to "complete"
-  cite_url?: string;
-  as_of?: string; // ISO 8601
-  source_hash?: string;
-  meta?: Record<string, unknown>;
+  attribution: { citations: Citation[] }; // citations[0] is primary
+  meta: EnvelopeMeta;
 }
 
 /**
  * Resolve the final envelope status. Tool authors may set `status` explicitly;
- * otherwise we auto-detect "unseeded" from empty payloads, falling back to "complete".
- * Middleware uses this to guarantee every wire response carries a status field.
+ * otherwise we auto-detect "unseeded" from empty payloads, falling back to
+ * "complete". Return type is tightened to the canonical enum (no "error" —
+ * errors are HTTP 4xx/5xx, not envelope statuses).
  */
 export function resolveEnvelopeStatus<T>(
   data: T,

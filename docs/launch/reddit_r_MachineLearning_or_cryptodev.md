@@ -23,10 +23,10 @@ So we built bca-mcp. 98 tools across 9 categories, for agents that need to actua
 - Proprietary editorial corpus underneath: ~3,500 curated articles, 200+ entity dossiers with alias resolution, 43 academy lessons
 
 **The part devs will care about:**
-Every tool response ships with a provenance envelope — `{data, status, attribution: {cite_url, as_of, source_hash}}`. Your agent can cite sources and verify the data hasn't drifted between calls. No more "where did the model get that?"
+Every tool response ships with a canonical JSON:API-inspired envelope — `{data, attribution: {citations: [{cite_url, as_of, source_hash}]}, meta: {status, request_id, pageInfo}}`. Your agent can cite sources and verify the data hasn't drifted between calls. No more "where did the model get that?" `citations` is an array by design so single-source and multi-source responses look the same — `citations[0]` is always primary.
 
 **How to try it:**
-- `npm i -g @blockchainacademics/mcp` or `pip install bca-mcp` (v0.2.3, shipping today)
+- `npm i -g @blockchainacademics/mcp` or `pip install bca-mcp` (v0.3.0, shipping today)
 - Open REST: api.blockchainacademics.com
 - Docs: docs.blockchainacademics.com
 - Free tier (1,000 calls/mo, no card): brain.blockchainacademics.com/pricing

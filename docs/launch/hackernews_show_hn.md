@@ -21,15 +21,15 @@ Tool breakdown (9 categories, 98 total):
 - extended (61): directories, chains, compute, memes, microstructure, narrative, regulatory, security, history, memos, theses, currencies
 
 Technical notes:
-- Every response is wrapped in a provenance envelope: `{data, status, attribution: {cite_url, as_of, source_hash}}`. The source_hash is content-addressed, so agents can verify a fact hasn't drifted between calls.
-- MCP server packages are OSS (MIT): `@blockchainacademics/mcp` on npm, `bca-mcp` on PyPI, both at v0.2.3 as of today.
+- Every response is wrapped in a canonical JSON:API-inspired envelope: `{data, attribution: {citations: [{cite_url, as_of, source_hash}]}, meta: {status, request_id, pageInfo}}`. `source_hash` is content-addressed so agents can verify a fact hasn't drifted between calls. `citations` is an array — `citations[0]` is primary, additional entries corroborate (multi-source is a first-class citizen).
+- MCP server packages are OSS (MIT): `@blockchainacademics/mcp` on npm, `bca-mcp` on PyPI, both at v0.3.0 as of today.
 - REST API is open at api.blockchainacademics.com with a landing page + OpenAPI.
 - Free tier: 1,000 calls/month, no credit card. Five tiers total. Pricing at brain.blockchainacademics.com/pricing.
 - Docs: docs.blockchainacademics.com.
 - Stack: FastAPI + Postgres + Redis, MCP servers in TypeScript and Python.
 
 What I'd genuinely like feedback on:
-1. The provenance envelope shape — is `source_hash` useful or overkill for your use case?
+1. The envelope shape (`{data, attribution.citations[], meta}`) — is `source_hash` useful or overkill? We went array-only on `citations` specifically to avoid the singleton-vs-array drift that burned us in v0.2.x.
 2. Tool surface — what's missing that an agent developer would want?
 3. The history API (point-in-time queries for sentiment/narrative features) — useful for backtesting?
 

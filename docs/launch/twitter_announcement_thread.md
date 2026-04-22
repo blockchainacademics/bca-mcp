@@ -24,7 +24,7 @@ Not a demo. Production infra.
 **3/**
 The "holy shit" number:
 
-Every tool response ships with a provenance envelope — `{data, status, attribution: {cite_url, as_of, source_hash}}`. Every fact your agent uses is citeable and hash-verifiable.
+Every tool response ships with a canonical envelope — `{data, attribution:{citations:[{cite_url, as_of, source_hash}]}, meta:{status, request_id, pageInfo}}`. Every fact your agent uses is citeable and hash-verifiable. `citations` is an array by design — multi-source ready from day one.
 
 No more hallucinated sources. No more "where did the model get that?"
 
@@ -53,7 +53,7 @@ npm i -g @blockchainacademics/mcp
 pip install bca-mcp
 ```
 
-v0.2.3 live on npm + PyPI. Open REST at api.blockchainacademics.com. Docs at docs.blockchainacademics.com.
+v0.3.0 live on npm + PyPI. Open REST at api.blockchainacademics.com. Docs at docs.blockchainacademics.com.
 
 Free tier included. No credit card for the first 1,000 calls.
 

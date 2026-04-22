@@ -14,11 +14,11 @@ Today we're launching Blockchain Academics MCP — 98 tools across 9 categories,
 
 The difference: a proprietary editorial corpus underneath it. 3,500+ curated articles, 200+ entity dossiers, 43 academy lessons, an alias-resolved entity graph, and a history API for backtesting. Not a wrapper. A substrate.
 
-Every single response ships with a provenance envelope — data, status, and attribution (cite URL, as-of timestamp, source hash). Your agent can prove where every fact came from. That's the minimum bar for serious work.
+Every single response ships with a canonical JSON:API-inspired envelope — `data`, `attribution` (a citations array with cite URL, as-of timestamp, and source hash per entry), and `meta` (status, request_id for support, pageInfo for cursor pagination). Your agent can prove where every fact came from. That's the minimum bar for serious work.
 
 Shipping today:
-- @blockchainacademics/mcp v0.2.3 on npm
-- bca-mcp v0.2.3 on PyPI
+- @blockchainacademics/mcp v0.3.0 on npm
+- bca-mcp v0.3.0 on PyPI
 - Open REST at api.blockchainacademics.com
 - Docs at docs.blockchainacademics.com
 - Five pricing tiers at brain.blockchainacademics.com/pricing, starting free

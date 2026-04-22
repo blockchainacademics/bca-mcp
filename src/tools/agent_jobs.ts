@@ -5,10 +5,121 @@
  * Backend endpoints confirmed from /v1/agent-jobs/*: due-diligence,
  * tokenomics-model, summarize-whitepaper, translate-contract, monitor-keyword.
  */
+import { promises as dns } from "node:dns";
+import { isIP } from "node:net";
 import { z } from "zod";
 import { getClient } from "../client.js";
 import { slugSchema } from "../schema.js";
 import type { ResponseEnvelope } from "../types.js";
+
+// H-3 (v0.3.1): webhook SSRF guard. An attacker could otherwise register a
+// keyword monitor with `webhook_url=http://169.254.169.254/...` (cloud IMDS)
+// or `http://127.0.0.1:<internal>` and have the BCA backend fire credentialed
+// requests against the operator's internal network. We validate at the MCP
+// layer so bad values never reach the API:
+//
+//   * HTTPS scheme only (no http, no ftp, no file, no gopher).
+//   * Hostname only — bare IP literals are rejected outright.
+//   * Every IP that DNS returns for the hostname must be public (not private
+//     / loopback / link-local / unspecified / reserved / multicast). DNS
+//     rebinding defense: check ALL returned IPs, not just the first — if any
+//     resolves to a private range, reject.
+//
+// Mirrors `src/bca_mcp/tools/agent_jobs.py::_validate_webhook_url` so both
+// servers reject the same set of inputs.
+function isPrivateOrReservedIPv4(ip: string): boolean {
+  const m = ip.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (!m) return false;
+  const [a, b] = [Number(m[1]), Number(m[2])];
+  if (a === 10) return true;                    // 10.0.0.0/8 private
+  if (a === 172 && b >= 16 && b <= 31) return true; // 172.16.0.0/12 private
+  if (a === 192 && b === 168) return true;      // 192.168.0.0/16 private
+  if (a === 127) return true;                    // 127.0.0.0/8 loopback
+  if (a === 169 && b === 254) return true;      // 169.254.0.0/16 link-local (IMDS)
+  if (a === 0) return true;                      // 0.0.0.0/8 unspecified
+  if (a === 100 && b >= 64 && b <= 127) return true; // 100.64.0.0/10 CGNAT
+  if (a >= 224) return true;                     // 224.0.0.0/4 multicast + 240.0.0.0/4 reserved
+  return false;
+}
+
+function isPrivateOrReservedIPv6(ip: string): boolean {
+  const low = ip.toLowerCase();
+  if (low === "::" || low === "::1") return true;        // unspecified + loopback
+  if (low.startsWith("fe80:") || low.startsWith("fe80::")) return true; // link-local
+  if (low.startsWith("fc") || low.startsWith("fd")) return true;       // ULA fc00::/7
+  if (low.startsWith("ff")) return true;                  // multicast
+  // IPv4-mapped IPv6: ::ffff:a.b.c.d
+  const v4m = low.match(/::ffff:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/);
+  if (v4m) return isPrivateOrReservedIPv4(v4m[1]!);
+  return false;
+}
+
+function isPrivateOrReserved(ip: string): boolean {
+  const family = isIP(ip);
+  if (family === 4) return isPrivateOrReservedIPv4(ip);
+  if (family === 6) return isPrivateOrReservedIPv6(ip);
+  return false;
+}
+
+export async function validateWebhookUrl(url: string): Promise<void> {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch (err) {
+    throw new Error(`webhook_url is not a valid URL: ${String(err)}`);
+  }
+
+  if (parsed.protocol !== "https:") {
+    throw new Error(
+      `webhook_url must use https:// (got scheme='${parsed.protocol.replace(/:$/, "")}').`,
+    );
+  }
+
+  const hostname = parsed.hostname;
+  if (!hostname) {
+    throw new Error("webhook_url must include a hostname.");
+  }
+
+  // Reject bare IP literals in the URL — webhooks should go to named hosts.
+  // Node's URL parser preserves the brackets on `hostname` for IPv6 literals
+  // (e.g. `new URL('https://[::1]/').hostname === '[::1]'`), so strip them
+  // before the isIP() check.
+  const unbracketed = hostname.startsWith("[") && hostname.endsWith("]")
+    ? hostname.slice(1, -1)
+    : hostname;
+  if (isIP(unbracketed) !== 0) {
+    throw new Error(
+      "webhook_url must not be a bare IP address; use a hostname.",
+    );
+  }
+
+  // Resolve every IP the hostname maps to (A + AAAA) and ensure NONE of
+  // them are private, loopback, link-local, reserved, multicast, or
+  // unspecified. This is the DNS-rebinding defense.
+  let infos: { address: string; family: number }[];
+  try {
+    infos = await dns.lookup(hostname, { all: true });
+  } catch (err) {
+    throw new Error(
+      `webhook_url hostname '${hostname}' could not be resolved: ${String(err)}`,
+    );
+  }
+
+  if (!infos || infos.length === 0) {
+    throw new Error(
+      `webhook_url hostname '${hostname}' resolved to zero IPs.`,
+    );
+  }
+
+  for (const info of infos) {
+    if (isPrivateOrReserved(info.address)) {
+      throw new Error(
+        `webhook_url resolves to non-public address ${info.address}; ` +
+          "RFC1918 / loopback / link-local / reserved targets are rejected.",
+      );
+    }
+  }
+}
 
 // --- generate_due_diligence -----------------------------------------------
 export const generateDueDiligenceInputSchema = z.object({
@@ -98,6 +209,7 @@ export const monitorKeywordInputSchema = z.object({
     .string()
     .url()
     .max(2048)
+    .regex(/^https:\/\//, "webhook_url must use https://")
     .describe("HTTPS webhook URL for notifications (required)."),
   window_hours: z.number().int().min(1).max(168).default(24),
 });
@@ -109,6 +221,10 @@ export const monitorKeywordDefinition = {
 export async function runMonitorKeyword(
   input: z.infer<typeof monitorKeywordInputSchema>,
 ): Promise<ResponseEnvelope<unknown>> {
+  // H-3: SSRF guard. Reject non-HTTPS, bare IPs, and any hostname that
+  // resolves (A or AAAA) into a private / loopback / link-local / reserved
+  // range. Throws Error (surfaced as BCA_BAD_REQUEST by the server).
+  await validateWebhookUrl(input.webhook_url);
   return getClient().post(`/v1/agent-jobs/monitor-keyword`, input);
 }
 
