@@ -187,14 +187,14 @@ export async function runSummarizeWhitepaper(
 
 // --- translate_contract ----------------------------------------------------
 export const translateContractInputSchema = z.object({
-  source_code: z.string().min(10).max(200_000),
+  code: z.string().min(10).max(200_000).describe("Source contract code."),
   source_language: z.enum(["solidity", "vyper", "move", "rust-anchor"]).describe("Source contract language."),
   target_language: z.enum(["solidity", "vyper", "move", "rust-anchor"]).describe("Target contract language."),
 });
 export const translateContractDefinition = {
   name: "translate_contract",
   description:
-    "Translate a smart contract between languages (Solidity ↔ Vyper ↔ Move ↔ Anchor). Required: source_code, source_language, target_language. Async, Team tier.",
+    "Translate a smart contract between languages (Solidity ↔ Vyper ↔ Move ↔ Anchor). Required: code, source_language, target_language. Async, Team tier.",
 };
 export async function runTranslateContract(
   input: z.infer<typeof translateContractInputSchema>,
@@ -258,6 +258,7 @@ const _SUMMARIZE_UNTRUSTED_FIELDS = ["summary", "abstract", "body", "body_markdo
 // backend revision renames or echoes the input.
 const _TRANSLATE_KINDS = ["translate-contract", "translate_contract"];
 const _TRANSLATE_UNTRUSTED_FIELDS = [
+  "code",
   "source_code",
   "translated_code",
   "target_code",

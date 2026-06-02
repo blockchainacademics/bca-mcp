@@ -164,7 +164,7 @@ function entry<T>(
   };
 }
 
-const TOOLS: ReadonlyArray<ToolEntry> = [
+export const TOOLS: ReadonlyArray<ToolEntry> = [
   // --- v0.1 core (already shipped) -----------------------------------------
   entry(searchNewsInputSchema, searchNewsDefinition, runSearchNews),
   entry(getEntityInputSchema, getEntityDefinition, runGetEntity),
