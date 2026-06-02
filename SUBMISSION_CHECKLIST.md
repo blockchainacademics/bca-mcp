@@ -1,6 +1,6 @@
 # Anthropic MCP Directory — Submission Checklist
 
-**Package:** `@blockchainacademics/mcp` v0.2.2
+**Package:** `@blockchainacademics/mcp` v0.4.0
 **npm:** https://www.npmjs.com/package/@blockchainacademics/mcp
 **Source:** https://github.com/blockchainacademics/bca-mcp
 **Target:** https://github.com/modelcontextprotocol/servers
@@ -14,15 +14,15 @@ Once the Loom is recorded, submission is ~5 minutes of copy-paste.
 ## 0. Pre-flight checklist (must be 100% green before PR)
 
 ### Package integrity
-- [ ] `package.json` `version` = `0.2.2`
-- [ ] `server.json` `version` = `0.2.2` and `packages[0].version` = `0.2.2`
-- [ ] `server.json` `_meta....tool.version` = `0.2.2`
+- [ ] `package.json` `version` = `0.4.0`
+- [ ] `server.json` `version` = `0.4.0` and `packages[0].version` = `0.4.0`
+- [ ] `server.json` `_meta....tool.version` = `0.4.0`
 - [ ] `_meta....tool_count` = `99` and `sum(tool_categories[].count) = 99`
-- [ ] `npm view @blockchainacademics/mcp version` returns `0.2.2` (registry propagated)
+- [ ] `npm view @blockchainacademics/mcp version` returns `0.4.0` (registry propagated)
 - [ ] `npx -y @blockchainacademics/mcp` boots clean on a non-dev shell (fresh machine)
 - [ ] `LICENSE` present at repo root (MIT)
-- [ ] `CHANGELOG.md` has a `0.2.2` entry dated 2026-04-21
-- [ ] GitHub tag `v0.2.2` pushed: `git tag -a v0.2.2 -m "v0.2.2" && git push origin v0.2.2`
+- [ ] `CHANGELOG.md` has a `0.4.0` entry dated 2026-04-21
+- [ ] GitHub tag `v0.4.0` pushed: `git tag -a v0.4.0 -m "v0.4.0" && git push origin v0.4.0`
 
 ### Security
 - [ ] npm publish token **rotated** after any recent CI/debug use (manual — Wael)
@@ -31,7 +31,7 @@ Once the Loom is recorded, submission is ~5 minutes of copy-paste.
 - [ ] `gitleaks` clean on working tree (`pre-commit run gitleaks --all-files`)
 
 ### Known drift to resolve (from audit)
-- [ ] README header says "(v0.2.0)" — bump to "(v0.2.2)" (1-char change)
+- [ ] README header says "(v0.2.0)" — bump to "(v0.4.0)" (1-char change)
 - [ ] Align README category grouping (20 rows) with `server.json._meta.tool_categories` (19 rows) — both total 99
 - [ ] Free-tier call count: unify `server.json` ("2,000") with README §API Key ("2,000") — both should match; verify
 - [ ] **BLOCKER** `BCA_API_BASE` vs `BCA_API_BASE_URL` drift — `src/client.ts` reads `BCA_API_BASE_URL` but `server.json` declares `BCA_API_BASE`. Decide canonical name, unify in all three (source, server.json, README), republish if needed

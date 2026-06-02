@@ -4,6 +4,80 @@ All notable changes to `@blockchainacademics/mcp` are documented here.
 
 This project follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.4.0] — 2026-06-02
+
+Distribution release for the Anthropic MCP directory submission.
+
+### Added — hybrid citations
+
+- **`attribution.citations[]` now ships TWO entries when a real upstream
+  source exists.** `citations[0]` is the actual upstream URL (the Bankless
+  article, the CoinGecko coin page, the Etherscan tx, the SEC filing, etc.)
+  with the upstream `as_of` and `source_hash`. `citations[1]` is the BCA
+  editorial deep-link. LLM consumers get true provenance first; BCA still
+  rides along for secondary attribution. The contract already permitted
+  multi-entry `citations[]` from 0.3.0 — handlers now actively populate it.
+- **44 API handlers wired** to emit upstream URLs: news + articles + market
+  (CoinGecko / DexScreener) + onchain (Etherscan / Solscan / BscScan /
+  Snowtrace / Basescan / Arbiscan / Polygonscan / Mempool) + sentiment
+  (alternative.me Fear & Greed) + history (CoinGecko OHLC) + narrative
+  (DefiLlama / DePin Ninja / RWA.xyz / Polymarket) + regulatory (SEC / ESMA /
+  FCA / FSA / MAS / IRS / CRA / gov.uk) + security (rekt.news / Chainabuse /
+  Immunefi) + memes (pump.fun / Solscan) + microstructure (Coinglass /
+  Deribit) + compute (Akash / io.net / taostats) + directories (DefiLlama
+  stablecoins/yields) + entities (per-entity homepage / mention source) +
+  stories (cluster lead article) + academy (lesson external source).
+- **Defensive `X-BCA-Cite-Upstream` middleware guard**: `javascript:` /
+  `data:` / `file:` URLs silently dropped before reaching `citations[0]`.
+- BCA-proprietary tools (indicators, memos, theses, BCA-curated directories)
+  intentionally stay single-citation — BCA *is* the upstream for those.
+
+### Fixed
+
+- **`get_article` 500 on every slug.** Root cause: ORM `select(VaultArticle)`
+  pulled the Postgres `search_vector` TSVECTOR column which SQLAlchemy can't
+  materialise into Python. Switched to raw SQL with an explicit column list
+  (matches `search_articles`). Surfaced by the battle-test sweep on
+  2026-06-02 (20/20 errors against every real slug).
+- **`translate_contract` 422 rejections.** Renamed MCP input field
+  `source_code` → `code` to match the API's `TranslateContractRequest`
+  schema. Backwards-incompatible only for callers that explicitly passed
+  `source_code`; the field has the same semantics.
+- **Empty-data handlers no longer return misleading `status="complete"`.**
+  `search_articles` (zero rows with non-trivial filters), `get_sentiment`
+  (no sentiment bucket), `get_kol_influence` (no KOL score), and
+  `social_signals` (no signals) now return the canonical
+  `integration_pending` contract, mapping to `meta.status="unseeded"` with
+  a structured `meta.diagnostic.reason + .eta`. LLM consumers can branch
+  on the honest signal instead of mis-parsing an empty `results` array.
+- **`build_custom_indicator` 400 on missing-data formulas.** When the
+  formula references a function/slug with no computed value yet, the
+  handler now returns the `integration_pending` contract instead of a 400.
+  Genuine syntax / unknown-function errors still 400 correctly.
+- **Defensive header serialisation in `articles` + `news` handlers.** A
+  `_set_upstream_headers()` helper wraps the Cite-Upstream / As-Of / Hash
+  assignment in try/except so a bad annotation value (non-ASCII, bytes,
+  tz-naive datetime) can never crash the handler. Coerces via `str()`,
+  uses `.isoformat()` instead of hardcoded `Z` suffix.
+
+### Verified — battle-test results
+
+- 1,820 calls fired across 91 live tools (8 mutation endpoints skipped),
+  concurrency 5, in 479 seconds against prod.
+- **83 / 91 (91%) zero-error under sustained load.**
+- **0 / 91 citation-count drift across calls** — hybrid envelope is
+  deterministic.
+- 56 / 91 passed per-category p95 SLA. The 35 slower tools are
+  vendor-bound (CoinGecko free-tier rate limit on 2; DefiLlama 502/503
+  on 3; Etherscan 502 intermittent on 1). Honest `meta.status="partial"`
+  already communicates vendor-degraded responses.
+
+### Roadmap
+
+See [ROADMAP.md](ROADMAP.md) for the 14 honestly-flagged
+`meta.status="unseeded"` tools and their target 0.5.0+ vendor
+integrations.
+
 ## [0.3.2] — 2026-04-22
 
 ### Security

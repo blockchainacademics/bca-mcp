@@ -1,4 +1,4 @@
-# Anthropic MCP Directory Submission — `@blockchainacademics/mcp` v0.2.2
+# Anthropic MCP Directory Submission — `@blockchainacademics/mcp` v0.4.0
 
 **Target repo:** `github.com/modelcontextprotocol/servers`
 **Package:** https://www.npmjs.com/package/@blockchainacademics/mcp
@@ -86,7 +86,7 @@ server for AI agents that need ground-truth crypto data.
 - Package published and installable: `npx -y @blockchainacademics/mcp`
 - Live-tested against `api.blockchainacademics.com` prior to each release
   (see [CHANGELOG](https://github.com/blockchainacademics/bca-mcp/blob/main/CHANGELOG.md) —
-  v0.2.1 and v0.2.2 were production-audit driven)
+  v0.2.1 and v0.4.0 were production-audit driven)
 - MIT licensed, TypeScript, stdio transport, zero runtime crashes
   (all errors surface as MCP responses with `isError: true`)
 - `server.json` conforms to the 2025-09-01 MCP registry schema
@@ -161,15 +161,15 @@ Scroll to Claude's answer. Hover over one of the inline citations to show the `c
 Tick each before opening the PR.
 
 ### Package integrity
-- [ ] `package.json` version = `0.2.2` ✅ (verified)
-- [ ] `server.json` version = `0.2.2` ✅ (verified, matches)
-- [ ] `server.json` `_meta.tool.version` = `0.2.2` ✅ (verified)
+- [ ] `package.json` version = `0.4.0` ✅ (verified)
+- [ ] `server.json` version = `0.4.0` ✅ (verified, matches)
+- [ ] `server.json` `_meta.tool.version` = `0.4.0` ✅ (verified)
 - [ ] `server.json` `_meta.tool_count` = `99` ✅ (verified)
 - [ ] Sum of `_meta.tool_categories[].count` = 99 → **VERIFY**: 7+4+4+3+6+6+13+6+4+5+5+4+4+4+2+3+4+7+8 = **99 ✅**
 - [ ] README tool-category table totals to 99 → **FLAG**: README currently lists v0.2.0 header and sums to 99 across 20 rows, but category groupings differ slightly from `server.json` (README splits "Memos + theses + social" and "Currencies" into 2 rows of 6+2; server.json merges into "Memos / theses / social / currencies" count 8). **Not a blocker — review before PR and decide whether to align.**
 - [ ] LICENSE present and MIT ✅ (verified)
 - [ ] Install command works clean on a fresh machine: `npx -y @blockchainacademics/mcp` (**run once from a non-dev shell to confirm**)
-- [ ] `npm view @blockchainacademics/mcp version` returns `0.2.2` (**run to confirm registry propagation**)
+- [ ] `npm view @blockchainacademics/mcp version` returns `0.4.0` (**run to confirm registry propagation**)
 
 ### Security
 - [ ] npm publish token **rotated** after any recent CI/debug use — **MANUAL, Wael must do**
@@ -240,12 +240,12 @@ gh pr create \
 
 | Location | Version | Match |
 |---|---|---|
-| `package.json` `version` | 0.2.2 | ✅ |
-| `server.json` `version` | 0.2.2 | ✅ |
-| `server.json` `packages[0].version` | 0.2.2 | ✅ |
-| `server.json` `_meta....tool.version` | 0.2.2 | ✅ |
-| `CHANGELOG.md` latest entry | 0.2.2 (2026-04-21) | ✅ |
-| npm registry (to verify at publish time) | 0.2.2 | **run `npm view`** |
+| `package.json` `version` | 0.4.0 | ✅ |
+| `server.json` `version` | 0.4.0 | ✅ |
+| `server.json` `packages[0].version` | 0.4.0 | ✅ |
+| `server.json` `_meta....tool.version` | 0.4.0 | ✅ |
+| `CHANGELOG.md` latest entry | 0.4.0 (2026-04-21) | ✅ |
+| npm registry (to verify at publish time) | 0.4.0 | **run `npm view`** |
 
 **No drift detected across local artifacts.** Confirm npm registry after any final re-publish.
 
@@ -253,7 +253,7 @@ gh pr create \
 
 ## 8. Known nits (non-blocking, worth fixing post-merge)
 
-1. **README header says "Tool categories (v0.2.0)"** but package is on v0.2.2. Bump to `(v0.2.2)` — 1-char change, improves trust.
+1. **README header says "Tool categories (v0.2.0)"** but package is on v0.4.0. Bump to `(v0.4.0)` — 1-char change, improves trust.
 2. **Category grouping drift** between README (20 rows) and `server.json._meta.tool_categories` (19 rows) — README splits "Memos + theses + social" and "Currencies" while server.json merges them. Both total 99; reviewer won't block, but alignment is cleaner.
 3. **Free-tier number mismatch** — `server.json` env-var description says "2,000 calls/month", README §API Key says "1,000 calls/month". Pick one and unify.
 4. **BLOCKER — `BCA_API_BASE` vs `BCA_API_BASE_URL` drift.** `src/client.ts:29` reads `process.env["BCA_API_BASE_URL"]`, but `server.json` declares the env var as `BCA_API_BASE`. Any user who follows `server.json` to set a staging base URL will have it silently ignored. **Fix before submission** — update `server.json` `environment_variables[1].name` from `"BCA_API_BASE"` to `"BCA_API_BASE_URL"` (matches both source and README), then republish or at minimum update the registry manifest. Reviewers who test the declared config path will catch this.
