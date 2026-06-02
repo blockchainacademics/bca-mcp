@@ -4,6 +4,14 @@ All notable changes to `@blockchainacademics/mcp` are documented here.
 
 This project follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.4.1] — 2026-06-02
+
+### Fixed (lockstep with bca-mcp 0.4.1 on PyPI)
+
+- Python sibling 0.4.0 failed to import on Python 3.10. The TS package
+  has no functional change; this version bump exists only to keep TS +
+  Python in lockstep on the npm + PyPI directory listings.
+
 ## [0.4.0] — 2026-06-02
 
 Distribution release for the Anthropic MCP directory submission.
