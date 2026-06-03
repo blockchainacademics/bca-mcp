@@ -1,7 +1,7 @@
 {
   "name": "@blockchainacademics/mcp",
-  "version": "0.4.1",
-  "description": "The canonical crypto MCP server for AI agents — 99 tools spanning news, entities, academy, market data, on-chain, sentiment, proprietary indicators, and agent-backed generation. Emits the canonical JSON:API-inspired response envelope ({data, attribution:{citations[]}, meta:{status, request_id, pageInfo}}).",
+  "version": "0.4.2",
+  "description": "The canonical crypto MCP server for AI agents \u2014 99 tools spanning news, entities, academy, market data, on-chain, sentiment, proprietary indicators, and agent-backed generation. Emits the canonical JSON:API-inspired response envelope ({data, attribution:{citations[]}, meta:{status, request_id, pageInfo}}).",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -55,5 +55,6 @@
     "@types/node": "^20.11.0",
     "tsx": "^4.19.0",
     "typescript": "^5.5.0"
-  }
+  },
+  "mcpName": "io.github.blockchainacademics/mcp"
 }

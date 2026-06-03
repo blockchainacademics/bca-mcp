@@ -1,32 +1,57 @@
 {
-  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-09-01/server.schema.json",
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.blockchainacademics/mcp",
   "description": "Canonical crypto MCP, 99 tools spanning news, entities, academy, market data, on-chain, sentiment, proprietary indicators, and agent-backed generation. Wraps api.blockchainacademics.com with attribution envelope on every tool response.",
   "repository": {
     "url": "https://github.com/blockchainacademics/bca-mcp",
     "source": "github"
   },
-  "version": "0.4.1",
+  "version": "0.4.2",
   "packages": [
     {
-      "registry_type": "npm",
+      "registryType": "npm",
       "identifier": "@blockchainacademics/mcp",
-      "version": "0.4.1",
+      "version": "0.4.2",
       "transport": {
         "type": "stdio"
       },
-      "environment_variables": [
+      "environmentVariables": [
         {
           "name": "BCA_API_KEY",
           "description": "BCA API key from api.blockchainacademics.com, free tier issues 2,000 calls/month with mandatory attribution. Get one at https://blockchainacademics.com (dev console launching Q2 2026; contact dev@blockchainacademics.com for early access).",
-          "is_required": true,
-          "is_secret": true
+          "isRequired": true,
+          "isSecret": true,
+          "format": "string"
         },
         {
           "name": "BCA_API_BASE",
           "description": "Override the API base URL. Defaults to https://api.blockchainacademics.com. Only set when testing against staging.",
-          "is_required": false,
+          "isRequired": false,
           "default": "https://api.blockchainacademics.com"
+        }
+      ]
+    },
+    {
+      "registryType": "pypi",
+      "identifier": "bca-mcp",
+      "version": "0.4.2",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "BCA_API_KEY",
+          "description": "BCA API key from api.blockchainacademics.com. Free tier issues 2,000 calls/month with mandatory attribution. Get one at https://blockchainacademics.com.",
+          "isRequired": true,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "BCA_API_BASE",
+          "description": "Override the API base URL. Defaults to https://api.blockchainacademics.com. Only set when testing against staging.",
+          "isRequired": false,
+          "default": "https://api.blockchainacademics.com",
+          "format": "string"
         }
       ]
     }
@@ -35,7 +60,7 @@
     "io.modelcontextprotocol.registry/publisher-provided": {
       "tool": {
         "name": "BCA MCP",
-        "version": "0.4.1"
+        "version": "0.4.2"
       },
       "tool_count": 99,
       "tool_categories": [

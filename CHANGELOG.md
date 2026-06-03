@@ -4,6 +4,23 @@ All notable changes to `@blockchainacademics/mcp` are documented here.
 
 This project follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.4.2] — 2026-06-02
+
+### Added — MCP Registry submission prep
+
+- `package.json` now declares `mcpName: "io.github.blockchainacademics/mcp"`.
+  Required by the official MCP Registry (`registry.modelcontextprotocol.io`)
+  so the npm artifact can be verified against the server metadata.
+- `server.json` migrated to the 2025-12-11 schema:
+  - camelCase field names (`registryType`, `environmentVariables`,
+    `isRequired`, `isSecret`) replace the prior snake_case keys.
+  - PyPI `bca-mcp` added as a second `packages[]` entry so the registry
+    surfaces both install paths (`npx @blockchainacademics/mcp` and
+    `uvx bca-mcp`).
+  - `format: "string"` on env vars per schema validation.
+
+No source change. Lockstep with `bca-mcp@0.4.2` on PyPI.
+
 ## [0.4.1] — 2026-06-02
 
 ### Fixed (lockstep with bca-mcp 0.4.1 on PyPI)
