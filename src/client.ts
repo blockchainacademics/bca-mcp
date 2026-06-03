@@ -12,6 +12,7 @@ import type {
   ResponseEnvelope,
 } from "./types.js";
 import { VERSION } from "./version.js";
+import { BCA_DEMO_KEY_FALLBACK } from "./demo_key.js";
 
 const DEFAULT_BASE = "https://api.blockchainacademics.com";
 const USER_AGENT = `@blockchainacademics/mcp/${VERSION} (+https://github.com/blockchainacademics/bca-mcp)`;
@@ -155,6 +156,24 @@ export function normalizeEnvelope<T>(json: unknown): ResponseEnvelope<T> {
     if (diagnostic && typeof diagnostic === "object" && !Array.isArray(diagnostic)) {
       meta.diagnostic = diagnostic as Record<string, unknown>;
     }
+    // Tier / upgrade_url passthrough in the legacy-flat path too. Demo
+    // launch (2026-06-02) shipped envelope additions; this branch is rarely
+    // hit but kept for byte-parity with the canonical branch.
+    const legacyTier = legacyMeta["tier"];
+    if (
+      legacyTier === "demo" ||
+      legacyTier === "free" ||
+      legacyTier === "starter" ||
+      legacyTier === "pro" ||
+      legacyTier === "team" ||
+      legacyTier === "enterprise"
+    ) {
+      meta.tier = legacyTier;
+    }
+    const legacyUpgrade = legacyMeta["upgrade_url"];
+    if (typeof legacyUpgrade === "string" && legacyUpgrade !== "") {
+      meta.upgrade_url = legacyUpgrade;
+    }
 
     return {
       data: obj["data"] as T,
@@ -236,6 +255,24 @@ function sanitizeMeta(raw: unknown): EnvelopeMeta {
   if (diagnostic && typeof diagnostic === "object" && !Array.isArray(diagnostic)) {
     meta.diagnostic = diagnostic as Record<string, unknown>;
   }
+  // tier / upgrade_url passthrough (added 2026-06-02 with the demo tier).
+  // Both are optional, backend-emitted, and surfaced unchanged so MCP hosts
+  // can read meta.tier / meta.upgrade_url directly from the canonical body.
+  const tier = obj["tier"];
+  if (
+    tier === "demo" ||
+    tier === "free" ||
+    tier === "starter" ||
+    tier === "pro" ||
+    tier === "team" ||
+    tier === "enterprise"
+  ) {
+    meta.tier = tier;
+  }
+  const upgradeUrl = obj["upgrade_url"];
+  if (typeof upgradeUrl === "string" && upgradeUrl !== "") {
+    meta.upgrade_url = upgradeUrl;
+  }
   return meta;
 }
 
@@ -248,10 +285,17 @@ export interface BcaClientOptions {
 
 export class BcaClient {
   private readonly baseUrl: string;
-  private readonly apiKey: string | undefined;
+  // Always set: fallback chain in constructor guarantees a string. Empty
+  // string is only possible in an unbuilt dev tree where src/demo_key.ts
+  // wasn't generated; in that case the upstream 401 path raises BcaAuthError.
+  private readonly apiKey: string;
   private readonly timeoutMs: number;
   private readonly fetchImpl: typeof fetch;
   private readonly isNonDefaultBase: boolean;
+  // True iff the apiKey came from the baked-in demo fallback (no user key
+  // supplied via constructor or BCA_API_KEY env var). Drives the one-time
+  // stderr banner emit in src/index.ts main().
+  public readonly usingDemoKey: boolean;
 
   constructor(opts: BcaClientOptions = {}) {
     const resolved = (
@@ -273,7 +317,15 @@ export class BcaClient {
 
     this.baseUrl = resolved;
     this.isNonDefaultBase = resolved !== DEFAULT_BASE;
-    this.apiKey = opts.apiKey ?? process.env["BCA_API_KEY"];
+
+    // Auth fallback chain (v0.5.0): explicit > env > demo. Demo key is
+    // public, rate-limited, and gated to a 10-tool allowlist by the backend.
+    // The fallback exists so `npx -y @blockchainacademics/mcp` is a true
+    // zero-config first-run experience instead of a BCA_AUTH wall.
+    const userKey = opts.apiKey ?? process.env["BCA_API_KEY"];
+    this.apiKey = userKey ?? BCA_DEMO_KEY_FALLBACK;
+    this.usingDemoKey = !userKey && BCA_DEMO_KEY_FALLBACK.length > 0;
+
     this.timeoutMs = opts.timeoutMs ?? 20_000;
     this.fetchImpl = opts.fetchImpl ?? fetch;
   }
@@ -307,9 +359,10 @@ export class BcaClient {
     params?: Record<string, string | number | boolean | undefined>,
     body?: Record<string, unknown>,
   ): Promise<ResponseEnvelope<T>> {
-    if (!this.apiKey) {
-      throw new BcaAuthError("BCA_API_KEY env var is not set");
-    }
+    // No explicit no-key throw: the fallback chain in the constructor
+    // guarantees this.apiKey is set (user key or baked-in demo). If both
+    // are somehow absent (unbuilt dev tree with empty demo_key.ts), the
+    // upstream 401 path below surfaces a clean BcaAuthError.
 
     // HIGH: emit a one-time warning whenever the operator is pointing this
     // client at something other than the canonical production API. This runs
@@ -367,7 +420,42 @@ export class BcaClient {
       );
     }
 
-    if (res.status === 401 || res.status === 403) throw new BcaAuthError();
+    if (res.status === 401 || res.status === 403) {
+      // Peek at the body for BCA_TIER_LOCKED so demo-tier callers see the
+      // helpful signup URL from the backend instead of a generic auth error.
+      // The backend emits 403 + { error: { code: "BCA_TIER_LOCKED", message: "..." } }
+      // when a demo key hits a non-allowlisted tool. We surface that message
+      // verbatim — it includes the upgrade URL.
+      let upstreamCode: string | undefined;
+      let upstreamMsg: string | undefined;
+      try {
+        const txt = await res.text();
+        const j = JSON.parse(txt) as Record<string, unknown>;
+        const err = j["error"] as Record<string, unknown> | undefined;
+        if (err) {
+          if (typeof err["code"] === "string") upstreamCode = err["code"] as string;
+          if (typeof err["message"] === "string") upstreamMsg = err["message"] as string;
+        }
+        // FastAPI's HTTPException uses {detail, ...} instead of {error}. Check
+        // the X-BCA-Error-Code header we set in _demo_allowlist.py.
+        const hdrCode = res.headers.get("x-bca-error-code");
+        if (!upstreamCode && hdrCode) upstreamCode = hdrCode;
+        if (!upstreamMsg && typeof j["detail"] === "string") {
+          upstreamMsg = j["detail"] as string;
+        }
+      } catch {
+        /* body wasn't JSON — fall through to generic auth error */
+      }
+      if (upstreamCode === "BCA_TIER_LOCKED") {
+        throw new BcaError(
+          "BCA_TIER_LOCKED",
+          upstreamMsg ??
+            "This tool requires a paid tier. Upgrade at https://brain.blockchainacademics.com/signup",
+          res.status,
+        );
+      }
+      throw new BcaAuthError(upstreamMsg);
+    }
     if (res.status === 429) {
       const ra = res.headers.get("retry-after");
       throw new BcaRateLimitError(ra ? Number(ra) : undefined);
