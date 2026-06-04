@@ -21,7 +21,7 @@
     "gen:demo-key": "node scripts/gen-demo-key.mjs",
     "build": "npm run gen:demo-key && tsc",
     "dev": "npm run gen:demo-key && tsx src/index.ts",
-    "test": "npm run gen:demo-key && node --test --import=tsx test/**/*.test.ts",
+    "test": "npm run gen:demo-key && node --test --import=tsx test/*.test.ts",
     "prepublishOnly": "npm run build && npm run version:check && npm test",
     "version:check": "node scripts/version-check.mjs"
   },
@@ -51,6 +51,9 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.29.0",
     "zod": "3.25.76"
+  },
+  "overrides": {
+    "fast-uri": ">=3.1.1"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
