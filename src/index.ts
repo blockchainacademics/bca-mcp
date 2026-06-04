@@ -473,11 +473,22 @@ async function main(): Promise<void> {
 // by tests for FENCE_OPEN / fenceEnvelopeData / TOOLS, do nothing — running
 // main() would block on stdio reads and hang the test worker forever.
 // Pattern adapted from the Python sibling's `if __name__ == "__main__"`.
+//
+// IMPORTANT (v0.5.1 fix): npx installs the package and the user invokes the
+// bin via a symlink at `node_modules/.bin/bca-mcp` -> `dist/index.js`. In
+// that scenario `process.argv[1]` is the symlink path while
+// `fileURLToPath(import.meta.url)` is the resolved target. They never match,
+// so the v0.5.0 guard returned false under npx and main() never ran — the
+// MCP server appeared to start but registered zero tools. Resolve both
+// paths via `realpathSync` before comparing.
 import { fileURLToPath } from "node:url";
+import { realpathSync } from "node:fs";
 const _isEntry = (() => {
   if (!process.argv[1]) return false;
   try {
-    return process.argv[1] === fileURLToPath(import.meta.url);
+    const argvReal = realpathSync(process.argv[1]);
+    const moduleReal = realpathSync(fileURLToPath(import.meta.url));
+    return argvReal === moduleReal;
   } catch {
     return false;
   }
