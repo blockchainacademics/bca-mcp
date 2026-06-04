@@ -6,20 +6,20 @@
     "url": "https://github.com/blockchainacademics/bca-mcp",
     "source": "github"
   },
-  "version": "0.4.2",
+  "version": "0.5.1",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "@blockchainacademics/mcp",
-      "version": "0.4.2",
+      "version": "0.5.1",
       "transport": {
         "type": "stdio"
       },
       "environmentVariables": [
         {
           "name": "BCA_API_KEY",
-          "description": "BCA API key. Free tier: 2,000 calls/mo. Get one at https://blockchainacademics.com.",
-          "isRequired": true,
+          "description": "Optional. When unset, the server uses a public demo key (10 marquee tools, 100/day shared cap). Set for the full 99-tool surface — free tier 2,000/mo at https://brain.blockchainacademics.com/signup.",
+          "isRequired": false,
           "isSecret": true,
           "format": "string"
         },
@@ -36,7 +36,7 @@
     "io.modelcontextprotocol.registry/publisher-provided": {
       "tool": {
         "name": "BCA MCP",
-        "version": "0.4.2"
+        "version": "0.5.1"
       },
       "tool_count": 99,
       "tool_categories": [

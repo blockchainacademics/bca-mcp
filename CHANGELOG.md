@@ -4,6 +4,55 @@ All notable changes to `@blockchainacademics/mcp` are documented here.
 
 This project follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.5.1] — 2026-06-04
+
+### Fixed — entry-point guard via npx symlinks
+
+The v0.5.0 entry-point guard compared `process.argv[1]` to
+`fileURLToPath(import.meta.url)` literally. That worked for direct
+invocation (`node dist/index.js`) but failed for the actual launch-day
+scenario: `npx -y @blockchainacademics/mcp` installs the package and
+invokes the bin via a symlink at `node_modules/.bin/bca-mcp` → `dist/index.js`.
+The two paths never match, so `_isEntry` was `false`, `main()` never
+ran, and the MCP server appeared to start but registered zero tools.
+
+Resolved both paths via `realpathSync` before comparing.
+
+Verified against a published `0.5.1` symlink invocation: banner emits to
+stderr, `server.connect(transport)` runs, tools list correctly.
+
+Python sibling bumped to 0.5.1 in lockstep — no functional change there
+(`__name__ == "__main__"` resolves correctly via console_scripts).
+
+## [0.5.0] — 2026-06-04
+
+### Added — public demo tier (zero-config first run)
+
+When `BCA_API_KEY` is unset, `BcaClient` now falls back to a baked-in
+public demo key (`bca_demo_a3e1cc71b2b32872cb32516ffc7e8ad8203acb9d`).
+The backend recognises it, applies a 10-tool allowlist (price, trending,
+fear-greed, market overview, news search, sentiment, entity, explainer,
+recent stories, topic), and rate-limits at 100/day global + 20/day
+per-IP. `npx -y @blockchainacademics/mcp` is now a true zero-config
+demo instead of a `BCA_AUTH` wall on every tool call.
+
+- `EnvelopeMeta` gains optional `tier` + `upgrade_url` (passthrough on
+  both canonical and legacy-flat branches).
+- `BcaErrorCode` union extends with `BCA_TIER_LOCKED`. 401/403 handler
+  peeks at upstream body and surfaces the signup URL verbatim.
+- New `usingDemoKey` accessor drives a one-time stderr banner from `main()`
+  after the stdio handshake. Banner is byte-identical to the Python sibling.
+- Build infrastructure: `scripts/demo-key.txt` (committed) +
+  `scripts/gen-demo-key.mjs` write `src/demo_key.ts` at build time.
+  Wired into `build`, `dev`, and `test` npm scripts.
+
+### Fixed — latent test hang in security_v031.test.ts
+
+`test/security_v031.test.ts` imported from `src/index.js` which fired
+`main()` on module load and blocked on stdio reads forever in CI. Added
+an entry-point guard so `main()` runs only when this file is the entry
+script. (Note: 0.5.0's guard had the npx-symlink bug — see 0.5.1.)
+
 ## [0.4.2] — 2026-06-02
 
 ### Added — MCP Registry submission prep
