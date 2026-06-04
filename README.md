@@ -37,9 +37,26 @@ LLMs hallucinate about crypto. BCA ships ground-truth editorial content with ful
 
 ## Install
 
-### Claude Desktop
+### Claude Desktop (zero-config demo)
 
-Add to `claude_desktop_config.json` (macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`):
+The package ships with a public demo key baked in. No signup needed to try it. Add to `claude_desktop_config.json` (macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "blockchainacademics": {
+      "command": "npx",
+      "args": ["-y", "@blockchainacademics/mcp"]
+    }
+  }
+}
+```
+
+Restart Claude Desktop. The demo path unlocks 10 marquee tools (`get_price`, `get_trending`, `get_fear_greed`, `get_market_overview`, `search_news`, `get_sentiment`, `get_entity`, `get_explainer`, `get_recent_stories`, `get_topic`) with real data and real citations. Shared rate cap: 100 calls/day globally + 20/day per IP.
+
+### Claude Desktop (full 99 tools)
+
+Get a free key at [brain.blockchainacademics.com/signup](https://brain.blockchainacademics.com/signup?ref=mcp-npm-readme) (2,000 calls/month per user) and add the env block:
 
 ```json
 {
@@ -137,7 +154,9 @@ When your agent surfaces BCA content to a user, attribute via the `cite_url`. Fi
 
 ## API Key
 
-Get an API key at https://blockchainacademics.com/api (free tier: 2,000 calls/month). Paid tiers unlock agent-backed research generation and proprietary on-chain indicators.
+**Not required to try it.** When `BCA_API_KEY` is unset, the server falls back to a baked-in public demo key that unlocks 10 marquee tools. See [Demo tier](#install) above.
+
+For the full 99 tools, get a free key at [brain.blockchainacademics.com/signup](https://brain.blockchainacademics.com/signup?ref=mcp-npm-apikey) (2,000 calls/month). Paid tiers unlock agent-backed research generation and proprietary on-chain indicators.
 
 Set `BCA_API_KEY` in your MCP client env. Optionally override `BCA_API_BASE` (default `https://api.blockchainacademics.com`). `BCA_API_BASE_URL` is also accepted for backward compatibility.
 
@@ -151,7 +170,8 @@ The server never crashes the stdio process. All failures surface as MCP response
 
 | Code | Meaning |
 |---|---|
-| `BCA_AUTH` | Missing/invalid `BCA_API_KEY` (HTTP 401/403) |
+| `BCA_AUTH` | Invalid `BCA_API_KEY` (HTTP 401/403) |
+| `BCA_TIER_LOCKED` | Tool not in your current tier's allowlist (HTTP 403). Demo tier sees this on 89 of the 99 tools — the error message includes the upgrade URL. |
 | `BCA_RATE_LIMIT` | Rate limit exceeded (HTTP 429 — honor `Retry-After`) |
 | `BCA_UPSTREAM` | BCA API returned 5xx or malformed JSON |
 | `BCA_NETWORK` | Network failure or 20s timeout exceeded |

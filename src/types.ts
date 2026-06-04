@@ -23,6 +23,12 @@ export interface EnvelopeMeta {
   request_id: string; // always a string, never null
   pageInfo: PageInfo;
   diagnostic?: Record<string, unknown>; // present on unseeded/partial
+  // Added 2026-06-02 with the public demo-tier launch. Backend-emitted on
+  // every authenticated response. MCP packages pass through unchanged.
+  tier?: "demo" | "free" | "starter" | "pro" | "team" | "enterprise";
+  // Present on `tier === "demo"` (always) and on `tier === "free"` callers
+  // above ~80% of their daily cap. Absent on paid tiers.
+  upgrade_url?: string;
 }
 
 export interface ResponseEnvelope<T> {

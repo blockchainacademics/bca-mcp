@@ -9,6 +9,8 @@ import { z } from "zod";
 
 import { BcaError } from "./errors.js";
 import { VERSION } from "./version.js";
+import { getClient } from "./client.js";
+import { DEMO_BANNER } from "./demo_banner.js";
 import type { ResponseEnvelope } from "./types.js";
 
 // H-2 (v0.3.1): prompt-injection fencing. Upstream BCA data — news titles,
@@ -458,13 +460,34 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
 async function main(): Promise<void> {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  // Deliberately no console.log — stdio transport owns stdout.
+  // Deliberately no console.log — stdio transport owns stdout. Stderr is
+  // safe for one-off diagnostics. Emit the demo banner AFTER the handshake
+  // completes so the SDK doesn't interleave it with framing bytes.
+  if (getClient().usingDemoKey) {
+    process.stderr.write(DEMO_BANNER);
+  }
 }
 
-main().catch((err) => {
-  // Fatal startup errors go to stderr so the host sees them without corrupting stdio.
-  process.stderr.write(
-    `[bca-mcp] fatal: ${err?.stack ?? String(err)}\n`,
-  );
-  process.exit(1);
-});
+// Entry-point guard: only run main() when this file IS the entry script
+// (e.g. `npx -y @blockchainacademics/mcp` -> dist/index.js). When imported
+// by tests for FENCE_OPEN / fenceEnvelopeData / TOOLS, do nothing — running
+// main() would block on stdio reads and hang the test worker forever.
+// Pattern adapted from the Python sibling's `if __name__ == "__main__"`.
+import { fileURLToPath } from "node:url";
+const _isEntry = (() => {
+  if (!process.argv[1]) return false;
+  try {
+    return process.argv[1] === fileURLToPath(import.meta.url);
+  } catch {
+    return false;
+  }
+})();
+if (_isEntry) {
+  main().catch((err) => {
+    // Fatal startup errors go to stderr so the host sees them without corrupting stdio.
+    process.stderr.write(
+      `[bca-mcp] fatal: ${err?.stack ?? String(err)}\n`,
+    );
+    process.exit(1);
+  });
+}

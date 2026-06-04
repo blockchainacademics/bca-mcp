@@ -1,6 +1,6 @@
 {
   "name": "@blockchainacademics/mcp",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "description": "The canonical crypto MCP server for AI agents \u2014 99 tools spanning news, entities, academy, market data, on-chain, sentiment, proprietary indicators, and agent-backed generation. Emits the canonical JSON:API-inspired response envelope ({data, attribution:{citations[]}, meta:{status, request_id, pageInfo}}).",
   "type": "module",
   "main": "./dist/index.js",
@@ -18,9 +18,10 @@
     "node": ">=18.17"
   },
   "scripts": {
-    "build": "tsc",
-    "dev": "tsx src/index.ts",
-    "test": "node --test --import=tsx test/**/*.test.ts",
+    "gen:demo-key": "node scripts/gen-demo-key.mjs",
+    "build": "npm run gen:demo-key && tsc",
+    "dev": "npm run gen:demo-key && tsx src/index.ts",
+    "test": "npm run gen:demo-key && node --test --import=tsx test/*.test.ts",
     "prepublishOnly": "npm run build && npm run version:check && npm test",
     "version:check": "node scripts/version-check.mjs"
   },
@@ -50,6 +51,9 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.29.0",
     "zod": "3.25.76"
+  },
+  "overrides": {
+    "fast-uri": ">=3.1.1"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
