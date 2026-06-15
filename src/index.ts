@@ -71,6 +71,7 @@ import * as sentiment from "./tools/sentiment.js";
 import * as indicators from "./tools/indicators.js";
 import * as agentJobs from "./tools/agent_jobs.js";
 import * as ext from "./tools/extended.js";
+import * as events from "./tools/events.js";
 
 // --- zod -> JSON Schema (minimal, MCP-compatible) ---------------------------
 // Uses zod's built-in toJSONSchema when present (zod 3.23+), else a minimal
@@ -185,6 +186,10 @@ export const TOOLS: ReadonlyArray<ToolEntry> = [
     content.getAsOfSnapshotDefinition,
     content.runGetAsOfSnapshot,
   ),
+
+  // --- Events --------------------------------------------------------------
+  entry(events.getEventsInputSchema, events.getEventsDefinition, events.runGetEvents),
+  entry(events.getEventInputSchema, events.getEventDefinition, events.runGetEvent),
 
   // --- Market data (category 2) --------------------------------------------
   entry(market.getPriceInputSchema, market.getPriceDefinition, market.runGetPrice),
