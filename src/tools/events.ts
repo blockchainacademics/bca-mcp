@@ -6,6 +6,7 @@
 import { z } from "zod";
 import { getClient } from "../client.js";
 import { slugSchema } from "../schema.js";
+import { neutralizeFenceTokens } from "../untrusted.js";
 import type { ResponseEnvelope } from "../types.js";
 
 const EVENT_TYPES = [
@@ -23,7 +24,9 @@ const EVENT_TYPES = [
  */
 function wrapUntrusted(source: string, s: unknown): string | undefined {
   if (typeof s !== "string" || s.length === 0) return s as undefined;
-  return `<untrusted_content source="${source}">\n${s}\n</untrusted_content>`;
+  // Neutralize embedded fence tags so a literal </untrusted_content> in a
+  // scraped event description cannot close the fence early (see untrusted.ts).
+  return `<untrusted_content source="${source}">\n${neutralizeFenceTokens(s) as string}\n</untrusted_content>`;
 }
 
 // --- get_events ------------------------------------------------------------

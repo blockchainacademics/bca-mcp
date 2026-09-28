@@ -11,6 +11,7 @@ import { BcaError } from "./errors.js";
 import { VERSION } from "./version.js";
 import { getClient } from "./client.js";
 import { DEMO_BANNER } from "./demo_banner.js";
+import { neutralizeFenceTokens } from "./untrusted.js";
 import type { ResponseEnvelope } from "./types.js";
 
 // H-2 (v0.3.1): prompt-injection fencing. Upstream BCA data — news titles,
@@ -45,7 +46,12 @@ export function fenceEnvelopeData(
     return envelope;
   }
   const obj = envelope as Record<string, unknown>;
-  const rendered = JSON.stringify(obj["data"], null, 2);
+  // Neutralize any literal fence tag embedded in the upstream payload
+  // (JSON.stringify does NOT escape "<", ">" or "/") so a `</untrusted_content>`
+  // hiding inside a string value cannot close the fence early. See untrusted.ts.
+  const rendered = neutralizeFenceTokens(
+    JSON.stringify(obj["data"], null, 2),
+  ) as string;
   const fenced = `${FENCE_OPEN}${rendered}${FENCE_CLOSE}`;
   return { ...obj, data: fenced };
 }

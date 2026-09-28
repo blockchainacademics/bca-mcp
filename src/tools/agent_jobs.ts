@@ -10,6 +10,7 @@ import { isIP } from "node:net";
 import { z } from "zod";
 import { getClient } from "../client.js";
 import { slugSchema } from "../schema.js";
+import { neutralizeFenceTokens } from "../untrusted.js";
 import type { ResponseEnvelope } from "../types.js";
 
 // H-3 (v0.3.1): webhook SSRF guard. An attacker could otherwise register a
@@ -267,7 +268,10 @@ const _TRANSLATE_UNTRUSTED_FIELDS = [
 ];
 
 function _fenceString(source: string, value: string): string {
-  return `<untrusted_content source="${source}">\n${value}\n</untrusted_content>`;
+  // Neutralize any embedded fence tag before wrapping so attacker-controlled
+  // contract comments / whitepaper text containing a literal
+  // </untrusted_content> cannot break out of the fence (see untrusted.ts).
+  return `<untrusted_content source="${source}">\n${neutralizeFenceTokens(value) as string}\n</untrusted_content>`;
 }
 
 function _fenceField(
