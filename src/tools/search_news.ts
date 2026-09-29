@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { getClient } from "../client.js";
 import { slugSchema } from "../schema.js";
+import { neutralizeFenceTokens } from "../untrusted.js";
 import type { ResponseEnvelope, SearchNewsResult } from "../types.js";
 
 export const searchNewsInputSchema = z.object({
@@ -56,8 +57,10 @@ export async function runSearchNews(
   if (res?.data?.articles && Array.isArray(res.data.articles)) {
     for (const a of res.data.articles) {
       if (typeof a.summary === "string" && a.summary.length > 0) {
+        // Neutralize embedded fence tags first so a literal
+        // </untrusted_content> in the summary can't escape the fence.
         a.summary =
-          `<untrusted_content source="search_news">\n${a.summary}\n</untrusted_content>`;
+          `<untrusted_content source="search_news">\n${neutralizeFenceTokens(a.summary) as string}\n</untrusted_content>`;
       }
     }
   }

@@ -5,15 +5,18 @@
 import { z } from "zod";
 import { getClient } from "../client.js";
 import { slugSchema } from "../schema.js";
+import { neutralizeFenceTokens } from "../untrusted.js";
 import type { ResponseEnvelope } from "../types.js";
 
 /**
  * Wrap a free-text field that originated from external sources (article
  * bodies, excerpts) so the consuming LLM treats it as data, not instructions.
+ * Embedded fence tags are neutralized first so a literal </untrusted_content>
+ * in the upstream text cannot close the fence early (see untrusted.ts).
  */
 function wrapUntrusted(source: string, s: unknown): string | undefined {
   if (typeof s !== "string" || s.length === 0) return s as undefined;
-  return `<untrusted_content source="${source}">\n${s}\n</untrusted_content>`;
+  return `<untrusted_content source="${source}">\n${neutralizeFenceTokens(s) as string}\n</untrusted_content>`;
 }
 
 // --- get_article -----------------------------------------------------------

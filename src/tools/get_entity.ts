@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { getClient } from "../client.js";
 import { slugSchema, tickerSchema } from "../schema.js";
+import { neutralizeFenceTokens } from "../untrusted.js";
 import type { Entity, ResponseEnvelope } from "../types.js";
 
 export const getEntityInputSchema = z
@@ -40,8 +41,10 @@ export async function runGetEntity(
   // A-3: entity `summary` may include third-party excerpts ingested into the
   // dossier. Wrap so an LLM consumer treats it as data, not instructions.
   if (res?.data && typeof res.data.summary === "string" && res.data.summary.length > 0) {
+    // Neutralize embedded fence tags first so a literal </untrusted_content>
+    // in the dossier summary can't escape the fence (see untrusted.ts).
     res.data.summary =
-      `<untrusted_content source="get_entity">\n${res.data.summary}\n</untrusted_content>`;
+      `<untrusted_content source="get_entity">\n${neutralizeFenceTokens(res.data.summary) as string}\n</untrusted_content>`;
   }
   return res;
 }
