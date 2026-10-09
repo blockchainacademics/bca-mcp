@@ -1,24 +1,24 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.blockchainacademics/mcp",
-  "description": "Crypto MCP — 99 tools across news, market, on-chain, sentiment, indicators, agent generation.",
+  "description": "Crypto MCP \u2014 102 tools across news, market, on-chain, sentiment, indicators, agent generation.",
   "repository": {
     "url": "https://github.com/blockchainacademics/bca-mcp",
     "source": "github"
   },
-  "version": "0.5.3",
+  "version": "0.6.0",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "@blockchainacademics/mcp",
-      "version": "0.5.3",
+      "version": "0.6.0",
       "transport": {
         "type": "stdio"
       },
       "environmentVariables": [
         {
           "name": "BCA_API_KEY",
-          "description": "Optional. When unset, the server uses a public demo key (10 marquee tools, 100/day shared cap). Set for the full 99-tool surface — free tier 2,000/mo at https://brain.blockchainacademics.com/signup.",
+          "description": "Optional. When unset, the server uses a public demo key (10 marquee tools, 100/day shared cap). Set for the full 102-tool surface \u2014 free tier 2,000/mo at https://brain.blockchainacademics.com/signup.",
           "isRequired": false,
           "isSecret": true,
           "format": "string"
@@ -36,9 +36,9 @@
     "io.modelcontextprotocol.registry/publisher-provided": {
       "tool": {
         "name": "BCA MCP",
-        "version": "0.5.3"
+        "version": "0.6.0"
       },
-      "tool_count": 99,
+      "tool_count": 102,
       "tool_categories": [
         {
           "name": "Content & corpus",
@@ -74,12 +74,15 @@
           ]
         },
         {
-          "name": "Sentiment",
-          "count": 3,
+          "name": "Sentiment + crypto Twitter",
+          "count": 6,
           "examples": [
             "get_sentiment",
             "get_social_pulse",
-            "get_fear_greed"
+            "get_fear_greed",
+            "get_ct_pulse",
+            "get_x_signals",
+            "get_kol_consensus"
           ]
         },
         {

@@ -236,6 +236,13 @@ export const TOOLS: ReadonlyArray<ToolEntry> = [
     sentiment.getFearGreedDefinition,
     sentiment.runGetFearGreed,
   ),
+  entry(sentiment.getCtPulseInputSchema, sentiment.getCtPulseDefinition, sentiment.runGetCtPulse),
+  entry(sentiment.getXSignalsInputSchema, sentiment.getXSignalsDefinition, sentiment.runGetXSignals),
+  entry(
+    sentiment.getKolConsensusInputSchema,
+    sentiment.getKolConsensusDefinition,
+    sentiment.runGetKolConsensus,
+  ),
 
   // --- Proprietary indicators (category 5) ---------------------------------
   entry(

@@ -4,6 +4,21 @@ All notable changes to `@blockchainacademics/mcp` are documented here.
 
 This project follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.6.0] — 2026-10-09
+
+### Added — crypto Twitter intelligence (3 new tools, 99 → 102)
+
+BCA's read of what crypto Twitter is saying, as analysis in our own words with X post URLs as citations (never reposted post text). Pro tier.
+
+- `get_ct_pulse`: last-24h takeaway, top stories, narratives heating or cooling, sourced numbers, notable posts. No topic = latest scheduled market snapshot.
+- `get_x_signals`: breaking stories surfaced on X before news outlets, by lane (security = hacks/exploits, news = exchanges/regulators/ETF data, keyword), with confidence and on-chain evidence flags.
+- `get_kol_consensus`: where credible CT voices stand on the most-covered tokens (stance, bull/bear account counts, key points, links).
+
+### Changed
+
+- `get_social_pulse` is now live (was returning `integration_pending`): CT sentiment score, label, mention trend, bull/bear points, narratives, notable posts.
+- `get_article` works without an API key (rate-limited per IP), so agents can read any article link.
+
 ## [0.5.1] — 2026-06-04
 
 ### Fixed — entry-point guard via npx symlinks
