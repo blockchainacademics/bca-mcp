@@ -94,17 +94,35 @@ export const listVcsDefinition = {
 export const runListVcs = (i: any) => clientGet(`/v1/directories/vcs`, i);
 
 export const listJobsInputSchema = z.object({
-  remote: z.boolean().optional(),
-  seniority: z.string().max(64).optional(),
-  chain: slugSchema("chain").optional(),
-  limit: z.number().int().min(1).max(100).default(50),
+  q: z.string().min(2).max(100).optional().describe("Search title or company, e.g. 'solidity', 'Coinbase'"),
+  tag: z
+    .enum(["engineering", "security", "data", "research", "product", "design", "marketing", "sales-bd", "legal-compliance", "finance", "trading", "support", "operations", "other"])
+    .optional()
+    .describe("Role category"),
+  remote: z.boolean().optional().describe("true = remote roles only"),
+  location: z.string().min(2).max(100).optional().describe("Location substring, e.g. 'London', 'Singapore'"),
+  employment_type: z.enum(["full_time", "part_time", "contract", "internship"]).optional(),
+  company_slug: slugSchema("company_slug").optional().describe("e.g. coinbase, binance, phantom"),
+  include_description: z.boolean().default(false).describe("Full job descriptions (large); use get_job for one role"),
+  limit: z.number().int().min(1).max(100).default(25),
+  offset: z.number().int().min(0).default(0),
 });
 export const listJobsDefinition = {
   name: "list_jobs",
   description:
-    "Aggregated crypto job board, deduped from Crypto Jobs List / Web3 Career / Wellfound / AngelList.",
+    "Live crypto jobs (1,300+ open roles at 50+ crypto companies: Coinbase, Binance, OKX, Ripple, Circle, Phantom, Uniswap...) collected every 6h from the companies' own job boards. Filter by role, remote, location, company, keyword. Apply links go to the company's own application page.",
 };
 export const runListJobs = (i: any) => clientGet(`/v1/directories/jobs`, i);
+
+export const getJobInputSchema = z.object({
+  slug: slugSchema("slug").describe("Job slug from list_jobs"),
+});
+export const getJobDefinition = {
+  name: "get_job",
+  description:
+    "One crypto job in full: description, company, location, remote, salary when published, apply link, BCA job page URL. Errors once the role is filled.",
+};
+export const runGetJob = (i: any) => clientGet(`/v1/directories/jobs/${encodeURIComponent(i.slug)}`);
 
 // Grants: the live directory behind blockchainacademics.com/grants. Agents
 // check every listing against its source page daily; expired deadlines are
