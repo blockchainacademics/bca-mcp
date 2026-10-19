@@ -106,6 +106,42 @@ export const listJobsDefinition = {
 };
 export const runListJobs = (i: any) => clientGet(`/v1/directories/jobs`, i);
 
+// Grants: the live directory behind blockchainacademics.com/grants. Agents
+// check every listing against its source page daily; expired deadlines are
+// never returned.
+const ecosystemSchema = z.enum(["web3", "ai", "web2_cloud", "gov", "edu"]);
+export const searchGrantsInputSchema = z.object({
+  q: z.string().min(2).max(100).optional().describe("Search title / funder, e.g. 'Solana', 'public goods'"),
+  ecosystem: ecosystemSchema.optional().describe("web3 | ai | web2_cloud | gov | edu"),
+  country: z.string().max(64).optional().describe("Eligibility country; global grants always match"),
+  min_amount: z.number().int().min(0).optional().describe("Minimum max-award in USD"),
+  max_complexity: z.number().int().min(1).max(5).optional().describe("1 (simple) to 5 (heavy application)"),
+  deadline_before: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "YYYY-MM-DD")
+    .optional()
+    .describe("Only grants closing on or before this date"),
+  has_deadline: z.boolean().optional().describe("true = dated rounds only, false = rolling only"),
+  limit: z.number().int().min(1).max(100).default(20),
+  offset: z.number().int().min(0).default(0),
+});
+export const searchGrantsDefinition = {
+  name: "search_grants",
+  description:
+    "Live crypto, web3, AI and public-funding grants (200+ programs) with amounts, deadlines, eligibility and apply links. Verified against each funder's page weekly; expired rounds never returned. Soonest deadline first.",
+};
+export const runSearchGrants = (i: any) => clientGet(`/v1/grants`, i);
+
+export const getGrantInputSchema = z.object({
+  slug: slugSchema("slug").describe("Grant slug or id from search_grants"),
+});
+export const getGrantDefinition = {
+  name: "get_grant",
+  description:
+    "One grant program in full: funder, amount range, deadline, focus areas, geography, application complexity, summary, apply link, last verified date.",
+};
+export const runGetGrant = (i: any) => clientGet(`/v1/grants/${encodeURIComponent(i.slug)}`);
+
 export const listSmartContractTemplatesInputSchema = z.object({});
 export const listSmartContractTemplatesDefinition = {
   name: "list_smart_contract_templates",

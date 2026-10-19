@@ -313,6 +313,8 @@ export const TOOLS: ReadonlyArray<ToolEntry> = [
   entry(ext.listTradingBotsInputSchema, ext.listTradingBotsDefinition, ext.runListTradingBots),
   entry(ext.listVcsInputSchema, ext.listVcsDefinition, ext.runListVcs),
   entry(ext.listJobsInputSchema, ext.listJobsDefinition, ext.runListJobs),
+  entry(ext.searchGrantsInputSchema, ext.searchGrantsDefinition, ext.runSearchGrants),
+  entry(ext.getGrantInputSchema, ext.getGrantDefinition, ext.runGetGrant),
   entry(ext.listSmartContractTemplatesInputSchema, ext.listSmartContractTemplatesDefinition, ext.runListSmartContractTemplates),
   entry(ext.getSmartContractTemplateInputSchema, ext.getSmartContractTemplateDefinition, ext.runGetSmartContractTemplate),
   entry(ext.listMarketingTemplatesInputSchema, ext.listMarketingTemplatesDefinition, ext.runListMarketingTemplates),

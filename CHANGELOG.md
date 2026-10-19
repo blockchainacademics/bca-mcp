@@ -4,6 +4,15 @@ All notable changes to `@blockchainacademics/mcp` are documented here.
 
 This project follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.6.1] — 2026-10-19
+
+### Added — grants (2 new tools, 102 → 104)
+
+The live grants directory behind blockchainacademics.com/grants: 200+ crypto, web3, AI and public-funding programs, each checked against the funder's page weekly. Expired rounds are never returned.
+
+- `search_grants`: filter by keyword, ecosystem (web3, ai, web2_cloud, gov, edu), country, minimum award, application complexity and deadline. Soonest deadline first.
+- `get_grant`: one program in full, with apply link and last verified date.
+
 ## [0.6.0] — 2026-10-09
 
 ### Added — crypto Twitter intelligence (3 new tools, 99 → 102)

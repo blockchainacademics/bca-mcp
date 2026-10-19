@@ -1,6 +1,6 @@
 # @blockchainacademics/mcp
 
-The canonical crypto MCP server for AI agents. **102 tools** spanning 3,501+ editorial articles, 200+ entity dossiers, 43 academy lessons, aggregated market + on-chain data, proprietary indicators, and async agent-backed generation — all accessible as MCP tools your AI agent can call natively.
+The canonical crypto MCP server for AI agents. **104 tools** spanning 3,501+ editorial articles, 200+ entity dossiers, 43 academy lessons, aggregated market + on-chain data, proprietary indicators, and async agent-backed generation — all accessible as MCP tools your AI agent can call natively.
 
 ## Tool categories (v0.4.0)
 
@@ -54,7 +54,7 @@ The package ships with a public demo key baked in. No signup needed to try it. A
 
 Restart Claude Desktop. The demo path unlocks 10 marquee tools (`get_price`, `get_trending`, `get_fear_greed`, `get_market_overview`, `search_news`, `get_sentiment`, `get_entity`, `get_explainer`, `get_recent_stories`, `get_topic`) with real data and real citations. Shared rate cap: 100 calls/day globally + 20/day per IP.
 
-### Claude Desktop (full 102 tools)
+### Claude Desktop (full 104 tools)
 
 Get a free key at [brain.blockchainacademics.com/signup](https://brain.blockchainacademics.com/signup?ref=mcp-npm-readme) (2,000 calls/month per user) and add the env block:
 
@@ -70,7 +70,7 @@ Get a free key at [brain.blockchainacademics.com/signup](https://brain.blockchai
 }
 ```
 
-Restart Claude Desktop. All 102 tools appear in the tool picker.
+Restart Claude Desktop. All 104 tools appear in the tool picker.
 
 ### Programmatic (LangChain, Eliza, custom agents)
 
@@ -156,7 +156,7 @@ When your agent surfaces BCA content to a user, attribute via the `cite_url`. Fi
 
 **Not required to try it.** When `BCA_API_KEY` is unset, the server falls back to a baked-in public demo key that unlocks 10 marquee tools. See [Demo tier](#install) above.
 
-For the full 102 tools, get a free key at [brain.blockchainacademics.com/signup](https://brain.blockchainacademics.com/signup?ref=mcp-npm-apikey) (2,000 calls/month). Paid tiers unlock agent-backed research generation and proprietary on-chain indicators.
+For the full 104 tools, get a free key at [brain.blockchainacademics.com/signup](https://brain.blockchainacademics.com/signup?ref=mcp-npm-apikey) (2,000 calls/month). Paid tiers unlock agent-backed research generation and proprietary on-chain indicators.
 
 Set `BCA_API_KEY` in your MCP client env. Optionally override `BCA_API_BASE` (default `https://api.blockchainacademics.com`). `BCA_API_BASE_URL` is also accepted for backward compatibility.
 
@@ -171,7 +171,7 @@ The server never crashes the stdio process. All failures surface as MCP response
 | Code | Meaning |
 |---|---|
 | `BCA_AUTH` | Invalid `BCA_API_KEY` (HTTP 401/403) |
-| `BCA_TIER_LOCKED` | Tool not in your current tier's allowlist (HTTP 403). Demo tier sees this on 92 of the 102 tools — the error message includes the upgrade URL. |
+| `BCA_TIER_LOCKED` | Tool not in your current tier's allowlist (HTTP 403). Demo tier sees this on 94 of the 104 tools — the error message includes the upgrade URL. |
 | `BCA_RATE_LIMIT` | Rate limit exceeded (HTTP 429 — honor `Retry-After`) |
 | `BCA_UPSTREAM` | BCA API returned 5xx or malformed JSON |
 | `BCA_NETWORK` | Network failure or 20s timeout exceeded |

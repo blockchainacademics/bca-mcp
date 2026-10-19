@@ -1,24 +1,24 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.blockchainacademics/mcp",
-  "description": "Crypto MCP \u2014 102 tools across news, market, on-chain, sentiment, indicators, agent generation.",
+  "description": "Crypto MCP \u2014 104 tools across news, market, on-chain, sentiment, indicators, agent generation.",
   "repository": {
     "url": "https://github.com/blockchainacademics/bca-mcp",
     "source": "github"
   },
-  "version": "0.6.0",
+  "version": "0.6.1",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "@blockchainacademics/mcp",
-      "version": "0.6.0",
+      "version": "0.6.1",
       "transport": {
         "type": "stdio"
       },
       "environmentVariables": [
         {
           "name": "BCA_API_KEY",
-          "description": "Optional. When unset, the server uses a public demo key (10 marquee tools, 100/day shared cap). Set for the full 102-tool surface \u2014 free tier 2,000/mo at https://brain.blockchainacademics.com/signup.",
+          "description": "Optional. When unset, the server uses a public demo key (10 marquee tools, 100/day shared cap). Set for the full 104-tool surface \u2014 free tier 2,000/mo at https://brain.blockchainacademics.com/signup.",
           "isRequired": false,
           "isSecret": true,
           "format": "string"
@@ -36,9 +36,9 @@
     "io.modelcontextprotocol.registry/publisher-provided": {
       "tool": {
         "name": "BCA MCP",
-        "version": "0.6.0"
+        "version": "0.6.1"
       },
-      "tool_count": 102,
+      "tool_count": 104,
       "tool_categories": [
         {
           "name": "Content & corpus",
@@ -111,7 +111,7 @@
         },
         {
           "name": "Directories",
-          "count": 13,
+          "count": 15,
           "examples": [
             "list_stablecoins",
             "list_yields",
@@ -119,6 +119,7 @@
             "list_mcps",
             "list_vcs",
             "list_jobs",
+            "search_grants",
             "build_custom_indicator"
           ]
         },
