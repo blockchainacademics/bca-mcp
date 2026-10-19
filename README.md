@@ -171,7 +171,7 @@ The server never crashes the stdio process. All failures surface as MCP response
 | Code | Meaning |
 |---|---|
 | `BCA_AUTH` | Invalid `BCA_API_KEY` (HTTP 401/403) |
-| `BCA_TIER_LOCKED` | Tool not in your current tier's allowlist (HTTP 403). Demo tier sees this on 94 of the 104 tools — the error message includes the upgrade URL. |
+| `BCA_TIER_LOCKED` | Tool not in your current tier's allowlist (HTTP 403). Demo tier sees this on 92 of the 104 tools — the error message includes the upgrade URL. |
 | `BCA_RATE_LIMIT` | Rate limit exceeded (HTTP 429 — honor `Retry-After`) |
 | `BCA_UPSTREAM` | BCA API returned 5xx or malformed JSON |
 | `BCA_NETWORK` | Network failure or 20s timeout exceeded |
