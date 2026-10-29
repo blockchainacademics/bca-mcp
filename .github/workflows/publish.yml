@@ -1,0 +1,28 @@
+name: Publish
+
+# Publishes to npm with provenance through npm trusted publishing (OIDC): no
+# long-lived token in the repo or on a laptop (the previous tokens were
+# revoked after the 2026-10-21 Railway breach). One-time setup on npmjs.com:
+# package @blockchainacademics/mcp > Settings > Trusted publishers > GitHub
+# Actions > repository blockchainacademics/bca-mcp, workflow publish.yml.
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      - run: npm ci
+      - run: npm run build
+      - run: npm run version:check
+      - run: npm test
+      - run: npm publish --provenance --access public

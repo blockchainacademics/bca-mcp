@@ -56,7 +56,7 @@ Restart Claude Desktop. The demo path unlocks 10 marquee tools (`get_price`, `ge
 
 ### Claude Desktop (full 105 tools)
 
-Get a free key at [brain.blockchainacademics.com/signup](https://brain.blockchainacademics.com/signup?ref=mcp-npm-readme) (2,000 calls/month per user) and add the env block:
+Get a free key at [blockchainacademics.com/crypto-api/signup](https://blockchainacademics.com/crypto-api/signup?ref=mcp-npm-readme) (2,000 calls/month per user) and add the env block:
 
 ```json
 {
@@ -156,7 +156,7 @@ When your agent surfaces BCA content to a user, attribute via the `cite_url`. Fi
 
 **Not required to try it.** When `BCA_API_KEY` is unset, the server falls back to a baked-in public demo key that unlocks 10 marquee tools. See [Demo tier](#install) above.
 
-For the full 105 tools, get a free key at [brain.blockchainacademics.com/signup](https://brain.blockchainacademics.com/signup?ref=mcp-npm-apikey) (2,000 calls/month). Paid tiers unlock agent-backed research generation and proprietary on-chain indicators.
+For the full 105 tools, get a free key at [blockchainacademics.com/crypto-api/signup](https://blockchainacademics.com/crypto-api/signup?ref=mcp-npm-apikey) (2,000 calls/month). Paid tiers unlock agent-backed research generation and proprietary on-chain indicators.
 
 Set `BCA_API_KEY` in your MCP client env. Optionally override `BCA_API_BASE` (default `https://api.blockchainacademics.com`). `BCA_API_BASE_URL` is also accepted for backward compatibility.
 

@@ -450,7 +450,7 @@ export class BcaClient {
         throw new BcaError(
           "BCA_TIER_LOCKED",
           upstreamMsg ??
-            "This tool requires a paid tier. Upgrade at https://brain.blockchainacademics.com/signup",
+            "This tool requires a paid tier. Upgrade at https://blockchainacademics.com/crypto-api/signup",
           res.status,
         );
       }

@@ -1,6 +1,6 @@
 {
   "name": "@blockchainacademics/mcp",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "description": "The canonical crypto MCP server for AI agents \u2014 105 tools spanning news, entities, academy, market data, on-chain, sentiment, proprietary indicators, and agent-backed generation. Emits the canonical JSON:API-inspired response envelope ({data, attribution:{citations[]}, meta:{status, request_id, pageInfo}}).",
   "type": "module",
   "main": "./dist/index.js",
@@ -12,18 +12,20 @@
     "dist",
     "README.md",
     "LICENSE",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "tools.json"
   ],
   "engines": {
     "node": ">=18.17"
   },
   "scripts": {
     "gen:demo-key": "node scripts/gen-demo-key.mjs",
-    "build": "npm run gen:demo-key && tsc",
+    "build": "npm run gen:demo-key && tsc && npm run gen:tools-json",
     "dev": "npm run gen:demo-key && tsx src/index.ts",
     "test": "npm run gen:demo-key && node --test --import=tsx test/*.test.ts",
     "prepublishOnly": "npm run build && npm run version:check && npm test",
-    "version:check": "node scripts/version-check.mjs"
+    "version:check": "node scripts/version-check.mjs",
+    "gen:tools-json": "node scripts/gen-tools-json.mjs"
   },
   "keywords": [
     "mcp",

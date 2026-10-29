@@ -6,7 +6,7 @@ Blockchain Academics Intelligence Plugin
 ## Package
 - npm: `@blockchainacademics/mcp` v0.2.3
 - PyPI: `bca-mcp` v0.2.3
-- Repo: https://github.com/blockchainacademics/bca-mcp-ts
+- Repo: https://github.com/blockchainacademics/bca-mcp
 
 ## Category
 DeFi Intelligence / Research / News / On-Chain Analytics
@@ -70,7 +70,7 @@ agent.addTools(bca.tools); // all 98, or filter by category
 ```
 
 ## Auth
-Single env var: `BCA_API_KEY`. Free tier available, paid plans at https://brain.blockchainacademics.com/pricing.
+Single env var: `BCA_API_KEY`. Free tier available, paid plans at https://blockchainacademics.com/crypto-api/pricing.
 
 ## Rate Limits
 - Free: 60 req/min
@@ -78,6 +78,6 @@ Single env var: `BCA_API_KEY`. Free tier available, paid plans at https://brain.
 - Agent: 6,000 req/min (webhook + batch support)
 
 ## Support
-- Docs: https://docs.blockchainacademics.com
-- Landing: https://api.blockchainacademics.com
+- Docs: https://blockchainacademics.com/crypto-api/docs
+- Landing: https://blockchainacademics.com/crypto-api
 - Email: agents@blockchainacademics.com

@@ -74,7 +74,7 @@ server for AI agents that need ground-truth crypto data.
 - npm: https://www.npmjs.com/package/@blockchainacademics/mcp
 - Source: https://github.com/blockchainacademics/bca-mcp
 - API: https://api.blockchainacademics.com (free tier: 2,000 calls/month)
-- Docs: https://docs.blockchainacademics.com
+- Docs: https://blockchainacademics.com/crypto-api/docs
 
 ## Demo
 

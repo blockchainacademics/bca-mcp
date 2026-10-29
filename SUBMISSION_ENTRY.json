@@ -36,7 +36,7 @@
     "transport": "stdio",
     "license": "MIT",
     "homepage": "https://blockchainacademics.com",
-    "docs": "https://docs.blockchainacademics.com",
+    "docs": "https://blockchainacademics.com/crypto-api/docs",
     "categories": [
       "crypto",
       "blockchain",

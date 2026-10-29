@@ -4,6 +4,12 @@ All notable changes to `@blockchainacademics/mcp` are documented here.
 
 This project follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## 0.6.3
+
+- Every link the package shows people now points at blockchainacademics.com/crypto-api (signup, pricing, docs); brain. and docs. are permanent redirects since the one-domain consolidation (2026-10-29).
+- server.json: `websiteUrl`, `docs_url` on the main site, display name "BCA Crypto Brain", and category examples now list all 105 tools (97 before).
+- `tools.json` ships in the package: tool names and counts per category, generated from the registry, for sites that must never type a count by hand.
+
 ## [0.6.2] — 2026-10-19
 
 ### Added — live crypto jobs (1 new tool, 104 → 105)

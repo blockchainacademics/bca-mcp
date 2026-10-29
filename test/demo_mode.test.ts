@@ -32,7 +32,7 @@ describe("demo key fallback chain", () => {
                 endCursor: null,
               },
               tier: "demo",
-              upgrade_url: "https://brain.blockchainacademics.com/signup?ref=mcp-demo-tier",
+              upgrade_url: "https://blockchainacademics.com/crypto-api/signup?ref=mcp-demo-tier",
             },
           }),
           { status: 200, headers: { "content-type": "application/json" } },
@@ -137,7 +137,7 @@ describe("tier + upgrade_url envelope passthrough", () => {
             },
             tier: "demo",
             upgrade_url:
-              "https://brain.blockchainacademics.com/signup?ref=mcp-demo-tier",
+              "https://blockchainacademics.com/crypto-api/signup?ref=mcp-demo-tier",
           },
         }),
         { status: 200, headers: { "content-type": "application/json" } },
@@ -149,7 +149,7 @@ describe("tier + upgrade_url envelope passthrough", () => {
     assert.equal(env.meta.tier, "demo");
     assert.equal(
       env.meta.upgrade_url,
-      "https://brain.blockchainacademics.com/signup?ref=mcp-demo-tier",
+      "https://blockchainacademics.com/crypto-api/signup?ref=mcp-demo-tier",
     );
   });
 
@@ -209,7 +209,7 @@ describe("BCA_TIER_LOCKED upstream body peek", () => {
   it("surfaces upstream message verbatim on 403 with BCA_TIER_LOCKED", async () => {
     const upstreamDetail =
       "This tool requires a free account. Sign up in 30 seconds: " +
-      "https://brain.blockchainacademics.com/signup?ref=mcp-demo-locked";
+      "https://blockchainacademics.com/crypto-api/signup?ref=mcp-demo-locked";
     const fake: typeof fetch = async () =>
       new Response(
         JSON.stringify({ detail: upstreamDetail }),
@@ -232,7 +232,7 @@ describe("BCA_TIER_LOCKED upstream body peek", () => {
           `expected message to include upstream detail, got: ${(err as Error).message}`,
         );
         assert.ok(
-          (err as BcaError).message.includes("brain.blockchainacademics.com"),
+          (err as BcaError).message.includes("blockchainacademics.com/crypto-api/signup"),
         );
         return true;
       },
@@ -295,7 +295,7 @@ describe("demo banner text", () => {
   });
 
   it("mentions the signup URL and the BCA_API_KEY env var", () => {
-    assert.ok(DEMO_BANNER.includes("brain.blockchainacademics.com/signup"));
+    assert.ok(DEMO_BANNER.includes("blockchainacademics.com/crypto-api/signup"));
     assert.ok(DEMO_BANNER.includes("BCA_API_KEY"));
     assert.ok(DEMO_BANNER.includes("DEMO mode"));
   });

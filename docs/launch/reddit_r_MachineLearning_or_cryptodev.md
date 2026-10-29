@@ -28,8 +28,8 @@ Every tool response ships with a canonical JSON:API-inspired envelope — `{data
 **How to try it:**
 - `npm i -g @blockchainacademics/mcp` or `pip install bca-mcp` (v0.3.0, shipping today)
 - Open REST: api.blockchainacademics.com
-- Docs: docs.blockchainacademics.com
-- Free tier (1,000 calls/mo, no card): brain.blockchainacademics.com/pricing
+- Docs: blockchainacademics.com/crypto-api/docs
+- Free tier (2,000 calls/mo, no card): blockchainacademics.com/crypto-api/pricing
 
 **What I'm actually asking for:**
 Break it. Tell me what tools are missing. If you're building an agent, a bot, or a research workflow — what data sources do you keep fighting with? That's the roadmap.

@@ -29,7 +29,7 @@ pnpm add @blockchainacademics/eliza-plugin
 BCA_API_KEY=bca_live_xxxxxxxxxxxxxxxxxxxxx
 ```
 
-Sign up at https://brain.blockchainacademics.com/pricing.
+Sign up at https://blockchainacademics.com/crypto-api/pricing.
 
 ## Register in `agent/src/index.ts`
 
@@ -113,5 +113,5 @@ export const agent = new AgentRuntime({
 MIT
 
 ## Contact
-- Docs: https://docs.blockchainacademics.com
+- Docs: https://blockchainacademics.com/crypto-api/docs
 - Issues: https://github.com/blockchainacademics/bca-eliza-plugin/issues

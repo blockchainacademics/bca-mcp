@@ -6,7 +6,7 @@
     "url": "https://github.com/blockchainacademics/bca-mcp",
     "source": "github"
   },
-  "version": "0.6.2",
+  "version": "0.6.3",
   "packages": [
     {
       "registryType": "npm",
@@ -18,7 +18,7 @@
       "environmentVariables": [
         {
           "name": "BCA_API_KEY",
-          "description": "Optional. When unset, the server uses a public demo key (10 marquee tools, 100/day shared cap). Set for the full 105-tool surface \u2014 free tier 2,000/mo at https://brain.blockchainacademics.com/signup.",
+          "description": "Optional. When unset, the server uses a public demo key (10 marquee tools, 100/day shared cap). Set for the full 105-tool surface \u2014 free tier 2,000/mo at https://blockchainacademics.com/crypto-api/signup.",
           "isRequired": false,
           "isSecret": true,
           "format": "string"
@@ -35,8 +35,8 @@
   "_meta": {
     "io.modelcontextprotocol.registry/publisher-provided": {
       "tool": {
-        "name": "BCA MCP",
-        "version": "0.6.2"
+        "name": "BCA Crypto Brain",
+        "version": "0.6.3"
       },
       "tool_count": 105,
       "tool_categories": [
@@ -120,7 +120,15 @@
             "list_vcs",
             "list_jobs",
             "search_grants",
-            "build_custom_indicator"
+            "build_custom_indicator",
+            "list_nft_communities",
+            "list_trading_bots",
+            "get_job",
+            "get_grant",
+            "list_smart_contract_templates",
+            "get_smart_contract_template",
+            "list_marketing_templates",
+            "get_marketing_template"
           ]
         },
         {
@@ -253,7 +261,7 @@
         }
       ],
       "homepage": "https://blockchainacademics.com",
-      "docs_url": "https://docs.blockchainacademics.com",
+      "docs_url": "https://blockchainacademics.com/crypto-api/docs",
       "license": "MIT",
       "categories": [
         "crypto",
@@ -273,5 +281,6 @@
         }
       ]
     }
-  }
+  },
+  "websiteUrl": "https://blockchainacademics.com/crypto-api"
 }

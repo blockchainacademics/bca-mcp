@@ -10,7 +10,7 @@ Every response ships a canonical envelope — citations[], hash-verifiable, agen
 
 npm i -g @blockchainacademics/mcp
 
-brain.blockchainacademics.com/pricing
+blockchainacademics.com/crypto-api/pricing
 
 ---
 

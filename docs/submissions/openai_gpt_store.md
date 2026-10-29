@@ -40,7 +40,7 @@ Cite BCA entity slugs and article URLs when referencing specific projects, peopl
 - **Type:** API Key
 - **Auth Type:** Custom (Header)
 - **Header Name:** `X-API-Key`
-- **API Key source:** https://brain.blockchainacademics.com/pricing
+- **API Key source:** https://blockchainacademics.com/crypto-api/pricing
 
 ### Privacy Policy
 https://blockchainacademics.com/privacy
@@ -81,6 +81,6 @@ None — all data is live via actions.
 Blockchain Academics wordmark (attached via submission form).
 
 ## Support
-- Docs: https://docs.blockchainacademics.com
-- Landing: https://api.blockchainacademics.com
+- Docs: https://blockchainacademics.com/crypto-api/docs
+- Landing: https://blockchainacademics.com/crypto-api
 - Email: support@blockchainacademics.com

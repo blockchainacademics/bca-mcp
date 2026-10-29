@@ -260,6 +260,6 @@ You are a crypto intelligence agent. For any token, person, protocol, or narrati
 - Full 98-tool OpenAPI available at `https://api.blockchainacademics.com/openapi.json` — import directly for broader coverage (sentiment, indicators, on-chain, agent-jobs, etc.).
 
 ## Support
-- Docs: https://docs.blockchainacademics.com
-- Landing: https://api.blockchainacademics.com
-- Signup: https://brain.blockchainacademics.com/pricing
+- Docs: https://blockchainacademics.com/crypto-api/docs
+- Landing: https://blockchainacademics.com/crypto-api
+- Signup: https://blockchainacademics.com/crypto-api/pricing

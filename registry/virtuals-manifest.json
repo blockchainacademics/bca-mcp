@@ -35,7 +35,7 @@
     ],
     "logo_url": "https://blockchainacademics.com/brand/logo-512.png",
     "homepage": "https://blockchainacademics.com",
-    "docs_url": "https://docs.blockchainacademics.com",
+    "docs_url": "https://blockchainacademics.com/crypto-api/docs",
     "repository_url": "https://github.com/blockchainacademics/bca-mcp",
     "license": "MIT"
   },

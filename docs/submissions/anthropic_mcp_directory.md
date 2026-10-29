@@ -9,7 +9,7 @@ Production-grade MCP server delivering 98 crypto intelligence tools — real-tim
 - **License:** MIT
 - **Maintainer:** Blockchain Academics (blockchainacademics.com)
 - **Repos:**
-  - https://github.com/blockchainacademics/bca-mcp-ts
+  - https://github.com/blockchainacademics/bca-mcp
   - https://github.com/blockchainacademics/bca-mcp-python
 
 ## Install
@@ -27,7 +27,7 @@ uvx bca-mcp
 ```
 
 ## Authentication
-Set `BCA_API_KEY` in your environment. Free tier + paid plans at https://brain.blockchainacademics.com/pricing.
+Set `BCA_API_KEY` in your environment. Free tier + paid plans at https://blockchainacademics.com/crypto-api/pricing.
 
 ## Tool Count by Category (98 total)
 | Category | Tools | Examples |
@@ -74,9 +74,9 @@ Set `BCA_API_KEY` in your environment. Free tier + paid plans at https://brain.b
 ```
 
 ## Landing & Docs
-- API landing: https://api.blockchainacademics.com
-- Docs: https://docs.blockchainacademics.com
-- Pricing / signup: https://brain.blockchainacademics.com/pricing
+- API landing: https://blockchainacademics.com/crypto-api
+- Docs: https://blockchainacademics.com/crypto-api/docs
+- Pricing / signup: https://blockchainacademics.com/crypto-api/pricing
 
 ## Transport Support
 - stdio (default, Claude Desktop / Claude Code)

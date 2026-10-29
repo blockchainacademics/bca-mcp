@@ -20,8 +20,8 @@ Shipping today:
 - @blockchainacademics/mcp v0.3.0 on npm
 - bca-mcp v0.3.0 on PyPI
 - Open REST at api.blockchainacademics.com
-- Docs at docs.blockchainacademics.com
-- Five pricing tiers at brain.blockchainacademics.com/pricing, starting free
+- Docs at blockchainacademics.com/crypto-api/docs
+- Five pricing tiers at blockchainacademics.com/crypto-api/pricing, starting free
 
 This is the part of the agentic stack that doesn't ship itself. Infrastructure is unglamorous. You build it because the application layer above it can't exist without it.
 

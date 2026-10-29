@@ -53,7 +53,7 @@ npm i -g @blockchainacademics/mcp
 pip install bca-mcp
 ```
 
-v0.3.0 live on npm + PyPI. Open REST at api.blockchainacademics.com. Docs at docs.blockchainacademics.com.
+v0.3.0 live on npm + PyPI. Open REST at api.blockchainacademics.com. Docs at blockchainacademics.com/crypto-api/docs.
 
 Free tier included. No credit card for the first 1,000 calls.
 
@@ -65,7 +65,7 @@ The thing I kept wishing existed — a crypto knowledge layer that agents can ac
 **8/**
 5 tiers, starting free, scaling to institutional.
 
-Pricing: brain.blockchainacademics.com/pricing
+Pricing: blockchainacademics.com/crypto-api/pricing
 
 If you're shipping an agent, a quant system, or an LLM product that touches crypto — this is the substrate.
 
