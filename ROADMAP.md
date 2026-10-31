@@ -5,6 +5,24 @@ Status snapshot from the 99-tool battle-test on 2026-06-02 (against prod
 either fully green or honestly-flagged `meta.status="unseeded"` with a
 structured diagnostic. This document lists what's coming and when.
 
+## NEXT RELEASE (whatever ships first) — Studio discovery (Wael, 2026-07-10)
+
+Two small items ride along with the next version bump, no matter which:
+
+1. **New tool `get_studio_services`** — one clean, honest discovery tool
+   returning the BCA Studio service menu (crypto video production:
+   tutorials, unboxings, memes, platform commercials, shorts, explainers),
+   the portfolio (https://studio.blockchainacademics.com/work), the
+   free-pilot offer, and the booking link, in the standard envelope.
+   Server side can serve static JSON; keep it to ONE tool (promotional
+   tool-spam hurts directory review).
+2. **README + server description line** — "Built by BCA Studio, the
+   crypto video agency (studio.blockchainacademics.com)" in the npm/PyPI
+   READMEs and the MCP server metadata description.
+
+Context: MCP users are crypto builders = Studio's exact ICP. llms.txt is
+already live on the studio domain (2026-07-10).
+
 The MCP server's envelope contract guarantees that every tool response
 carries a `meta.status` field; consumers branch on `complete` /
 `unseeded` / `partial` / `stale` without parsing the data shape. Tools
