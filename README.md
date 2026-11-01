@@ -198,6 +198,15 @@ pre-commit run --all-files      # optional: lint the full tree now
 
 Hooks configured in [`.pre-commit-config.yaml`](./.pre-commit-config.yaml): `prettier --check`, `eslint`, `gitleaks`, `detect-private-key`, `check-added-large-files` (500KB cap).
 
+## Getting help
+
+- **Questions:** ask in [GitHub Discussions Q&A](https://github.com/blockchainacademics/bca-mcp/discussions/categories/q-a). Search first, since someone may have asked already.
+- **Bugs:** open an [issue](https://github.com/blockchainacademics/bca-mcp/issues).
+- **Account and billing:** email [support@blockchainacademics.com](mailto:support@blockchainacademics.com).
+- **Security reports:** follow [`SECURITY.md`](./SECURITY.md), never a public issue.
+
+**Never post a full API key.** If we need to know which key, share only the key prefix, the part before the dots on your dashboard (for example `bca_1a2b3c4d`). Our team will never ask for your key or a seed phrase. Response times by plan are in [How to get help](https://github.com/blockchainacademics/bca-mcp/discussions/15).
+
 ## Security
 
 See [`SECURITY.md`](./SECURITY.md) for vulnerability reporting, supported versions, and our 90-day coordinated disclosure policy.
