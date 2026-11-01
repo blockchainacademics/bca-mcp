@@ -87,7 +87,7 @@ export const listTopicsInputSchema = z.object({});
 export const listTopicsDefinition = {
   name: "list_topics",
   description:
-    "Browse the BCA topic taxonomy (regulation, defi, infra, memecoins, security, etc.). Use to discover filter values for search_news.",
+    "Browse the BCA topic taxonomy: regulation, defi, nft, layer-2, bitcoin, ethereum, solana, stablecoins, rwa and ai-agents. Use to discover filter values for search_news.",
 };
 export async function runListTopics(
   _input: z.infer<typeof listTopicsInputSchema>,
@@ -100,7 +100,7 @@ export const getAsOfSnapshotInputSchema = z.object({
   as_of: z
     .string()
     .max(64)
-    .describe("ISO 8601 timestamp — corpus state at this date (Enterprise tier)."),
+    .describe("ISO 8601 timestamp: corpus state at this date (Enterprise tier)."),
   query: z.string().min(1).max(512).optional().describe("Optional search query."),
   entity: slugSchema("entity").optional().describe("Optional entity slug filter."),
   limit: z.number().int().min(1).max(50).default(20),

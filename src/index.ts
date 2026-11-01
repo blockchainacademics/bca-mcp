@@ -5,13 +5,15 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { z } from "zod";
+import { ZodError, type ZodTypeAny } from "zod";
 
-import { BcaError } from "./errors.js";
+import { BcaBadRequestError, BcaError, formatValidationError } from "./errors.js";
 import { VERSION } from "./version.js";
 import { getClient } from "./client.js";
 import { DEMO_BANNER } from "./demo_banner.js";
 import { neutralizeFenceTokens } from "./untrusted.js";
+import { zodToJsonSchema, type JsonSchema } from "./schema.js";
+import { toolAnnotations, type ToolAnnotations } from "./annotations.js";
 import type { ResponseEnvelope } from "./types.js";
 
 // H-2 (v0.3.1): prompt-injection fencing. Upstream BCA data — news titles,
@@ -78,81 +80,15 @@ import * as indicators from "./tools/indicators.js";
 import * as agentJobs from "./tools/agent_jobs.js";
 import * as ext from "./tools/extended.js";
 
-// --- zod -> JSON Schema (minimal, MCP-compatible) ---------------------------
-// Uses zod's built-in toJSONSchema when present (zod 3.23+), else a minimal
-// hand-rolled shim that introspects the top-level ZodObject shape. MCP clients
-// only need a syntactically valid JSON Schema object for tool advertisement.
-function zodToJsonSchema(schema: z.ZodTypeAny): Record<string, unknown> {
-  // Prefer zod's own exporter if present (zod >= 3.23 ships z.toJSONSchema in some builds)
-  const zAny = z as unknown as {
-    toJSONSchema?: (s: z.ZodTypeAny) => Record<string, unknown>;
-  };
-  if (typeof zAny.toJSONSchema === "function") {
-    try {
-      return zAny.toJSONSchema(schema);
-    } catch {
-      /* fall through */
-    }
-  }
-
-  // Fallback: derive from ZodObject shape. Handles Optional/Default wrappers.
-  const unwrap = (s: z.ZodTypeAny): z.ZodTypeAny => {
-    let cur: z.ZodTypeAny = s;
-    while ((cur as any)?._def?.innerType) cur = (cur as any)._def.innerType as z.ZodTypeAny;
-    return cur;
-  };
-
-  const describe = (s: z.ZodTypeAny): Record<string, unknown> => {
-    const inner = unwrap(s);
-    const typeName: string | undefined = (inner as any)?._def?.typeName;
-    const description: string | undefined = (s as any)._def?.description;
-    const base: Record<string, unknown> = {};
-    if (description) base["description"] = description;
-
-    switch (typeName) {
-      case "ZodString":
-        base["type"] = "string";
-        break;
-      case "ZodNumber":
-        base["type"] = "number";
-        break;
-      case "ZodBoolean":
-        base["type"] = "boolean";
-        break;
-      case "ZodArray":
-        base["type"] = "array";
-        break;
-      default:
-        base["type"] = "string";
-    }
-    return base;
-  };
-
-  const root = unwrap(schema);
-  const shape: Record<string, z.ZodTypeAny> | undefined = (root as any)?.shape;
-  if (!shape) return { type: "object" };
-
-  const properties: Record<string, unknown> = {};
-  const required: string[] = [];
-  for (const [key, value] of Object.entries(shape)) {
-    properties[key] = describe(value);
-    const tn: string | undefined = (value as any)?._def?.typeName;
-    if (tn !== "ZodOptional" && tn !== "ZodDefault") required.push(key);
-  }
-
-  const out: Record<string, unknown> = {
-    type: "object",
-    properties,
-    additionalProperties: false,
-  };
-  if (required.length > 0) out["required"] = required;
-  return out;
-}
-
-interface ToolEntry {
+export interface ToolEntry {
   readonly name: string;
   readonly description: string;
-  readonly inputSchema: Record<string, unknown>;
+  // The zod schema that validates the arguments at call time.
+  readonly schema: ZodTypeAny;
+  // Full JSON Schema of the arguments (see zodToJsonSchema in schema.ts).
+  readonly inputSchema: JsonSchema;
+  // MCP hints: title, read only or write, open world (see annotations.ts).
+  readonly annotations: ToolAnnotations;
   // Tool runners return the canonical envelope already assembled by the
   // HTTP client. The MCP wire handler just serializes it verbatim.
   readonly run: (args: unknown) => Promise<ResponseEnvelope<unknown>>;
@@ -160,15 +96,26 @@ interface ToolEntry {
 
 /** Factory that produces a ToolEntry from a (schema, definition, runner) triad. */
 function entry<T>(
-  schema: any,
+  schema: ZodTypeAny,
   def: { name: string; description: string },
   runner: (input: T) => Promise<any>,
 ): ToolEntry {
   return {
     name: def.name,
     description: def.description,
+    schema,
     inputSchema: zodToJsonSchema(schema),
-    run: async (args) => runner(schema.parse(args ?? {})),
+    annotations: toolAnnotations(def.name),
+    run: async (args) => {
+      // Arguments are validated here, before any request is built, so bad
+      // input never reaches the API. The .refine() one-of rules (get_entity,
+      // get_explainer) are enforced by this same parse.
+      const parsed = schema.safeParse(args ?? {});
+      if (!parsed.success) {
+        throw new BcaBadRequestError(formatValidationError(def.name, parsed.error));
+      }
+      return runner(parsed.data as T);
+    },
   };
 }
 
@@ -407,21 +354,46 @@ export const TOOLS: ReadonlyArray<ToolEntry> = [
   entry(ext.getCurrencyFeedInputSchema, ext.getCurrencyFeedDefinition, ext.runGetCurrencyFeed),
 ];
 
-const server = new Server(
-  { name: "@blockchainacademics/mcp", version: VERSION },
-  { capabilities: { tools: {} } },
-);
-
-server.setRequestHandler(ListToolsRequestSchema, async () => ({
-  tools: TOOLS.map(({ name, description, inputSchema }) => ({
+/** The tools/list payload: every tool with its schema and annotations. */
+export function listTools(): Array<{
+  name: string;
+  description: string;
+  inputSchema: JsonSchema;
+  annotations: ToolAnnotations;
+}> {
+  return TOOLS.map(({ name, description, inputSchema, annotations }) => ({
     name,
     description,
     inputSchema,
-  })),
-}));
+    annotations,
+  }));
+}
 
-server.setRequestHandler(CallToolRequestSchema, async (req) => {
-  const tool = TOOLS.find((t) => t.name === req.params.name);
+/**
+ * Map a thrown error to the `{code, message}` the host sees. BcaError keeps
+ * its own code; a stray zod failure is still a bad request; anything else is
+ * BCA_UNKNOWN.
+ */
+export function errorPayload(
+  err: unknown,
+  toolName: string,
+): { code: string; message: string } {
+  if (err instanceof BcaError) return { code: err.code, message: err.message };
+  if (err instanceof ZodError) {
+    return { code: "BCA_BAD_REQUEST", message: formatValidationError(toolName, err) };
+  }
+  return { code: "BCA_UNKNOWN", message: err instanceof Error ? err.message : String(err) };
+}
+
+export interface ToolCallResult {
+  [key: string]: unknown;
+  isError?: boolean;
+  content: Array<{ type: "text"; text: string }>;
+}
+
+/** The tools/call handler, exported so tests can drive it without stdio. */
+export async function callTool(name: string, args: unknown): Promise<ToolCallResult> {
+  const tool = TOOLS.find((t) => t.name === name);
   if (!tool) {
     return {
       isError: true,
@@ -431,7 +403,7 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
           text: JSON.stringify({
             error: {
               code: "BCA_BAD_REQUEST",
-              message: `Unknown tool: ${req.params.name}`,
+              message: `Unknown tool: ${name}`,
             },
           }),
         },
@@ -448,7 +420,7 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
     // returning so the host LLM interprets upstream BCA text as data, not
     // instructions. `attribution` and `meta` remain structured — they're
     // our own tool metadata, not attacker-influenced upstream content.
-    const envelope = await tool.run(req.params.arguments ?? {});
+    const envelope = await tool.run(args ?? {});
     const fenced = fenceEnvelopeData(envelope);
     return {
       content: [
@@ -459,8 +431,7 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
       ],
     };
   } catch (err) {
-    const code = err instanceof BcaError ? err.code : "BCA_UNKNOWN";
-    const message = err instanceof Error ? err.message : String(err);
+    const { code, message } = errorPayload(err, tool.name);
     return {
       isError: true,
       content: [
@@ -471,7 +442,18 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
       ],
     };
   }
-});
+}
+
+const server = new Server(
+  { name: "@blockchainacademics/mcp", version: VERSION },
+  { capabilities: { tools: {} } },
+);
+
+server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: listTools() }));
+
+server.setRequestHandler(CallToolRequestSchema, async (req) =>
+  callTool(req.params.name, req.params.arguments),
+);
 
 async function main(): Promise<void> {
   const transport = new StdioServerTransport();

@@ -49,3 +49,12 @@ export function neutralizeFenceTokens(text: unknown): unknown {
     m.replace(/</g, "&lt;").replace(/>/g, "&gt;"),
   );
 }
+
+/**
+ * Wrap one piece of upstream text in a field-level fence, neutralizing any
+ * fence tag inside it first. Same bytes the tool modules emit for article
+ * summaries and agent job output.
+ */
+export function fenceUntrusted(source: string, text: string): string {
+  return `<untrusted_content source="${source}">\n${neutralizeFenceTokens(text) as string}\n</untrusted_content>`;
+}

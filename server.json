@@ -1,7 +1,7 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.blockchainacademics/mcp",
-  "description": "Crypto MCP \u2014 105 tools across news, market, on-chain, sentiment, indicators, agent generation.",
+  "description": "Crypto MCP: 105 tools across news, market, on-chain, sentiment, indicators, agent generation.",
   "repository": {
     "url": "https://github.com/blockchainacademics/bca-mcp",
     "source": "github"
@@ -18,7 +18,7 @@
       "environmentVariables": [
         {
           "name": "BCA_API_KEY",
-          "description": "Optional. When unset, the server uses a public demo key (10 marquee tools, 100/day shared cap). Set for the full 105-tool surface \u2014 free tier 2,000/mo at https://blockchainacademics.com/crypto-api/signup.",
+          "description": "Optional. When unset, the server uses a public demo key: 16 tools work under a shared daily cap. Set a free key (2,000 calls a month) for all 105 tools: https://blockchainacademics.com/crypto-api/signup.",
           "isRequired": false,
           "isSecret": true,
           "format": "string"

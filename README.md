@@ -1,18 +1,18 @@
 # @blockchainacademics/mcp
 
-The canonical crypto MCP server for AI agents. **105 tools** spanning 3,501+ editorial articles, 200+ entity dossiers, 43 academy lessons, aggregated market + on-chain data, proprietary indicators, and async agent-backed generation — all accessible as MCP tools your AI agent can call natively.
+The canonical crypto MCP server for AI agents. **105 tools** spanning 3,501+ editorial articles, 150+ entity dossiers, 38 academy lessons in 8 courses, aggregated market + on-chain data, proprietary indicators, and async agent-backed generation, all exposed as MCP tools your AI agent can call natively.
 
-## Tool categories (v0.4.0)
+## Tool categories
 
 | Category | Count | Examples |
 |---|---|---|
 | Content & corpus | 7 | `search_news`, `get_article`, `get_entity`, `get_explainer`, `list_entity_mentions`, `get_as_of_snapshot` |
 | Market data | 4 | `get_price`, `get_ohlc`, `get_market_overview`, `get_pair_data` |
 | On-chain | 4 | `get_wallet_profile`, `get_tx`, `get_token_holders`, `get_defi_protocol` |
-| Sentiment | 3 | `get_sentiment`, `get_social_pulse`, `get_fear_greed` |
+| Sentiment + crypto Twitter | 6 | `get_sentiment`, `get_social_pulse`, `get_fear_greed`, `get_ct_pulse`, `get_x_signals`, `get_kol_consensus` |
 | Proprietary indicators | 6 | `get_coverage_index`, `get_narrative_strength`, `get_sentiment_velocity`, `get_editorial_premium`, `get_kol_influence`, `get_risk_score` |
 | Agent-backed (async, Pro+) | 6 | `generate_due_diligence`, `generate_tokenomics_model`, `summarize_whitepaper`, `translate_contract`, `monitor_keyword`, `get_agent_job` |
-| Directories | 13 | `list_stablecoins`, `list_yields`, `list_aggregators`, `list_mcps`, `list_vcs`, `list_jobs`, `build_custom_indicator`, … |
+| Directories | 16 | `list_stablecoins`, `list_yields`, `list_aggregators`, `list_mcps`, `list_vcs`, `list_jobs`, `get_job`, `search_grants`, `get_grant`, `build_custom_indicator`, … |
 | Fundamentals | 6 | `get_tokenomics`, `get_audit_reports`, `get_team_info`, `compare_protocols`, `check_rugpull_risk` |
 | Chain-specific | 4 | `get_solana_ecosystem`, `get_l2_comparison`, `get_bitcoin_l2_status`, `get_ton_ecosystem` |
 | Markets microstructure | 5 | `get_funding_rates`, `get_options_flow`, `get_liquidation_heatmap`, `get_exchange_flows`, `predict_listing` |
@@ -33,7 +33,7 @@ Tools for unreleased integrations (Twitter social pulse, DEXTools, bonk.fun, Bit
 
 ## Why
 
-LLMs hallucinate about crypto. BCA ships ground-truth editorial content with full attribution. Plug this MCP server into Claude Desktop, LangChain, Eliza, or any MCP-compatible agent and your model queries the BCA corpus like any other tool — with citations, timestamps, and source hashes on every response.
+LLMs hallucinate about crypto. BCA ships ground-truth editorial content with full attribution. Plug this MCP server into Claude Desktop, LangChain, Eliza, or any MCP-compatible agent and your model queries the BCA corpus like any other tool, with citations, timestamps, and source hashes on every response.
 
 ## Install
 
@@ -52,7 +52,11 @@ The package ships with a public demo key baked in. No signup needed to try it. A
 }
 ```
 
-Restart Claude Desktop. The demo path unlocks 10 marquee tools (`get_price`, `get_trending`, `get_fear_greed`, `get_market_overview`, `search_news`, `get_sentiment`, `get_entity`, `get_explainer`, `get_recent_stories`, `get_topic`) with real data and real citations. Shared rate cap: 100 calls/day globally + 20/day per IP.
+Restart Claude Desktop. 16 tools work without a key, with real data and real citations:
+
+`get_price`, `get_trending`, `get_fear_greed`, `get_market_overview`, `search_news`, `get_sentiment`, `get_entity`, `get_explainer`, `get_recent_stories`, `get_topic`, `search_grants`, `get_grant`, `list_jobs`, `get_job`, `search_academy`, `get_as_of_snapshot`
+
+Every other tool answers with a clean upgrade message (`BCA_TIER_LOCKED`) that links to the free signup. Demo calls share a daily cap: 100 calls a day across all demo users, and 20 a day per IP.
 
 ### Claude Desktop (full 105 tools)
 
@@ -128,12 +132,12 @@ Aliases resolve automatically (`CZ` → `changpeng-zhao`, `Maker` → `makerdao`
 
 ### `get_explainer`
 
-Fetch a canonical academy lesson. Provide exactly one of:
+Fetch BCA Academy material (38 lessons in 8 courses). Provide exactly one of:
 
 | arg | type | description |
 |---|---|---|
-| `slug` | string | Lesson slug, e.g. `"what-is-a-blockchain"` |
-| `topic` | string | Topic keyword that resolves to the canonical lesson |
+| `slug` | string | Course slug, e.g. `"defi-fundamentals"`, `"understanding-bitcoin"` |
+| `topic` | string | Topic keyword that resolves to matching academy material, e.g. `"defi"` |
 
 ## Attribution
 
@@ -154,7 +158,7 @@ When your agent surfaces BCA content to a user, attribute via the `cite_url`. Fi
 
 ## API Key
 
-**Not required to try it.** When `BCA_API_KEY` is unset, the server falls back to a baked-in public demo key that unlocks 10 marquee tools. See [Demo tier](#install) above.
+**Not required to try it.** When `BCA_API_KEY` is unset, the server falls back to a baked-in public demo key: the 16 tools listed under [Install](#install) work, and every other tool answers with a clean upgrade message.
 
 For the full 105 tools, get a free key at [blockchainacademics.com/crypto-api/signup](https://blockchainacademics.com/crypto-api/signup?ref=mcp-npm-apikey) (2,000 calls/month). Paid tiers unlock agent-backed research generation and proprietary on-chain indicators.
 
@@ -171,11 +175,11 @@ The server never crashes the stdio process. All failures surface as MCP response
 | Code | Meaning |
 |---|---|
 | `BCA_AUTH` | Invalid `BCA_API_KEY` (HTTP 401/403) |
-| `BCA_TIER_LOCKED` | Tool not in your current tier's allowlist (HTTP 403). Demo tier sees this on 91 of the 105 tools — the error message includes the upgrade URL. |
-| `BCA_RATE_LIMIT` | Rate limit exceeded (HTTP 429 — honor `Retry-After`) |
-| `BCA_UPSTREAM` | BCA API returned 5xx or malformed JSON |
+| `BCA_TIER_LOCKED` | Tool not in your current tier's allowlist (HTTP 403). Without a key this applies to 89 of the 105 tools; the message includes the signup URL. |
+| `BCA_RATE_LIMIT` | Rate limit exceeded (HTTP 429; honor `Retry-After`) |
+| `BCA_UPSTREAM` | BCA API returned an error status or malformed JSON. For a 4xx the message carries the API's own detail (up to 500 characters) inside an `<untrusted_content>` fence; a 5xx stays generic. |
 | `BCA_NETWORK` | Network failure or 20s timeout exceeded |
-| `BCA_BAD_REQUEST` | Invalid tool arguments |
+| `BCA_BAD_REQUEST` | Invalid tool arguments, caught before any request is sent. The message lists each problem as `field: problem`, e.g. `Invalid arguments for search_news: limit: Number must be less than or equal to 50`. |
 
 ## Development
 

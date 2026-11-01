@@ -13,6 +13,7 @@ import type {
 } from "./types.js";
 import { VERSION } from "./version.js";
 import { BCA_DEMO_KEY_FALLBACK } from "./demo_key.js";
+import { neutralizeFenceTokens } from "./untrusted.js";
 
 const DEFAULT_BASE = "https://api.blockchainacademics.com";
 const USER_AGENT = `@blockchainacademics/mcp/${VERSION} (+https://github.com/blockchainacademics/bca-mcp)`;
@@ -59,6 +60,78 @@ export function formatAllowlistError(url: string): string {
 // from exhausting host memory. 10 MiB is well above any legitimate envelope
 // this API returns (largest real responses — agent-job outputs — are ~200 KB).
 const MAX_BODY_BYTES = 10 * 1024 * 1024;
+
+// Error bodies are only read for their detail, so they get a far smaller cap.
+const MAX_ERROR_BODY_BYTES = 64 * 1024;
+// The API's error detail is passed to the host model, truncated to this many
+// characters (code points, so a cut never splits a surrogate pair).
+export const MAX_DETAIL_CHARS = 500;
+
+function truncateChars(text: string, max: number): string {
+  const chars = Array.from(text);
+  return chars.length > max ? chars.slice(0, max).join("") : text;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+// FastAPI prefixes each validation error location with where the value came
+// from; the caller only needs the field path.
+const LOC_ROOTS = new Set(["body", "query", "path", "header", "cookie"]);
+
+function renderValidationItem(item: unknown): string | undefined {
+  if (typeof item === "string") return item;
+  if (!isRecord(item)) return undefined;
+  const msg =
+    typeof item["msg"] === "string"
+      ? item["msg"]
+      : typeof item["message"] === "string"
+        ? item["message"]
+        : undefined;
+  if (!msg) return undefined;
+  const loc = Array.isArray(item["loc"]) ? item["loc"] : [];
+  const field = loc
+    .filter((seg, i) => !(i === 0 && typeof seg === "string" && LOC_ROOTS.has(seg)))
+    .map(String)
+    .join(".");
+  return field ? `${field}: ${msg}` : msg;
+}
+
+/**
+ * The API's error detail from a parsed 4xx body: FastAPI's `detail` string,
+ * or its list of validation errors rendered as "field: msg" pairs. Falls back
+ * to a `message` inside `detail` or inside BCA's `{error: {message}}` shape.
+ * Returns undefined when the body carries no readable detail.
+ */
+export function renderApiErrorDetail(body: unknown): string | undefined {
+  if (!isRecord(body)) return undefined;
+  const detail = body["detail"];
+  if (typeof detail === "string") return detail.trim() || undefined;
+  if (Array.isArray(detail)) {
+    const parts = detail
+      .map(renderValidationItem)
+      .filter((p): p is string => !!p);
+    return parts.length > 0 ? parts.join("; ") : undefined;
+  }
+  if (isRecord(detail) && typeof detail["message"] === "string") {
+    return detail["message"].trim() || undefined;
+  }
+  const error = body["error"];
+  if (isRecord(error) && typeof error["message"] === "string") {
+    return error["message"].trim() || undefined;
+  }
+  return undefined;
+}
+
+/** Parsed JSON error body, or undefined when it is missing, huge or not JSON. */
+async function readErrorJson(res: Response): Promise<unknown> {
+  try {
+    return JSON.parse(await readCappedText(res, MAX_ERROR_BODY_BYTES));
+  } catch {
+    return undefined;
+  }
+}
 
 // Module-level guard so we only warn once per process when a non-default
 // BCA_API_BASE is in use. Exported for tests to reset between cases.
@@ -319,7 +392,7 @@ export class BcaClient {
     this.isNonDefaultBase = resolved !== DEFAULT_BASE;
 
     // Auth fallback chain (v0.5.0): explicit > env > demo. Demo key is
-    // public, rate-limited, and gated to a 10-tool allowlist by the backend.
+    // public, rate-limited, and gated to the 16-tool demo allowlist by the backend.
     // The fallback exists so `npx -y @blockchainacademics/mcp` is a true
     // zero-config first-run experience instead of a BCA_AUTH wall.
     const userKey = opts.apiKey ?? process.env["BCA_API_KEY"];
@@ -416,7 +489,7 @@ export class BcaClient {
     if (res.type === "opaqueredirect" || (res.status >= 300 && res.status < 400)) {
       throw new BcaUpstreamError(
         res.status || 302,
-        "BCA API redirect blocked — refusing to replay X-API-Key to a new origin",
+        "BCA API redirect blocked: refusing to replay X-API-Key to a new origin",
       );
     }
 
@@ -428,23 +501,28 @@ export class BcaClient {
       // verbatim — it includes the upgrade URL.
       let upstreamCode: string | undefined;
       let upstreamMsg: string | undefined;
-      try {
-        const txt = await res.text();
-        const j = JSON.parse(txt) as Record<string, unknown>;
-        const err = j["error"] as Record<string, unknown> | undefined;
-        if (err) {
-          if (typeof err["code"] === "string") upstreamCode = err["code"] as string;
-          if (typeof err["message"] === "string") upstreamMsg = err["message"] as string;
+      const j = await readErrorJson(res);
+      if (isRecord(j)) {
+        const err = j["error"];
+        if (isRecord(err)) {
+          if (typeof err["code"] === "string") upstreamCode = err["code"];
+          if (typeof err["message"] === "string") upstreamMsg = err["message"];
         }
         // FastAPI's HTTPException uses {detail, ...} instead of {error}. Check
         // the X-BCA-Error-Code header we set in _demo_allowlist.py.
         const hdrCode = res.headers.get("x-bca-error-code");
         if (!upstreamCode && hdrCode) upstreamCode = hdrCode;
         if (!upstreamMsg && typeof j["detail"] === "string") {
-          upstreamMsg = j["detail"] as string;
+          upstreamMsg = j["detail"];
         }
-      } catch {
-        /* body wasn't JSON — fall through to generic auth error */
+      }
+      // A body that wasn't JSON falls through to the generic auth error. The
+      // message is shown verbatim (it carries the signup link), so it is only
+      // capped and has any fence tag neutralized.
+      if (upstreamMsg !== undefined) {
+        upstreamMsg =
+          (neutralizeFenceTokens(truncateChars(upstreamMsg, MAX_DETAIL_CHARS)) as string) ||
+          undefined;
       }
       if (upstreamCode === "BCA_TIER_LOCKED") {
         throw new BcaError(
@@ -460,11 +538,17 @@ export class BcaClient {
       const ra = res.headers.get("retry-after");
       throw new BcaRateLimitError(ra ? Number(ra) : undefined);
     }
+    // 5xx stays generic: server internals never reach the host model.
     if (res.status >= 500) throw new BcaUpstreamError(res.status);
     if (!res.ok) {
+      // Other 4xx (404 not found, 402 tier, 422 validation): carry the API's
+      // own detail so the caller can fix the request. BcaUpstreamError fences
+      // it as untrusted content.
+      const detail = renderApiErrorDetail(await readErrorJson(res));
       throw new BcaUpstreamError(
         res.status,
         `BCA API responded ${res.status}`,
+        detail === undefined ? undefined : truncateChars(detail, MAX_DETAIL_CHARS),
       );
     }
 

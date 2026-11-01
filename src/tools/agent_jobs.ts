@@ -9,6 +9,7 @@ import { promises as dns } from "node:dns";
 import { isIP } from "node:net";
 import { z } from "zod";
 import { getClient } from "../client.js";
+import { BcaBadRequestError } from "../errors.js";
 import { slugSchema } from "../schema.js";
 import { neutralizeFenceTokens } from "../untrusted.js";
 import type { ResponseEnvelope } from "../types.js";
@@ -67,18 +68,18 @@ export async function validateWebhookUrl(url: string): Promise<void> {
   try {
     parsed = new URL(url);
   } catch (err) {
-    throw new Error(`webhook_url is not a valid URL: ${String(err)}`);
+    throw new BcaBadRequestError(`webhook_url is not a valid URL: ${String(err)}`);
   }
 
   if (parsed.protocol !== "https:") {
-    throw new Error(
+    throw new BcaBadRequestError(
       `webhook_url must use https:// (got scheme='${parsed.protocol.replace(/:$/, "")}').`,
     );
   }
 
   const hostname = parsed.hostname;
   if (!hostname) {
-    throw new Error("webhook_url must include a hostname.");
+    throw new BcaBadRequestError("webhook_url must include a hostname.");
   }
 
   // Reject bare IP literals in the URL — webhooks should go to named hosts.
@@ -89,7 +90,7 @@ export async function validateWebhookUrl(url: string): Promise<void> {
     ? hostname.slice(1, -1)
     : hostname;
   if (isIP(unbracketed) !== 0) {
-    throw new Error(
+    throw new BcaBadRequestError(
       "webhook_url must not be a bare IP address; use a hostname.",
     );
   }
@@ -101,20 +102,20 @@ export async function validateWebhookUrl(url: string): Promise<void> {
   try {
     infos = await dns.lookup(hostname, { all: true });
   } catch (err) {
-    throw new Error(
+    throw new BcaBadRequestError(
       `webhook_url hostname '${hostname}' could not be resolved: ${String(err)}`,
     );
   }
 
   if (!infos || infos.length === 0) {
-    throw new Error(
+    throw new BcaBadRequestError(
       `webhook_url hostname '${hostname}' resolved to zero IPs.`,
     );
   }
 
   for (const info of infos) {
     if (isPrivateOrReserved(info.address)) {
-      throw new Error(
+      throw new BcaBadRequestError(
         `webhook_url resolves to non-public address ${info.address}; ` +
           "RFC1918 / loopback / link-local / reserved targets are rejected.",
       );
@@ -135,7 +136,7 @@ export const generateDueDiligenceInputSchema = z.object({
 export const generateDueDiligenceDefinition = {
   name: "generate_due_diligence",
   description:
-    "Kick off a full due-diligence report (tokenomics + team + audits + risk + narrative). Required: entity_slug. depth ∈ {light, standard, deep}. Async — returns {job_id, status_url}; poll get_agent_job. Pro tier.",
+    "Kick off a full due-diligence report (tokenomics + team + audits + risk + narrative). Required: entity_slug. depth ∈ {light, standard, deep}. Async: returns {job_id, status_url}; poll get_agent_job. Pro tier.",
 };
 export async function runGenerateDueDiligence(
   input: z.infer<typeof generateDueDiligenceInputSchema>,
@@ -224,7 +225,7 @@ export async function runMonitorKeyword(
 ): Promise<ResponseEnvelope<unknown>> {
   // H-3: SSRF guard. Reject non-HTTPS, bare IPs, and any hostname that
   // resolves (A or AAAA) into a private / loopback / link-local / reserved
-  // range. Throws Error (surfaced as BCA_BAD_REQUEST by the server).
+  // range. Throws BcaBadRequestError, so the host sees BCA_BAD_REQUEST.
   await validateWebhookUrl(input.webhook_url);
   return getClient().post(`/v1/agent-jobs/monitor-keyword`, input);
 }

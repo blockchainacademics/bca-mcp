@@ -117,7 +117,7 @@ export const getFearGreedInputSchema = z.object({
 export const getFearGreedDefinition = {
   name: "get_fear_greed",
   description:
-    "Crypto Fear & Greed Index (Alternative.me) — historical series + BCA interpretation.",
+    "Crypto Fear & Greed Index (Alternative.me): historical series + BCA interpretation.",
 };
 export async function runGetFearGreed(
   input: z.infer<typeof getFearGreedInputSchema>,

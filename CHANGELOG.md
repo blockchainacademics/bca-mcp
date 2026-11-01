@@ -9,6 +9,13 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 - Every link the package shows people now points at blockchainacademics.com/crypto-api (signup, pricing, docs); brain. and docs. are permanent redirects since the one-domain consolidation (2026-10-29).
 - server.json: `websiteUrl`, `docs_url` on the main site, display name "BCA Crypto Brain", and category examples now list all 105 tools (97 before).
 - `tools.json` ships in the package: tool names and counts per category, generated from the registry, for sites that must never type a count by hand.
+- tools/list advertises full JSON Schemas: integer and number types, enums, minimum and maximum, string lengths, patterns, email and URL formats, defaults, required fields and descriptions. `get_entity` and `get_explainer` list their inputs again (the old converter lost any schema wrapped in `.refine()`); their "exactly one of" rule is still checked when the tool is called.
+- Every tool carries MCP annotations: a title ("Get price"), `openWorldHint`, and `readOnlyHint`. The eight write tools (`submit_listing`, `book_kol_campaign`, `request_custom_research`, `monitor_keyword`, `generate_due_diligence`, `generate_tokenomics_model`, `summarize_whitepaper`, `translate_contract`) set `readOnlyHint`, `destructiveHint` and `idempotentHint` to false.
+- Invalid arguments answer `BCA_BAD_REQUEST` with "field: problem" pairs instead of `BCA_UNKNOWN` and a raw issue list; the webhook URL checks in `monitor_keyword` do the same. API 4xx errors carry the API's own detail (up to 500 characters, inside an `untrusted_content` fence); 5xx errors stay generic.
+- `book_kol_campaign`, `submit_listing` and `request_custom_research` match the API request models, so real calls no longer fail with 422. `book_kol_campaign` takes `project_name`, `campaign_type` (thread, video, space, podcast, hybrid) and a `budget_usd` of at least 500. `submit_listing` takes `listing_url`, a `description` of at least 20 characters and the API's directory names (`trading_bots`, `nft_communities`, ...). `request_custom_research` takes a `topic` of at least 4 characters plus the API's `target_wordcount` and `deadline` (the ignored `deadline_days` is gone). Descriptions say these are free to submit with an API key and return `request_id`, `status` and `next_step`.
+- Demo banner and README: 16 tools work without a key (the API's demo allowlist); the other 89 answer with a clean upgrade message.
+- `get_explainer` states 38 lessons in 8 courses (was 43 in 9) and uses course slugs that exist; `list_topics` names only the API's 10 taxonomy topics.
+- No em dashes in tool descriptions, the README, the banner or error messages.
 
 ## [0.6.2] — 2026-10-19
 

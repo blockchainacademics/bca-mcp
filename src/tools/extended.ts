@@ -354,7 +354,7 @@ export const trackBonkfunInputSchema = z.object({
 });
 export const trackBonkfunDefinition = {
   name: "track_bonkfun",
-  description: "Solana meme launcher — trending launches.",
+  description: "Solana meme launcher: trending launches.",
 };
 export const runTrackBonkfun = (i: any) => clientGet(`/v1/memes/bonkfun`, i);
 
@@ -428,7 +428,7 @@ export const getExchangeFlowsInputSchema = z.object({
 });
 export const getExchangeFlowsDefinition = {
   name: "get_exchange_flows",
-  description: "Net in/out from CEXs — smart-money signal. Pro tier.",
+  description: "Net in/out from CEXs, a smart money signal. Pro tier.",
 };
 export const runGetExchangeFlows = (i: any) =>
   clientGet(`/v1/microstructure/exchange-flows`, i);
@@ -599,23 +599,57 @@ export const runScanContract = (i: any) => clientGet(`/v1/security/scan-contract
 
 // =========================================================================
 // Services (category 9d) — POST, revenue plays
+//
+// The three schemas mirror the API request models in
+// app/api/v1/services.py (KOLCampaignRequest, CustomResearchRequest,
+// ListingSubmissionRequest): same field names, required fields and bounds,
+// so a call that passes here is not rejected upstream with a 422. Each
+// endpoint is free to call with any real key, free tier included (the demo
+// key is not on the demo allowlist), files a service request for a human to
+// review, and answers 201 {request_id, status, next_step}.
 // =========================================================================
+
+const contactNameSchema = z.string().max(200).optional().describe("Optional contact name.");
+const companySchema = z.string().max(200).optional().describe("Optional company name.");
+const notesSchema = (what: string) =>
+  z.string().max(4000).optional().describe(`Optional ${what} (up to 4,000 characters).`);
 
 export const bookKolCampaignInputSchema = z.object({
   contact_email: z
     .string()
     .email()
     .max(254)
-    .describe("Required. Contact email for campaign coordination."),
-  budget_usd: z.number().min(100),
-  objective: z.string().min(1).max(512),
-  target_audience: z.string().max(256).optional(),
-  launch_window_days: z.number().int().min(1).max(365).default(30),
+    .describe("Required. Where BCA Studio sends the recommended KOL slate and quote."),
+  project_name: z
+    .string()
+    .min(2)
+    .max(200)
+    .describe("Required. Project or brand name (2 to 200 characters)."),
+  campaign_type: z
+    .enum(["thread", "video", "space", "podcast", "hybrid"])
+    .describe("Required. Campaign format: thread, video, space, podcast or hybrid."),
+  budget_usd: z
+    .number()
+    .int()
+    .min(500)
+    .max(2_000_000)
+    .describe("Required. Budget in whole US dollars, 500 to 2,000,000."),
+  contact_name: contactNameSchema,
+  company: companySchema,
+  project_slug: slugSchema("project_slug")
+    .optional()
+    .describe("Optional BCA entity slug for the project (e.g. 'ethereum')."),
+  target_chains: z
+    .array(z.string().min(1).max(64))
+    .max(12)
+    .optional()
+    .describe("Optional chains the campaign targets, up to 12 (e.g. ['solana', 'base'])."),
+  notes: notesSchema("brief: goals, audience, timing"),
 });
 export const bookKolCampaignDefinition = {
   name: "book_kol_campaign",
   description:
-    "Broker a KOL campaign via BCA Studio CRM. Required: contact_email, budget_usd, objective. Pro tier. Returns campaign_id + next steps.",
+    "Send a KOL campaign brief to BCA Studio. Required: contact_email, project_name, campaign_type (thread, video, space, podcast or hybrid) and budget_usd (500 to 2,000,000 USD). Free to submit; needs an API key (the free tier is enough). BCA Studio reviews the brief and emails a recommended KOL slate and quote within 2 business days. Returns request_id, status and next_step.",
 };
 export const runBookKolCampaign = (i: any) =>
   clientPost(`/v1/services/book-kol-campaign`, i);
@@ -625,35 +659,85 @@ export const requestCustomResearchInputSchema = z.object({
     .string()
     .email()
     .max(254)
-    .describe("Required. Contact email for report delivery."),
-  topic: z.string().min(1).max(256),
-  depth: z.enum(["light", "standard", "deep"]).default("standard"),
-  deadline_days: z.number().int().min(1).max(30).default(7),
+    .describe("Required. Where BCA Research sends the scope and quote."),
+  topic: z
+    .string()
+    .min(4)
+    .max(240)
+    .describe("Required. What to research (4 to 240 characters)."),
+  depth: z
+    .enum(["light", "standard", "deep"])
+    .default("standard")
+    .describe("Report depth: light, standard or deep."),
+  target_wordcount: z
+    .number()
+    .int()
+    .min(500)
+    .max(20_000)
+    .default(3000)
+    .describe("Target report length in words, 500 to 20,000."),
+  deadline: z
+    .string()
+    .max(40)
+    .optional()
+    .describe("Optional deadline: an ISO date or free text such as 'within 2 weeks' (up to 40 characters)."),
+  contact_name: contactNameSchema,
+  company: companySchema,
+  notes: notesSchema("notes for the research team"),
 });
 export const requestCustomResearchDefinition = {
   name: "request_custom_research",
   description:
-    "Escalate to BCA deep-researcher skill. Required: contact_email, topic. Pro tier. Returns order_id + pricing.",
+    "Request a custom research report from BCA Research. Required: contact_email and topic (4 to 240 characters). Free to submit; needs an API key (the free tier is enough). BCA Research replies with scope and a quote within 2 business days; payment is by Stripe invoice. Returns request_id, status and next_step.",
 };
 export const runRequestCustomResearch = (i: any) =>
   clientPost(`/v1/services/custom-research`, i);
 
 export const submitListingInputSchema = z.object({
+  contact_email: z
+    .string()
+    .email()
+    .max(254)
+    .describe("Required. Where the editorial team replies with featured listing pricing."),
+  directory: z
+    .enum([
+      "vcs",
+      "aggregators",
+      "trading_bots",
+      "mcps",
+      "nft_communities",
+      "jobs",
+      "stablecoins",
+      "trading_yields",
+    ])
+    .describe("Required. Target directory."),
   listing_name: z
     .string()
-    .min(1)
-    .max(128)
-    .describe("Required. Display name for the listing."),
-  directory: slugSchema("directory").describe(
-    "Target directory, e.g. 'vcs', 'aggregators'.",
-  ),
-  entity: slugSchema("entity"),
-  contact_email: z.string().email().max(254),
+    .min(2)
+    .max(200)
+    .describe("Required. Display name for the listing (2 to 200 characters)."),
+  listing_url: z
+    .string()
+    .url()
+    .max(2083)
+    .regex(/^https?:\/\//, "listing_url must start with http:// or https://")
+    .describe("Required. Public http or https URL of the project or product."),
+  description: z
+    .string()
+    .min(20)
+    .max(2000)
+    .describe("Required. What the listing is (20 to 2,000 characters)."),
+  contact_name: contactNameSchema,
+  tags: z
+    .array(z.string().min(1).max(64))
+    .max(24)
+    .optional()
+    .describe("Optional tags, up to 24."),
 });
 export const submitListingDefinition = {
   name: "submit_listing",
   description:
-    "Submit a listing to a BCA directory (vcs, aggregators, trading-bots, etc.). Required: listing_name, directory, entity, contact_email. Free to call, paid to feature.",
+    "Submit a listing to a BCA directory: vcs, aggregators, trading_bots, mcps, nft_communities, jobs, stablecoins or trading_yields. Required: contact_email, directory, listing_name, listing_url and description (20 to 2,000 characters). Free to submit (needs an API key; the free tier is enough), paid to be featured: the editorial team reviews each submission and emails featured listing pricing. Returns request_id, status and next_step.",
 };
 export const runSubmitListing = (i: any) =>
   clientPost(`/v1/services/submit-listing`, i);
