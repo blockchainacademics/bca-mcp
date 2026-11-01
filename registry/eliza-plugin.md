@@ -1,8 +1,8 @@
-# @elizaos/plugin-bca — Specification
+# @elizaos/plugin-bca: Specification
 
-Spec for the Eliza (elizaOS) plugin that wraps the `@blockchainacademics/mcp` MCP server so Eliza characters can call all 99 BCA tools natively.
+Spec for the Eliza (elizaOS) plugin that wraps the `@blockchainacademics/mcp` MCP server so Eliza characters can call all 105 BCA tools natively.
 
-> Authoritative upstream: <https://github.com/elizaOS/eliza> and <https://elizaos.github.io>. This spec follows the current elizaOS plugin convention — confirm exact action / provider / evaluator API surface against the latest `@elizaos/core` release before publishing.
+> Authoritative upstream: <https://github.com/elizaOS/eliza> and <https://elizaos.github.io>. This spec follows the current elizaOS plugin convention: confirm exact action / provider / evaluator API surface against the latest `@elizaos/core` release before publishing.
 
 ---
 
@@ -12,12 +12,12 @@ Spec for the Eliza (elizaOS) plugin that wraps the `@blockchainacademics/mcp` MC
 |---|---|
 | Package name | `@elizaos/plugin-bca` |
 | Display name | Blockchain Academics |
-| Version | `0.1.0` (tracks `@blockchainacademics/mcp@0.2.2`) |
-| Description | Wraps the Blockchain Academics MCP (99 tools: news, entities, academy, market, on-chain, sentiment, proprietary indicators, async agent-backed research) so Eliza characters can query ground-truth crypto data with full attribution. |
+| Version | `0.1.0` (tracks `@blockchainacademics/mcp@0.6.3`) |
+| Description | Wraps the Blockchain Academics MCP (105 tools: news, entities, academy, market, on-chain, sentiment, proprietary indicators, async agent-backed research) so Eliza characters can query ground-truth crypto data with full attribution. |
 | License | MIT |
 | Repository | `https://github.com/blockchainacademics/elizaos-plugin-bca` |
 | Maintainer | Blockchain Academics `<dev@blockchainacademics.com>` |
-| PR target | `elizaOS/registry` (community plugin index) — _not_ `elizaOS/eliza` core |
+| PR target | `elizaOS/registry` (community plugin index), _not_ `elizaOS/eliza` core |
 | Secondary listing | `elizaOS/awesome-eliza` README (plugins section) |
 
 ---
@@ -40,7 +40,7 @@ Spec for the Eliza (elizaOS) plugin that wraps the `@blockchainacademics/mcp` MC
 │   │   ├── getPrice.ts
 │   │   ├── getSentiment.ts
 │   │   ├── generateDueDiligence.ts
-│   │   └── ...              # one action per high-value BCA tool (15–25 hand-picked)
+│   │   └── ...              # one action per high-value BCA tool (15 to 25 hand-picked)
 │   ├── providers/
 │   │   └── bcaContext.ts    # injects trending entities + fear/greed into prompt context
 │   ├── evaluators/
@@ -57,7 +57,7 @@ Spec for the Eliza (elizaOS) plugin that wraps the `@blockchainacademics/mcp` MC
 {
   "name": "@elizaos/plugin-bca",
   "version": "0.1.0",
-  "description": "Blockchain Academics plugin for Eliza — 99 crypto research tools with attribution.",
+  "description": "Blockchain Academics plugin for Eliza: 105 crypto research tools with attribution.",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -80,7 +80,7 @@ Spec for the Eliza (elizaOS) plugin that wraps the `@blockchainacademics/mcp` MC
     "@elizaos/core": ">=0.1.9"
   },
   "dependencies": {
-    "@blockchainacademics/mcp": "^0.2.2",
+    "@blockchainacademics/mcp": "^0.6.3",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "zod": "^3.25.0"
   },
@@ -127,7 +127,7 @@ import { citationEvaluator } from "./evaluators/citationEvaluator.js";
 export const bcaPlugin: Plugin = {
   name: "bca",
   description:
-    "Blockchain Academics — 99 crypto research tools (news, entities, academy, market, on-chain, sentiment, proprietary indicators, agent-backed research) with cite_url + as_of + source_hash attribution on every response.",
+    "Blockchain Academics: 105 crypto research tools (news, entities, academy, market, on-chain, sentiment, proprietary indicators, agent-backed research) with attribution.citations[] (cite_url, as_of, source_hash) on every response.",
   actions: [
     searchNewsAction,
     getEntityAction,
@@ -162,7 +162,7 @@ export const searchNewsAction: Action = {
   name: "BCA_SEARCH_NEWS",
   similes: ["CRYPTO_NEWS", "SEARCH_CRYPTO_NEWS", "BCA_NEWS"],
   description:
-    "Full-text search across 3,501+ editorial crypto articles from Blockchain Academics. Use when the user asks about recent crypto news, coverage of a project, regulatory developments, or market events.",
+    "Full-text search across 3,800+ editorial crypto articles from Blockchain Academics. Use when the user asks about recent crypto news, coverage of a project, regulatory developments, or market events.",
   validate: async (_runtime, _message) => {
     return Boolean(process.env.BCA_API_KEY);
   },
@@ -220,7 +220,7 @@ export async function callBcaTool(name: string, args: unknown) {
   const text = (res.content?.[0] as { text?: string } | undefined)?.text ?? "{}";
   return JSON.parse(text) as {
     data: unknown;
-    attribution: { cite_url: string | null; as_of: string | null; source_hash: string | null };
+    attribution: { citations: Array<{ cite_url: string | null; as_of: string | null; source_hash: string | null }> };
     meta: unknown;
   };
 }
@@ -228,23 +228,24 @@ export async function callBcaTool(name: string, args: unknown) {
 
 ---
 
-## 4. `character.json` example — crypto-researcher using BCA
+## 4. `character.json` example: crypto-researcher using BCA
 
 ```json
 {
   "name": "Axiom",
   "username": "axiom_research",
   "bio": [
-    "On-chain research analyst trained on 3,500+ BCA editorial articles.",
+    "On-chain research analyst grounded in 3,800+ BCA editorial articles.",
     "Never speculates without a cite_url. Treats missing attribution as a hard failure."
   ],
   "lore": [
     "Built by Blockchain Academics to replace hallucinating crypto Twitter threads with cited ground truth.",
-    "Always surfaces the `cite_url` and `as_of` timestamp from BCA tool responses."
+    "Always surfaces the `cite_url` and `as_of` timestamp of `attribution.citations[0]` from BCA tool responses."
   ],
   "knowledge": [
-    "Editorial attribution is mandatory — if the BCA tool response lacks cite_url, say so explicitly.",
-    "Proprietary indicators (coverage_index, narrative_strength, sentiment_velocity) are Pro-tier."
+    "Editorial attribution is mandatory: if the BCA tool response lacks a cite_url, say so explicitly.",
+    "Proprietary indicators (coverage_index, narrative_strength, sentiment_velocity) are Pro-tier.",
+    "Read meta.status: partial, stale and unseeded answers are not the full picture; say so."
   ],
   "plugins": ["@elizaos/plugin-bca"],
   "settings": {
@@ -257,7 +258,7 @@ export async function callBcaTool(name: string, args: unknown) {
     "all": [
       "Cite the BCA URL for every factual claim.",
       "State the `as_of` timestamp when data freshness matters.",
-      "Never invent on-chain numbers — call a BCA tool."
+      "Never invent on-chain numbers: call a BCA tool."
     ],
     "chat": ["Be concise. Lead with the cite_url."],
     "post": ["Always include the canonical BCA link."]
@@ -276,7 +277,7 @@ export async function callBcaTool(name: string, args: unknown) {
       {
         "user": "Axiom",
         "content": {
-          "text": "Per BCA coverage as of 2026-04-19 — Circle re-filed its S-1 on 2026-04-10 after the April stablecoin hearings. Source: https://blockchainacademics.com/news/circle-s1-refile?utm_source=eliza",
+          "text": "Per BCA coverage as of 2026-04-19: Circle re-filed its S-1 on 2026-04-10 after the April stablecoin hearings. Source: https://blockchainacademics.com/news/circle-s1-refile?utm_source=eliza",
           "action": "BCA_SEARCH_NEWS"
         }
       }
@@ -293,7 +294,7 @@ export async function callBcaTool(name: string, args: unknown) {
     ]
   ],
   "postExamples": [
-    "BCA coverage index on $TIA hit a 30-day high today — 14 articles across 9 editorial sources. Full breakdown: https://blockchainacademics.com/indicators/coverage?entity=celestia"
+    "BCA coverage index on $TIA hit a 30-day high today: 14 articles across 9 editorial sources. Full breakdown: https://blockchainacademics.com/indicators/coverage?entity=celestia"
   ]
 }
 ```
@@ -306,8 +307,9 @@ export async function callBcaTool(name: string, args: unknown) {
 # 1. Install the plugin
 pnpm add @elizaos/plugin-bca
 
-# 2. Get a BCA API key (free tier: 2,000 calls/month)
-# https://blockchainacademics.com/api
+# 2. Get a BCA API key (free tier: 2,000 calls/month). Without one the MCP
+#    server runs on its public demo key: 16 tools under a shared daily cap.
+# https://blockchainacademics.com/crypto-api/signup
 
 # 3. Set the env var
 echo "BCA_API_KEY=bca_live_xxxxxxxxxxxxxxxx" >> .env
@@ -323,15 +325,15 @@ pnpm start --character=characters/axiom.character.json
 
 ## 6. Submission targets
 
-1. **npm publish** — `npm publish --access public` from `@elizaos/plugin-bca` once the elizaOS org grants scope access (fallback scope: `@blockchainacademics/elizaos-plugin-bca`).
-2. **Registry PR** — fork `elizaOS/registry`, add the plugin entry to the community index (name, npm package, repo URL, description, tags), open PR.
-3. **Awesome list** — PR against `elizaOS/awesome-eliza` README under the Plugins / Data Providers section.
-4. **Docs** — optional blog post on `elizaos.github.io` walking through the crypto-researcher character pattern.
+1. **npm publish**: `npm publish --access public` from `@elizaos/plugin-bca` once the elizaOS org grants scope access (fallback scope: `@blockchainacademics/elizaos-plugin-bca`).
+2. **Registry PR**: fork `elizaOS/registry`, add the plugin entry to the community index (name, npm package, repo URL, description, tags), open PR.
+3. **Awesome list**: PR against `elizaOS/awesome-eliza` README under the Plugins / Data Providers section.
+4. **Docs**: optional blog post on `elizaos.github.io` walking through the crypto-researcher character pattern.
 
 ---
 
 ## 7. Status & caveats
 
-- Plugin scaffold and 13 high-value actions ready to generate; remaining 86 BCA tools exposed via a generic `BCA_CALL_TOOL` pass-through action for power users.
-- SSE transport (`https://api.blockchainacademics.com/mcp`) lands Phase 3, Q2 2026 — until then the plugin spawns the stdio MCP via `npx`.
+- Plugin scaffold and 13 high-value actions ready to generate; the remaining 92 BCA tools exposed via a generic `BCA_CALL_TOOL` pass-through action for power users.
+- The MCP server ships over stdio only (no hosted endpoint yet), so the plugin spawns it via `npx`.
 - Confirm the exact `Action` / `Provider` / `Evaluator` TypeScript signatures against the latest `@elizaos/core` release before first publish; this spec targets the `0.1.9`-era API.

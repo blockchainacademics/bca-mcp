@@ -39,7 +39,7 @@ describe("input schemas", () => {
       getExplainerInputSchema.parse({ slug: "a", topic: "b" }),
     );
     assert.ok(getExplainerInputSchema.parse({ topic: "liquidity" }));
-    assert.ok(getExplainerInputSchema.parse({ slug: "what-is-a-blockchain" }));
+    assert.ok(getExplainerInputSchema.parse({ slug: "decentralized-exchanges" }));
   });
 });
 

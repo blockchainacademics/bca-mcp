@@ -5,79 +5,64 @@
 import { z } from "zod";
 import { getClient } from "../client.js";
 import { slugSchema } from "../schema.js";
-import { neutralizeFenceTokens } from "../untrusted.js";
+import { fenceFields, payloadRows } from "../untrusted.js";
 import type { ResponseEnvelope } from "../types.js";
-
-/**
- * Wrap a free-text field that originated from external sources (article
- * bodies, excerpts) so the consuming LLM treats it as data, not instructions.
- * Embedded fence tags are neutralized first so a literal </untrusted_content>
- * in the upstream text cannot close the fence early (see untrusted.ts).
- */
-function wrapUntrusted(source: string, s: unknown): string | undefined {
-  if (typeof s !== "string" || s.length === 0) return s as undefined;
-  return `<untrusted_content source="${source}">\n${neutralizeFenceTokens(s) as string}\n</untrusted_content>`;
-}
 
 // --- get_article -----------------------------------------------------------
 export const getArticleInputSchema = z.object({
-  slug: slugSchema("slug").describe("Article slug."),
+  slug: slugSchema("slug").describe("Article slug (from search_news)."),
 });
 export const getArticleDefinition = {
   name: "get_article",
   description:
-    "Fetch a single editorial crypto article by slug: full body, citations, entity graph, and attribution metadata. Use after search_news when you need the full text.",
+    "Fetch one BCA article by slug: title, summary, full text (body_md), author, source, publish date, topics, tickers and entity slugs, with the article as its citation. Use after search_news when you need the full text. An unknown slug is an error (HTTP 404).",
 };
+// Text fields that come from the article itself (body, summary, excerpt).
+const ARTICLE_TEXT_FIELDS = ["body_md", "body", "excerpt", "body_markdown", "summary"];
 export async function runGetArticle(
   input: z.infer<typeof getArticleInputSchema>,
 ): Promise<ResponseEnvelope<unknown>> {
   const res = await getClient().request(
     `/v1/articles/${encodeURIComponent(input.slug)}`,
   );
-  // A-3: wrap third-party article body/excerpt fields.
+  // A-3: wrap third-party article body/excerpt fields. The article is
+  // data.result (data itself in the old shape).
   const data = res?.data as Record<string, unknown> | undefined;
-  if (data) {
-    for (const key of ["body", "excerpt", "body_markdown", "summary"]) {
-      if (typeof data[key] === "string") {
-        data[key] = wrapUntrusted("get_article", data[key]);
-      }
-    }
+  if (data && typeof data === "object") {
+    fenceFields(data["result"], ARTICLE_TEXT_FIELDS, "get_article");
+    fenceFields(data, ARTICLE_TEXT_FIELDS, "get_article");
   }
   return res;
 }
 
 // --- list_entity_mentions --------------------------------------------------
 export const listEntityMentionsInputSchema = z.object({
-  slug: slugSchema("slug").describe("Entity slug (chain, project, person, ticker)."),
+  slug: slugSchema("slug").describe("Entity slug or alias (chain, project, person, ticker)."),
   since: z.string().max(64).optional().describe("ISO 8601 lower bound for published_at."),
-  limit: z.number().int().min(1).max(200).default(50).describe("Max mentions (default 50)."),
+  limit: z.number().int().min(1).max(100).default(50).describe("Max mentions (default 50, max 100)."),
+  offset: z
+    .number()
+    .int()
+    .min(0)
+    .default(0)
+    .describe("Mentions to skip, for paging (default 0). meta.pageInfo.hasNextPage says whether more exist."),
 });
 export const listEntityMentionsDefinition = {
   name: "list_entity_mentions",
   description:
-    "Timeline of editorial mentions for an entity: sentiment score, sentiment bucket, and article linkback per mention. Use this to reconstruct narrative arc over time.",
+    "Timeline of BCA article mentions for an entity, newest first: article slug, title and source URL, publish date, sentiment score and bucket, mentions in the article and a context snippet. Page with offset. Use this to reconstruct how coverage evolved over time. Answers unseeded when no public article mentions the entity yet; an unknown entity is an error (HTTP 404).",
 };
 export async function runListEntityMentions(
   input: z.infer<typeof listEntityMentionsInputSchema>,
 ): Promise<ResponseEnvelope<unknown>> {
   const res = await getClient().request(
     `/v1/entities/${encodeURIComponent(input.slug)}/mentions`,
-    { since: input.since, limit: input.limit },
+    { since: input.since, limit: input.limit, offset: input.offset },
   );
-  // A-3: mentions may expose third-party article excerpts.
-  const data = res?.data as Record<string, unknown> | undefined;
-  const mentions = (data?.mentions ?? data) as unknown;
-  if (Array.isArray(mentions)) {
-    for (const m of mentions) {
-      if (m && typeof m === "object") {
-        const row = m as Record<string, unknown>;
-        for (const key of ["excerpt", "snippet", "body"]) {
-          if (typeof row[key] === "string") {
-            row[key] = wrapUntrusted("list_entity_mentions", row[key]);
-          }
-        }
-      }
-    }
+  // A-3: mentions carry a snippet of third-party article text. The rows are
+  // data.results (data.mentions or data itself in the old shapes).
+  for (const row of payloadRows(res?.data, "mentions")) {
+    fenceFields(row, ["context_snippet", "excerpt", "snippet", "body"], "list_entity_mentions");
   }
   return res;
 }
@@ -87,7 +72,7 @@ export const listTopicsInputSchema = z.object({});
 export const listTopicsDefinition = {
   name: "list_topics",
   description:
-    "Browse the BCA topic taxonomy: regulation, defi, nft, layer-2, bitcoin, ethereum, solana, stablecoins, rwa and ai-agents. Use to discover filter values for search_news.",
+    "Browse the BCA topic taxonomy: regulation, defi, nft, layer-2, bitcoin, ethereum, solana, stablecoins, rwa and ai-agents, each with its live article count and child topics. Use to discover filter values for search_news.",
 };
 export async function runListTopics(
   _input: z.infer<typeof listTopicsInputSchema>,
@@ -100,7 +85,7 @@ export const getAsOfSnapshotInputSchema = z.object({
   as_of: z
     .string()
     .max(64)
-    .describe("ISO 8601 timestamp: corpus state at this date (Enterprise tier)."),
+    .describe("ISO 8601 timestamp: corpus state at this date."),
   query: z.string().min(1).max(512).optional().describe("Optional search query."),
   entity: slugSchema("entity").optional().describe("Optional entity slug filter."),
   limit: z.number().int().min(1).max(50).default(20),
@@ -108,7 +93,7 @@ export const getAsOfSnapshotInputSchema = z.object({
 export const getAsOfSnapshotDefinition = {
   name: "get_as_of_snapshot",
   description:
-    "Time-travel query: return the corpus state as it existed at a specific historical date. Enterprise tier. Useful for backtesting and audit trails.",
+    "Time-travel query: the article corpus as it stood at a past date, meaning only the articles BCA had ingested by as_of, optionally narrowed by a search query and an entity slug. Useful for backtesting and audit trails. Free, and works without an API key. Answers unseeded when nothing matches.",
 };
 export async function runGetAsOfSnapshot(
   input: z.infer<typeof getAsOfSnapshotInputSchema>,

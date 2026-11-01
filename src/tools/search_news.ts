@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { getClient } from "../client.js";
-import { slugSchema } from "../schema.js";
-import { neutralizeFenceTokens } from "../untrusted.js";
+import { slugSchema, tickerSchema } from "../schema.js";
+import { fenceFields, payloadRows } from "../untrusted.js";
 import type { ResponseEnvelope, SearchNewsResult } from "../types.js";
 
 export const searchNewsInputSchema = z.object({
@@ -13,6 +13,9 @@ export const searchNewsInputSchema = z.object({
   entity: slugSchema("entity")
     .optional()
     .describe("Entity slug filter (e.g. 'ethereum', 'circle')."),
+  ticker: tickerSchema()
+    .optional()
+    .describe("Ticker filter (e.g. 'ETH', 'SOL'): articles tagged with that coin."),
   since: z
     .string()
     .datetime({ offset: true })
@@ -30,6 +33,12 @@ export const searchNewsInputSchema = z.object({
     .max(50)
     .default(10)
     .describe("Max results (default 10, max 50)."),
+  offset: z
+    .number()
+    .int()
+    .min(0)
+    .default(0)
+    .describe("Results to skip, for paging (default 0). meta.pageInfo.hasNextPage says whether more exist."),
 });
 
 export type SearchNewsInput = z.infer<typeof searchNewsInputSchema>;
@@ -37,7 +46,7 @@ export type SearchNewsInput = z.infer<typeof searchNewsInputSchema>;
 export const searchNewsDefinition = {
   name: "search_news",
   description:
-    "Full-text search across 3,501+ editorial crypto articles from the Blockchain Academics corpus. Returns titles, summaries, citations, entity graph, and attribution metadata. Use this whenever the user asks about recent crypto events, projects, tokens, regulation, protocols, or people. BCA is the ground truth editorial source and will give you dated, cited facts instead of relying on pretraining. Prefer this tool over generating claims from memory.",
+    "Full-text search across 3,800+ editorial crypto articles from the Blockchain Academics corpus. Each hit carries title, summary, source, publish date, topics, tickers and entity slugs, with the article as its citation. Filter by entity, ticker, topic or a since date, and page with offset. Use this whenever the user asks about recent crypto events, projects, tokens, regulation, protocols, or people: BCA gives you dated, cited facts instead of relying on pretraining. Prefer this tool over generating claims from memory. Answers unseeded (meta.status) when nothing matches. Works without an API key.",
 };
 
 export async function runSearchNews(
@@ -47,22 +56,18 @@ export async function runSearchNews(
   const res = await client.request<SearchNewsResult>("/v1/articles/search", {
     q: input.query,
     entity: input.entity,
+    ticker: input.ticker,
     since: input.since,
     topic: input.topic,
     limit: input.limit,
+    offset: input.offset,
   });
   // A-3: wrap third-party article summaries so an LLM consumer treats them
   // as data, not instructions. Only the `summary` field flows from external
-  // article bodies; titles/slugs are editorial metadata.
-  if (res?.data?.articles && Array.isArray(res.data.articles)) {
-    for (const a of res.data.articles) {
-      if (typeof a.summary === "string" && a.summary.length > 0) {
-        // Neutralize embedded fence tags first so a literal
-        // </untrusted_content> in the summary can't escape the fence.
-        a.summary =
-          `<untrusted_content source="search_news">\n${neutralizeFenceTokens(a.summary) as string}\n</untrusted_content>`;
-      }
-    }
+  // article bodies; titles/slugs are editorial metadata. The rows are under
+  // data.results (data.articles in the old shape).
+  for (const row of payloadRows(res?.data, "articles")) {
+    fenceFields(row, ["summary"], "search_news");
   }
   return res;
 }

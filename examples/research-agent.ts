@@ -1,9 +1,9 @@
 /**
- * Minimal research-agent demo — connects to the local BCA MCP server over
+ * Minimal research-agent demo: connects to the local BCA MCP server over
  * stdio, runs a `search_news` query, then fans out to `get_entity` on the
  * top article's first entity. Illustrates the canonical tool-chaining loop.
  *
- * Run (after `npm run build`):
+ * Run (after `npm run build`); both tools also work without a key:
  *   BCA_API_KEY=... npx tsx examples/research-agent.ts "stablecoin regulation"
  */
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
@@ -33,10 +33,14 @@ const firstText = Array.isArray(search.content)
   ? (search.content[0] as { text?: string } | undefined)?.text
   : undefined;
 if (firstText) {
-  const parsed = JSON.parse(firstText) as {
-    data?: { articles?: Array<{ entities?: string[] }> };
-  };
-  const firstEntity = parsed.data?.articles?.[0]?.entities?.[0];
+  // The tool result is the envelope with `data` wrapped in an
+  // untrusted_content fence (a string): the JSON payload sits between the
+  // fence's preamble and its closing tag. The articles are data.results.
+  const parsed = JSON.parse(firstText) as { data?: unknown };
+  const fenced = typeof parsed.data === "string" ? parsed.data : "";
+  const body = fenced.slice(fenced.indexOf("\n\n") + 2, fenced.lastIndexOf("\n</untrusted_content>"));
+  const data = body ? (JSON.parse(body) as { results?: Array<{ entities?: string[] }> }) : {};
+  const firstEntity = data.results?.[0]?.entities?.[0];
   if (firstEntity) {
     const ent = await client.callTool({
       name: "get_entity",

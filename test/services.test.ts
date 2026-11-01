@@ -197,10 +197,11 @@ describe("submit_listing matches ListingSubmissionRequest", () => {
 });
 
 describe("request_custom_research matches CustomResearchRequest", () => {
-  it("topic needs at least 4 characters and at most 240", () => {
+  it("topic needs at least 4 characters and at most 256 (the API's CustomResearchRequest)", () => {
     const base = { contact_email: "analyst@example.com" };
     assert.equal(requestCustomResearchInputSchema.safeParse({ ...base, topic: "abc" }).success, false);
-    assert.equal(requestCustomResearchInputSchema.safeParse({ ...base, topic: "x".repeat(241) }).success, false);
+    assert.ok(requestCustomResearchInputSchema.safeParse({ ...base, topic: "x".repeat(256) }).success);
+    assert.equal(requestCustomResearchInputSchema.safeParse({ ...base, topic: "x".repeat(257) }).success, false);
     assert.ok(requestCustomResearchInputSchema.safeParse({ ...base, topic: "restaking" }).success);
     assert.deepEqual(required("request_custom_research"), ["contact_email", "topic"]);
   });

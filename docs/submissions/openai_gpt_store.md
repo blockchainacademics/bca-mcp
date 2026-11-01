@@ -1,34 +1,36 @@
-# Blockchain Academics — OpenAI GPT Store Custom GPT Submission
+# Blockchain Academics: OpenAI GPT Store Custom GPT Submission
 
 ## GPT Name
 Blockchain Academics Intelligence
 
 ## Short Description
-Live crypto prices, on-chain data, news, sentiment, and AI-generated due-diligence memos — powered by the Blockchain Academics API.
+Live crypto prices, on-chain data, news, sentiment, and due diligence reports, all from the Blockchain Academics API.
 
 ## Long Description
-Ask for live prices, technical indicators, wallet balances across Ethereum, Solana, Bitcoin, Base, Arbitrum, and BNB Chain, entity-tagged news, social sentiment, narrative momentum, regulatory events, or a full due-diligence memo on any token. Backed by Blockchain Academics — 200+ vetted sources, canonical entity graph, and an AI research desk that writes structured memos and theses on demand.
+Ask for live prices, wallet holdings on Ethereum, Solana, Base, Arbitrum, Optimism, Polygon and BNB Chain, entity-tagged news, news sentiment, narrative strength, country regulation, or a due diligence report on a token. Backed by Blockchain Academics: 3,800+ editorial articles, 160+ tracked news sources, a canonical entity registry, and async research jobs, with a citation and an honest status on every answer.
 
 ## Category
 Research & Analysis / Finance
 
 ## Conversation Starters
-1. "Write a due-diligence memo on $SOL."
-2. "What's the sentiment and RSI on ETH right now?"
-3. "Show me today's top 5 crypto narratives by momentum."
-4. "Any regulatory events on Coinbase in the last 30 days?"
-5. "Scan this wallet: 0x... and tell me what it's been doing."
+1. "Start a due diligence report on Solana."
+2. "What's the news sentiment on ETH right now?"
+3. "What's trending in crypto news today?"
+4. "Any regulatory news on Coinbase in the last 30 days?"
+5. "Look up this wallet: 0x... and show me what it holds."
 
 ## Instructions (System Prompt)
 
 ```
 You are Blockchain Academics Intelligence, a crypto research analyst.
 
-Use the BCA API actions to fetch live data before answering. Never fabricate prices, on-chain events, or news — always call the relevant action.
+Use the BCA API actions to fetch live data before answering. Never fabricate prices, on-chain events, or news: always call the relevant action.
 
-When a user asks about a token, default to: current price, 24h change, sentiment score, and one salient recent news headline. Offer a full memo via generate_due_diligence when relevant.
+When a user asks about a token, default to: current price, 24h change, sentiment bucket, and one salient recent news headline. Offer a due diligence report via generate_due_diligence when relevant.
 
-Cite BCA entity slugs and article URLs when referencing specific projects, people, or stories. Flag risks (regulatory, audit, unlocks) before upside. Prefer data over opinion. Keep responses tight unless asked to go long.
+Every answer carries meta.status. Treat partial, stale and unseeded answers as incomplete and say so; never present them as the full picture.
+
+Cite the first entry of attribution.citations (the primary source) when referencing specific projects, people, or stories. Flag risks (regulatory, audit, unlocks) before upside. Prefer data over opinion. Keep responses tight unless asked to go long.
 ```
 
 ## Actions (OpenAPI)
@@ -40,32 +42,32 @@ Cite BCA entity slugs and article URLs when referencing specific projects, peopl
 - **Type:** API Key
 - **Auth Type:** Custom (Header)
 - **Header Name:** `X-API-Key`
-- **API Key source:** https://blockchainacademics.com/crypto-api/pricing
+- **API Key source:** https://blockchainacademics.com/crypto-api/signup (free key: 2,000 calls a month)
 
 ### Privacy Policy
 https://blockchainacademics.com/privacy
 
-## Recommended Actions (4-5 highest-value endpoints)
+## Recommended Actions (5 highest-value endpoints)
 
 ### 1. `GET /v1/market/price`
-Live and historical price for any of 200+ tracked assets. Returns spot, 24h change, market cap, 7d/30d OHLCV.
+Spot price, 24h change, market cap and 24h volume for up to 50 CoinGecko ids per call (`ids=bitcoin,ethereum`, `vs=usd`).
 
-### 2. `GET /v1/news/search`
-Entity-tagged, sentiment-scored news search across 200+ vetted crypto sources. Supports filters: `entity`, `narrative`, `since`, `sentiment`.
+### 2. `GET /v1/articles/search`
+Full-text search across BCA's editorial articles, each tagged with entities and tickers. Filters: `q`, `entity`, `ticker`, `topic`, `since`, `limit`, `offset`.
 
 ### 3. `GET /v1/sentiment`
-Aggregated social + news sentiment for a symbol. Returns score (-1 to +1), volume, delta vs 7d avg, top drivers.
+Sentiment bucket for an entity (`entity_slug`, `window` 1d, 7d, 30d or 90d): bullish, bearish, neutral or mixed, with mention counts, mean score and the top bullish and bearish articles.
 
 ### 4. `POST /v1/agent-jobs/due-diligence`
-Trigger an AI-written structured DD memo. Returns: tokenomics, team, audits, unlocks schedule, regulatory posture, narrative fit, risks, and a one-page executive summary. Typical completion 8-15s.
+Start an async due diligence report on an entity (tokenomics, team, audits, risk and narrative; Pro tier). Returns `job_id`; poll `GET /v1/agent-jobs/{job_id}` until the status is done.
 
 ### 5. `GET /v1/entities/{slug}`
-Canonical entity record — project, person, org, or narrative. Includes aliases, relationships, recent coverage, and linked theses/memos.
+Entity dossier by slug or alias (`cz` resolves to changpeng-zhao): kind, display name, ticker, links, summary when there is one, and mention counts.
 
 ## Example Action Call
 
 ```http
-GET https://api.blockchainacademics.com/v1/market/price?symbol=SOL&timeframe=7d
+GET https://api.blockchainacademics.com/v1/market/price?ids=solana&vs=usd
 X-API-Key: bca_live_xxxxxxxxxxxxxxxxxxxxx
 ```
 
@@ -75,7 +77,7 @@ X-API-Key: bca_live_xxxxxxxxxxxxxxxxxxxxx
 - Code Interpreter: on (for user-side charting of returned data)
 
 ## Knowledge Files
-None — all data is live via actions.
+None: all data is live via actions.
 
 ## Logo
 Blockchain Academics wordmark (attached via submission form).

@@ -16,7 +16,7 @@ export const getSentimentInputSchema = z.object({
 export const getSentimentDefinition = {
   name: "get_sentiment",
   description:
-    "BCA editorial sentiment bucket (bullish/bearish/neutral/mixed) for an entity with bucket drivers.",
+    "Sentiment bucket (bullish, bearish, neutral or mixed) for an entity over 1d, 7d, 30d or 90d, rolled up hourly from the news BCA ingests and BCA's own articles: mention counts, mean score and the top bullish and bearish articles (drivers). Unseeded when no article mentions the entity in the window, stale when its newest window closed hours ago. Works without an API key.",
 };
 export async function runGetSentiment(
   input: z.infer<typeof getSentimentInputSchema>,
@@ -35,7 +35,7 @@ export const getSocialPulseInputSchema = z.object({
 export const getSocialPulseDefinition = {
   name: "get_social_pulse",
   description:
-    "How crypto Twitter is talking about an entity: CT sentiment score (-1 to 1), label, mention trend, bull and bear points, narratives, and notable posts. BCA analysis in its own words, with X post URLs as citations. Pro tier.",
+    "How crypto Twitter is talking about an entity: CT sentiment score (-1 to 1), label, mention trend, bull and bear points, narratives, and notable posts, from a live read. BCA analysis in its own words, with X post URLs as citations. Partial when the daily budget for live reads is spent or the source is down. Pro tier.",
 };
 export async function runGetSocialPulse(
   input: z.infer<typeof getSocialPulseInputSchema>,
@@ -59,7 +59,7 @@ export const getCtPulseInputSchema = z.object({
 export const getCtPulseDefinition = {
   name: "get_ct_pulse",
   description:
-    "What crypto Twitter is saying in the last 24h: one-line takeaway, top stories, narratives heating or cooling, hard numbers with their source URL, and notable posts from credible accounts. Without a topic it returns the latest scheduled market snapshot. BCA analysis plus X post links, never reposted post text. Pro tier.",
+    "What crypto Twitter is saying over the last 24h: one-line takeaway, top stories, narratives heating or cooling, hard numbers with their source URL, and notable posts from credible accounts. Without a topic it returns the latest scheduled market snapshot and never makes a live read: stale (meta.status) once the snapshot is older than 6 hours, unseeded when none exists. With a topic it makes a live read. BCA analysis plus X post links, never reposted post text. Pro tier.",
 };
 export async function runGetCtPulse(
   input: z.infer<typeof getCtPulseInputSchema>,
@@ -79,7 +79,7 @@ export const getXSignalsInputSchema = z.object({
 export const getXSignalsDefinition = {
   name: "get_x_signals",
   description:
-    "Breaking crypto stories surfaced on X before news outlets, from vetted accounts (security researchers, exchanges, regulators, ETF analysts) plus an open keyword sweep. Each story: headline, summary, event type, the accounts and post URLs behind it, confidence, and whether on-chain evidence was cited. Pro tier.",
+    "Breaking crypto stories surfaced on X before news outlets, from vetted accounts (security researchers, exchanges, regulators, ETF analysts) plus an open keyword sweep. Each story: headline, summary, event type, the accounts and post URLs behind it, confidence, and whether on-chain evidence was cited. latest_signal_at is the newest stored signal; an empty window answers stale when older signals exist (the sweep is behind or the lane is paused) and unseeded when none are stored. Pro tier.",
 };
 export async function runGetXSignals(
   input: z.infer<typeof getXSignalsInputSchema>,
@@ -102,7 +102,7 @@ export const getKolConsensusInputSchema = z.object({
 export const getKolConsensusDefinition = {
   name: "get_kol_consensus",
   description:
-    "Where credible crypto Twitter analysts, traders and researchers stand on the most-covered tokens over the last 24h: stance (bullish/bearish/mixed/neutral), bull and bear account counts, key points, and post links. Pro tier.",
+    "Where credible crypto Twitter analysts, traders and researchers stand on the most-covered tokens, from the latest scheduled 24h snapshot: stance (bullish, bearish, mixed or neutral), bull and bear account counts, key points, and post links. Stale once the snapshot is older than 24 hours; unseeded for a token the snapshot does not cover (topic lists the tokens it covers). Pro tier.",
 };
 export async function runGetKolConsensus(
   input: z.infer<typeof getKolConsensusInputSchema>,
@@ -117,7 +117,7 @@ export const getFearGreedInputSchema = z.object({
 export const getFearGreedDefinition = {
   name: "get_fear_greed",
   description:
-    "Crypto Fear & Greed Index (Alternative.me): historical series + BCA interpretation.",
+    "Crypto Fear & Greed Index from Alternative.me: daily readings (value and classification), newest first, for up to 365 days. Works without an API key.",
 };
 export async function runGetFearGreed(
   input: z.infer<typeof getFearGreedInputSchema>,

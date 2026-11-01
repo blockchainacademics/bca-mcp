@@ -16,8 +16,8 @@ import { zodToJsonSchema, type JsonSchema } from "./schema.js";
 import { toolAnnotations, type ToolAnnotations } from "./annotations.js";
 import type { ResponseEnvelope } from "./types.js";
 
-// H-2 (v0.3.1): prompt-injection fencing. Upstream BCA data — news titles,
-// article bodies, entity descriptions — can contain LLM-targeted payloads
+// H-2 (v0.3.1): prompt-injection fencing. Upstream BCA data (news titles,
+// article bodies, entity descriptions) can contain LLM-targeted payloads
 // ("ignore previous instructions…"). The host LLM reading tool output must
 // treat that data as data, not instructions. We fence ONLY the `data`
 // payload; `attribution` and `meta` are tool-authored metadata and stay
@@ -36,7 +36,7 @@ export function fenceEnvelopeData(
   envelope: unknown,
 ): unknown {
   // Non-object envelopes (should not occur post-canonicalisation) or
-  // envelopes without a `data` key are returned unchanged — failing open here
+  // envelopes without a `data` key are returned unchanged; failing open here
   // would mean silently unfenced output, so we only fence when we can clearly
   // identify the data payload.
   if (
@@ -434,12 +434,12 @@ export async function callTool(name: string, args: unknown): Promise<ToolCallRes
 
   try {
     // Canonical envelope is fully assembled by the HTTP client (or the
-    // legacy-flat shim inside normalizeEnvelope). No per-call transform —
+    // legacy-flat shim inside normalizeEnvelope). No per-call transform:
     // we serialize the envelope directly so MCP callers see the exact
     // JSON:API-inspired shape the REST surface emits.
     // H-2 (v0.3.1): fence the `data` payload as untrusted content before
     // returning so the host LLM interprets upstream BCA text as data, not
-    // instructions. `attribution` and `meta` remain structured — they're
+    // instructions. `attribution` and `meta` remain structured: they're
     // our own tool metadata, not attacker-influenced upstream content.
     const envelope = await tool.run(args ?? {});
     const fenced = fenceEnvelopeData(envelope);
@@ -479,7 +479,7 @@ server.setRequestHandler(CallToolRequestSchema, async (req) =>
 async function main(): Promise<void> {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  // Deliberately no console.log — stdio transport owns stdout. Stderr is
+  // Deliberately no console.log: stdio transport owns stdout. Stderr is
   // safe for one-off diagnostics. Emit the demo banner AFTER the handshake
   // completes so the SDK doesn't interleave it with framing bytes.
   if (getClient().usingDemoKey) {
@@ -489,7 +489,7 @@ async function main(): Promise<void> {
 
 // Entry-point guard: only run main() when this file IS the entry script
 // (e.g. `npx -y @blockchainacademics/mcp` -> dist/index.js). When imported
-// by tests for FENCE_OPEN / fenceEnvelopeData / TOOLS, do nothing — running
+// by tests for FENCE_OPEN / fenceEnvelopeData / TOOLS, do nothing: running
 // main() would block on stdio reads and hang the test worker forever.
 // Pattern adapted from the Python sibling's `if __name__ == "__main__"`.
 //
@@ -497,7 +497,7 @@ async function main(): Promise<void> {
 // bin via a symlink at `node_modules/.bin/bca-mcp` -> `dist/index.js`. In
 // that scenario `process.argv[1]` is the symlink path while
 // `fileURLToPath(import.meta.url)` is the resolved target. They never match,
-// so the v0.5.0 guard returned false under npx and main() never ran — the
+// so the v0.5.0 guard returned false under npx and main() never ran: the
 // MCP server appeared to start but registered zero tools. Resolve both
 // paths via `realpathSync` before comparing.
 import { fileURLToPath } from "node:url";

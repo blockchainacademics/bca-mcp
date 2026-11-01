@@ -1,13 +1,13 @@
 {
-  "$comment": "Virtuals Protocol agent/tool catalog manifest for @blockchainacademics/mcp. Schema tracks the current Virtuals agent-manifest conventions documented at https://whitepaper.virtuals.io and https://docs.virtuals.io (agent metadata + tool catalog + authentication + endpoints + pricing + maintainer). Fields should be confirmed against the live Virtuals submission form before PR; update if registry requires additional keys (e.g. on-chain agent address, G.A.M.E. framework config).",
+  "$comment": "Virtuals Protocol agent/tool catalog manifest for @blockchainacademics/mcp. Schema tracks the current Virtuals agent-manifest conventions documented at https://whitepaper.virtuals.io and https://docs.virtuals.io (agent metadata + tool catalog + authentication + endpoints + pricing + maintainer). Fields should be confirmed against the live Virtuals submission form before PR; update if registry requires additional keys (e.g. on-chain agent address, G.A.M.E. framework config). Tool tiers and quotas below follow the API (route tier gates and TIER_LIMITS, 2026-11-01); prices follow the pricing page.",
   "schema_version": "virtuals.agent-catalog/v1",
   "agent": {
     "id": "blockchainacademics-mcp",
     "name": "Blockchain Academics MCP",
     "slug": "blockchainacademics-mcp",
-    "tagline": "The canonical crypto MCP for AI agents — 99 tools, editorial ground truth, full attribution.",
-    "description": "The canonical crypto MCP server for AI agents. 99 tools spanning 3,501+ editorial articles, 200+ entity dossiers, 43 academy lessons, aggregated market + on-chain data, proprietary indicators (coverage index, narrative strength, sentiment velocity, editorial premium, KOL influence, risk score), and async agent-backed research generation. Every tool response carries a structured attribution envelope: cite_url (with UTM source attribution), as_of (time-travel snapshot), and source_hash (content integrity). Designed to eliminate LLM hallucination on crypto topics by plugging an AI agent directly into the BCA corpus with citations, timestamps, and source hashes on every response.",
-    "version": "0.2.2",
+    "tagline": "The canonical crypto MCP for AI agents: 105 tools, editorial ground truth, full attribution.",
+    "description": "The canonical crypto MCP server for AI agents. 105 tools spanning 3,800+ editorial articles, 150+ entity dossiers, 38 academy lessons in 8 courses, aggregated market + on-chain data, crypto Twitter intelligence, proprietary indicators (coverage index, narrative strength, sentiment velocity, editorial premium, KOL influence, risk score), and async agent-backed research generation. Every tool response carries an attribution envelope, attribution.citations[], each entry with cite_url, as_of and source_hash; citations[0] is the primary source (the upstream page when there is one). Every response also carries meta.status (complete, partial, stale or unseeded), so an agent can tell a full answer from a thin one. Designed to eliminate LLM hallucination on crypto topics by plugging an AI agent directly into the BCA corpus with citations, timestamps, and source hashes on every response.",
+    "version": "0.6.3",
     "category": "data-provider",
     "subcategories": [
       "crypto",
@@ -45,28 +45,28 @@
       "status": "live",
       "registry_type": "npm",
       "package": "@blockchainacademics/mcp",
-      "version": "0.2.2",
+      "version": "0.6.3",
       "command": "npx",
       "args": ["-y", "@blockchainacademics/mcp"],
       "notes": "Canonical transport. Works in Claude Desktop, Cursor, LangChain, Eliza, and any MCP-compatible agent host."
     },
     {
       "type": "sse",
-      "status": "coming-q2-2026",
+      "status": "not-available",
       "url": "https://api.blockchainacademics.com/mcp",
-      "notes": "Hosted SSE endpoint lands in Phase 3 of the BCA MCP rollout (target Q2 2026). Use the stdio transport until then."
+      "notes": "No hosted MCP endpoint yet. Use the stdio transport."
     }
   ],
   "authentication": {
     "type": "api_key",
-    "required": true,
+    "required": false,
     "scheme": "header",
-    "header_name": "Authorization",
-    "header_prefix": "Bearer ",
+    "header_name": "X-API-Key",
+    "header_prefix": "",
     "env_variable": "BCA_API_KEY",
-    "issuer": "https://blockchainacademics.com/api",
+    "issuer": "https://blockchainacademics.com/crypto-api/signup",
     "free_tier_calls_per_month": 2000,
-    "notes": "Free tier issues 2,000 calls/month with mandatory attribution. Developer console launches Q2 2026 — contact dev@blockchainacademics.com for early access keys."
+    "notes": "Optional. Without BCA_API_KEY the package uses a public demo key: 16 tools work under a shared cap of 100 calls a day plus 20 a day per IP. A free key (2,000 calls a month, attribution required) opens every free tool; paid tiers open the rest."
   },
   "pricing": {
     "model": "freemium-tiered",
@@ -78,21 +78,29 @@
         "price_per_month": 0,
         "calls_per_month": 2000,
         "features": [
-          "All 78 content, market, on-chain, sentiment, directory, regulatory, and security tools",
+          "52 of the 105 tools: news search and articles, entities and mentions, academy, prices and market overview, sentiment and fear and greed, history series, trending and feeds, directories, grants and jobs, chain overviews, security checks, and the service requests",
           "Mandatory attribution via cite_url",
           "Community support"
+        ]
+      },
+      {
+        "id": "starter",
+        "name": "Starter",
+        "price_per_month": 9,
+        "calls_per_month": 25000,
+        "features": [
+          "Everything in Free",
+          "24 more tools: OHLC candles, DEX pair data, wallet and transaction lookups, the risk score, yields, VCs and trading bots, regulatory status, tax rules and SEC filings, audits and roadmaps, narrative tracking, RWA tokens, memos and theses, Bitcoin L2s and AI crypto metrics, marketing templates, contract scan"
         ]
       },
       {
         "id": "pro",
         "name": "Pro",
         "price_per_month": 49,
-        "calls_per_month": 50000,
+        "calls_per_month": 250000,
         "features": [
-          "Everything in Free",
-          "Proprietary indicators (coverage_index, narrative_strength, sentiment_velocity, editorial_premium, kol_influence, risk_score)",
-          "Agent-backed generation (generate_due_diligence, generate_tokenomics_model, summarize_whitepaper, translate_contract, monitor_keyword)",
-          "History time-series (get_history_prices, get_history_sentiment, get_history_correlation, get_history_coverage)",
+          "Everything in Starter",
+          "27 more tools: the proprietary indicators (coverage_index, narrative_strength, sentiment_velocity, editorial_premium, kol_influence), crypto Twitter (get_social_pulse, get_ct_pulse, get_x_signals, get_kol_consensus), agent-backed jobs (generate_due_diligence, summarize_whitepaper, monitor_keyword, get_agent_job), microstructure, fundamentals, MiCA status, token holders, memecoin risk and the degen leaderboard, custom indicators",
           "Email support"
         ]
       },
@@ -100,12 +108,12 @@
         "id": "team",
         "name": "Team",
         "price_per_month": 199,
-        "calls_per_month": 250000,
+        "calls_per_month": 1500000,
         "features": [
           "Everything in Pro",
+          "generate_tokenomics_model and translate_contract",
           "Higher rate limits",
-          "Priority agent-job queue",
-          "Private Slack channel"
+          "Private support channel on request"
         ]
       },
       {
@@ -117,7 +125,7 @@
           "Custom call volume",
           "White-label attribution",
           "Custom tool extensions",
-          "SSE / on-prem deployment",
+          "On-prem deployment",
           "SLA + dedicated support"
         ],
         "contact": "sales@blockchainacademics.com"
@@ -135,22 +143,17 @@
     "github": "https://github.com/blockchainacademics"
   },
   "tool_catalog": {
-    "count": 99,
+    "count": 105,
     "attribution_envelope": {
       "fields": ["cite_url", "as_of", "source_hash"],
       "mandatory": true,
-      "notes": "Every tool response wraps data in { data, attribution: { cite_url, as_of, source_hash }, meta }. Fields are preserved as null when upstream omits them so downstream agents can detect missing provenance."
+      "notes": "Every tool response wraps data in { data, attribution: { citations: [{ cite_url, as_of, source_hash }] }, meta: { status, request_id, pageInfo } }. citations[0] is the primary source. Fields are preserved as null when upstream omits them so downstream agents can detect missing provenance."
     },
     "categories": [
       {
-        "name": "Core content",
-        "count": 3,
-        "tools": ["search_news", "get_entity", "get_explainer"]
-      },
-      {
         "name": "Content & corpus",
-        "count": 4,
-        "tools": ["get_article", "list_entity_mentions", "list_topics", "get_as_of_snapshot"]
+        "count": 7,
+        "tools": ["search_news", "get_article", "get_entity", "get_explainer", "list_entity_mentions", "get_as_of_snapshot", "list_topics"]
       },
       {
         "name": "Market data",
@@ -163,14 +166,14 @@
         "tools": ["get_wallet_profile", "get_tx", "get_token_holders", "get_defi_protocol"]
       },
       {
-        "name": "Sentiment",
-        "count": 3,
-        "tools": ["get_sentiment", "get_social_pulse", "get_fear_greed"]
+        "name": "Sentiment + crypto Twitter",
+        "count": 6,
+        "tools": ["get_sentiment", "get_social_pulse", "get_fear_greed", "get_ct_pulse", "get_x_signals", "get_kol_consensus"]
       },
       {
         "name": "Proprietary indicators",
         "count": 6,
-        "tier": "pro",
+        "tier": "pro (get_risk_score: starter)",
         "tools": [
           "get_coverage_index",
           "get_narrative_strength",
@@ -183,7 +186,7 @@
       {
         "name": "Agent-backed generation (async)",
         "count": 6,
-        "tier": "pro",
+        "tier": "pro (generate_tokenomics_model and translate_contract: team)",
         "tools": [
           "generate_due_diligence",
           "generate_tokenomics_model",
@@ -195,21 +198,24 @@
       },
       {
         "name": "Directories",
-        "count": 13,
+        "count": 16,
         "tools": [
           "list_stablecoins",
-          "list_nft_communities",
           "list_yields",
           "list_aggregators",
           "list_mcps",
-          "list_trading_bots",
           "list_vcs",
           "list_jobs",
+          "search_grants",
+          "build_custom_indicator",
+          "list_nft_communities",
+          "list_trading_bots",
+          "get_job",
+          "get_grant",
           "list_smart_contract_templates",
           "get_smart_contract_template",
           "list_marketing_templates",
-          "get_marketing_template",
-          "build_custom_indicator"
+          "get_marketing_template"
         ]
       },
       {
@@ -219,9 +225,9 @@
           "get_tokenomics",
           "get_audit_reports",
           "get_team_info",
-          "get_roadmap",
           "compare_protocols",
-          "check_rugpull_risk"
+          "check_rugpull_risk",
+          "get_roadmap"
         ]
       },
       {
@@ -232,21 +238,6 @@
           "get_l2_comparison",
           "get_bitcoin_l2_status",
           "get_ton_ecosystem"
-        ]
-      },
-      {
-        "name": "Compute / AI crypto",
-        "count": 2,
-        "tools": ["get_compute_pricing", "get_ai_crypto_metrics"]
-      },
-      {
-        "name": "Memes / degen",
-        "count": 4,
-        "tools": [
-          "track_pumpfun",
-          "track_bonkfun",
-          "check_memecoin_risk",
-          "get_degen_leaderboard"
         ]
       },
       {
@@ -292,6 +283,21 @@
         ]
       },
       {
+        "name": "Memes / degen",
+        "count": 4,
+        "tools": [
+          "track_pumpfun",
+          "track_bonkfun",
+          "check_memecoin_risk",
+          "get_degen_leaderboard"
+        ]
+      },
+      {
+        "name": "Compute / AI crypto",
+        "count": 2,
+        "tools": ["get_compute_pricing", "get_ai_crypto_metrics"]
+      },
+      {
         "name": "Services (revenue)",
         "count": 3,
         "tools": ["book_kol_campaign", "request_custom_research", "submit_listing"]
@@ -299,7 +305,6 @@
       {
         "name": "History time-series",
         "count": 4,
-        "tier": "pro",
         "tools": [
           "get_history_prices",
           "get_history_sentiment",
@@ -321,38 +326,41 @@
         ]
       },
       {
-        "name": "Memos & theses",
-        "count": 4,
-        "tools": ["list_memos", "get_memo", "list_theses", "get_thesis"]
-      },
-      {
-        "name": "Social signals",
-        "count": 2,
-        "tools": ["get_social_signals", "get_social_signals_detail"]
-      },
-      {
-        "name": "Currencies",
-        "count": 2,
-        "tools": ["list_currencies", "get_currency_feed"]
+        "name": "Memos / theses / social / currencies",
+        "count": 8,
+        "tools": [
+          "list_memos",
+          "get_memo",
+          "list_theses",
+          "get_thesis",
+          "get_social_signals",
+          "get_social_signals_detail",
+          "list_currencies",
+          "get_currency_feed"
+        ]
       }
     ]
   },
   "rate_limits": {
-    "free": { "rpm": 30, "rph": 500 },
-    "pro": { "rpm": 120, "rph": 5000 },
-    "team": { "rpm": 300, "rph": 20000 },
-    "enterprise": { "rpm": "custom", "rph": "custom" }
+    "notes": "Enforced by the API per key: requests per second and calls per UTC day (TIER_LIMITS). The demo key shares one daily bucket across all demo users, plus 20 calls a day per IP.",
+    "demo": { "per_second": 1, "per_day": 100 },
+    "free": { "per_second": 2, "per_day": 87 },
+    "starter": { "per_second": 5, "per_day": 1083 },
+    "pro": { "per_second": 20, "per_day": 10833 },
+    "team": { "per_second": 100, "per_day": 65000 },
+    "enterprise": { "per_second": 500, "per_day": 1000000 }
   },
   "errors": {
     "envelope": "{ \"error\": { \"code\": \"BCA_*\", \"message\": \"...\" } }",
     "codes": {
-      "BCA_AUTH": "Missing or invalid BCA_API_KEY (HTTP 401/403)",
-      "BCA_RATE_LIMIT": "Rate limit exceeded (HTTP 429 — honor Retry-After)",
-      "BCA_UPSTREAM": "BCA API returned 5xx or malformed JSON",
+      "BCA_AUTH": "Missing or invalid BCA_API_KEY (HTTP 401/403), or a key that is not a valid header value",
+      "BCA_TIER_LOCKED": "Tool not in the key's tier (HTTP 403); the message links to the signup",
+      "BCA_RATE_LIMIT": "Rate limit exceeded (HTTP 429: honor Retry-After)",
+      "BCA_UPSTREAM": "BCA API returned an error status or malformed JSON; a 4xx carries the API's own detail",
       "BCA_NETWORK": "Network failure or 20s timeout exceeded",
-      "BCA_BAD_REQUEST": "Invalid tool arguments"
+      "BCA_BAD_REQUEST": "Invalid tool arguments, caught before any request is sent"
     },
-    "notes": "Server never crashes stdio. All failures surface as MCP responses with isError: true and a structured JSON body."
+    "notes": "Every failed tool call returns an MCP result with isError: true and a structured JSON body."
   },
   "compatibility": {
     "mcp_sdk": "@modelcontextprotocol/sdk@1.29.0",
@@ -361,7 +369,7 @@
   },
   "metadata": {
     "first_published": "2026-03-01",
-    "last_updated": "2026-04-21",
+    "last_updated": "2026-11-01",
     "changelog_url": "https://github.com/blockchainacademics/bca-mcp/blob/main/CHANGELOG.md",
     "security_policy_url": "https://github.com/blockchainacademics/bca-mcp/blob/main/SECURITY.md"
   }

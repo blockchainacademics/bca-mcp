@@ -1,11 +1,11 @@
-# Blockchain Academics MCP — Anthropic MCP Directory Submission
+# Blockchain Academics MCP: Anthropic MCP Directory Submission
 
 ## One-Line Pitch
-Production-grade MCP server delivering 98 crypto intelligence tools — real-time prices, on-chain data, news, sentiment, technical indicators, fundamentals, and AI-generated research — to Claude and any MCP-compatible agent.
+Production-grade MCP server delivering 105 crypto intelligence tools (live prices, on-chain data, news, sentiment and crypto Twitter, proprietary indicators, fundamentals, and agent-generated research) to Claude and any MCP-compatible agent, with a citation and an honest status on every answer.
 
 ## Package Info
-- **TypeScript/Node:** `@blockchainacademics/mcp` v0.2.3 (npm)
-- **Python:** `bca-mcp` v0.2.3 (PyPI)
+- **TypeScript/Node:** `@blockchainacademics/mcp` v0.6.3 (npm)
+- **Python:** `bca-mcp` v0.6.3 (PyPI)
 - **License:** MIT
 - **Maintainer:** Blockchain Academics (blockchainacademics.com)
 - **Repos:**
@@ -27,20 +27,30 @@ uvx bca-mcp
 ```
 
 ## Authentication
-Set `BCA_API_KEY` in your environment. Free tier + paid plans at https://blockchainacademics.com/crypto-api/pricing.
+Optional. Without `BCA_API_KEY`, 16 tools work on a public demo key under a shared daily cap. Set `BCA_API_KEY` for all 105: a free key gives 2,000 calls a month; paid plans at https://blockchainacademics.com/crypto-api/pricing.
 
-## Tool Count by Category (98 total)
+## Tool Count by Category (105 total, 19 categories)
 | Category | Tools | Examples |
 |---|---|---|
-| News | 11 | `search_news`, `get_article`, `get_trending_topics` |
-| Market | 14 | `get_price`, `get_ohlcv`, `get_market_cap`, `get_gainers_losers` |
-| On-Chain | 12 | `get_wallet_balance`, `get_tx`, `get_token_holders` |
-| Sentiment | 8 | `get_sentiment`, `get_social_volume`, `get_fear_greed` |
-| Indicators | 10 | `get_rsi`, `get_macd`, `get_bollinger_bands` |
-| Fundamentals | 9 | `get_tokenomics`, `get_team`, `get_audit_status` |
-| Agent Jobs | 6 | `generate_due_diligence`, `generate_thesis`, `generate_memo` |
-| Extended | 21 | directories, chains, compute, memes, microstructure, narrative, regulatory, security, history, memos, theses, currencies |
-| Entity / Search | 7 | `get_entity`, `resolve_entity`, `list_entities` |
+| Content & corpus | 7 | `search_news`, `get_article`, `get_entity`, `get_explainer` |
+| Market data | 4 | `get_price`, `get_ohlc`, `get_market_overview`, `get_pair_data` |
+| On-chain | 4 | `get_wallet_profile`, `get_tx`, `get_token_holders`, `get_defi_protocol` |
+| Sentiment + crypto Twitter | 6 | `get_sentiment`, `get_fear_greed`, `get_ct_pulse`, `get_x_signals` |
+| Proprietary indicators | 6 | `get_coverage_index`, `get_narrative_strength`, `get_risk_score` |
+| Agent-backed generation | 6 | `generate_due_diligence`, `generate_tokenomics_model`, `summarize_whitepaper` |
+| Directories | 16 | `list_stablecoins`, `list_yields`, `list_jobs`, `search_grants` |
+| Fundamentals | 6 | `get_tokenomics`, `get_team_info`, `get_audit_reports`, `compare_protocols` |
+| Chain-specific | 4 | `get_solana_ecosystem`, `get_l2_comparison`, `get_bitcoin_l2_status`, `get_ton_ecosystem` |
+| Microstructure | 5 | `get_funding_rates`, `get_options_flow`, `predict_listing` |
+| Narrative / meta | 5 | `track_narrative`, `get_ai_agent_tokens`, `get_prediction_markets` |
+| Regulatory | 4 | `get_regulatory_status`, `track_sec_filings`, `get_mica_status`, `get_tax_rules` |
+| Security | 4 | `check_exploit_history`, `check_phishing_domain`, `scan_contract` |
+| Memes / degen | 4 | `track_pumpfun`, `track_bonkfun`, `check_memecoin_risk` |
+| Compute / AI crypto | 2 | `get_compute_pricing`, `get_ai_crypto_metrics` |
+| Services | 3 | `book_kol_campaign`, `request_custom_research`, `submit_listing` |
+| History time-series | 4 | `get_history_prices`, `get_history_sentiment`, `get_history_correlation` |
+| Corpus meta | 7 | `list_entities`, `search_academy`, `get_trending`, `get_recent_stories` |
+| Memos / theses / social / currencies | 8 | `list_memos`, `list_theses`, `get_social_signals`, `list_currencies` |
 
 ## Claude Desktop `config.json` Snippet
 
@@ -79,9 +89,7 @@ Set `BCA_API_KEY` in your environment. Free tier + paid plans at https://blockch
 - Pricing / signup: https://blockchainacademics.com/crypto-api/pricing
 
 ## Transport Support
-- stdio (default, Claude Desktop / Claude Code)
-- HTTP + SSE (remote agents)
-- Streamable HTTP (MCP spec 2025-06-18)
+- stdio (Claude Desktop, Claude Code, Cursor and any MCP host that launches a local server). There is no hosted HTTP endpoint yet.
 
 ## Why List It
-First MCP server covering the full crypto intelligence stack in a single install — previously required 6+ separate API integrations (CoinGecko, Etherscan, LunarCrush, Messari, TokenTerminal, news aggregator). One key, one server, 99 tools.
+First MCP server covering the full crypto intelligence stack in a single install: news, entities and academy content, market and on-chain data, sentiment, indicators, fundamentals and research jobs, which previously took several separate API integrations. One key, one server, 105 tools, and every answer says how complete it is (`meta.status`) and where it came from (`attribution.citations[]`).

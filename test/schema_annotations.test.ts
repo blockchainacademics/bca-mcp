@@ -111,10 +111,13 @@ describe("tools/list schemas (F05, F37)", () => {
     assert.deepEqual(window["enum"], ["1d", "7d", "30d"]);
     assert.equal(window["default"], "7d");
 
+    // scenarios is not modeled by the API yet, so it has no default: a
+    // default would be sent, and reported back as ignored, on every call.
     const scenarios = props("generate_tokenomics_model")["scenarios"]!;
     assert.equal(scenarios["type"], "array");
     assert.deepEqual((scenarios["items"] as JsonSchema)["enum"], ["base", "bull", "bear"]);
-    assert.deepEqual(scenarios["default"], ["base", "bull", "bear"]);
+    assert.equal(scenarios["maxItems"], 3);
+    assert.equal("default" in scenarios, false);
 
     const focus = props("generate_due_diligence")["focus"]!;
     assert.equal(focus["maxItems"], 16);

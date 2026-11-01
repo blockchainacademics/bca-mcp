@@ -1,4 +1,4 @@
-# Anthropic MCP Directory Submission — `@blockchainacademics/mcp` v0.4.0
+# Anthropic MCP Directory Submission: `@blockchainacademics/mcp` v0.6.3
 
 **Target repo:** `github.com/modelcontextprotocol/servers`
 **Package:** https://www.npmjs.com/package/@blockchainacademics/mcp
@@ -7,12 +7,12 @@
 
 ---
 
-## 0. Convention assumption — verify before PR
+## 0. Convention assumption: verify before PR
 
 The `modelcontextprotocol/servers` README has historically tracked community
 servers in an alphabetized bulleted list under a section titled
-**"🌎 Community Servers"** (format: `- **[Name](repo-url)** — one-line description`).
-The repo has been actively restructured in 2025–2026; **Wael must open
+**"🌎 Community Servers"** (format: `- **[Name](repo-url)** - one-line description`).
+The repo has been actively restructured in 2025-2026; **Wael must open
 `README.md` on `main` and confirm the current section heading + entry style
 before pasting**. Alternative formats seen in other registries: a markdown
 table (Name / Package / Description / Install) or a separate
@@ -21,21 +21,21 @@ bulleted-list style; a table-row variant is provided in §1b as fallback.
 
 ---
 
-## 1. README entry — bulleted-list style (primary)
+## 1. README entry: bulleted-list style (primary)
 
 Insert alphabetically under `B` (sorts as "Blockchain Academics") in the
 Community Servers section:
 
 ```markdown
-- **[Blockchain Academics](https://github.com/blockchainacademics/bca-mcp)** — Canonical crypto MCP: 99 tools across news, entities, academy lessons, market data, on-chain, sentiment, proprietary indicators, and agent-backed research generation. Every response carries `cite_url`, `as_of`, and `source_hash` for ground-truth attribution. `npx -y @blockchainacademics/mcp`
+- **[Blockchain Academics](https://github.com/blockchainacademics/bca-mcp)** - Canonical crypto MCP: 105 tools across news, entities, academy lessons, market data, on-chain, sentiment, proprietary indicators, and agent-backed research generation. Every response carries `attribution.citations[]` (cite_url, as_of, source_hash) and an honest `meta.status`. 16 tools work without a key: `npx -y @blockchainacademics/mcp`
 ```
 
-### 1b. README entry — table-row fallback
+### 1b. README entry: table-row fallback
 
 If the section is a table with columns `| Server | Package | Description |`:
 
 ```markdown
-| [Blockchain Academics](https://github.com/blockchainacademics/bca-mcp) | `@blockchainacademics/mcp` | Canonical crypto MCP — 99 tools spanning news, entities, academy, market data, on-chain, sentiment, proprietary indicators, and agent-backed generation. Cited, timestamped, hashed responses. |
+| [Blockchain Academics](https://github.com/blockchainacademics/bca-mcp) | `@blockchainacademics/mcp` | Canonical crypto MCP: 105 tools spanning news, entities, academy, market data, on-chain, sentiment, proprietary indicators, and agent-backed generation. Cited, timestamped, hashed responses. |
 ```
 
 ---
@@ -43,7 +43,7 @@ If the section is a table with columns `| Server | Package | Description |`:
 ## 2. PR title
 
 ```
-Add @blockchainacademics/mcp — crypto news, entities, indicators (99 tools)
+Add @blockchainacademics/mcp: crypto news, entities, indicators (105 tools)
 ```
 
 ---
@@ -53,21 +53,26 @@ Add @blockchainacademics/mcp — crypto news, entities, indicators (99 tools)
 ```markdown
 ## Summary
 
-Adds **Blockchain Academics** to the Community Servers list — a production MCP
+Adds **Blockchain Academics** to the Community Servers list: a production MCP
 server for AI agents that need ground-truth crypto data.
 
-- **99 tools across 19 categories** — news, entities, academy lessons, market
-  data (CoinGecko, DexScreener), on-chain (Etherscan, Helius, DefiLlama),
-  sentiment, proprietary indicators (coverage index, narrative strength,
-  editorial premium, KOL influence, risk score), and async agent-backed
-  generation (due diligence, tokenomics, whitepaper summarization).
-- **Attribution on every response** — each tool call returns `cite_url`,
-  `as_of` (time-travel snapshot), and `source_hash`, so downstream agents can
-  surface citations and verify provenance.
-- **Graceful degradation** — stub endpoints for pending integrations
-  (Twitter, DEXTools, bonk.fun, Bittensor) return
-  `{status: "integration_pending", reason, eta}` rather than failing, so the
-  99-tool surface is fully usable today.
+- **105 tools across 19 categories**: news, entities, academy lessons (38
+  lessons in 8 courses), market data (CoinGecko, DexScreener), on-chain
+  (Etherscan, Helius, DefiLlama), sentiment and crypto Twitter, proprietary
+  indicators (coverage index, narrative strength, editorial premium, KOL
+  influence, risk score), and async agent-backed generation (due diligence,
+  tokenomics, whitepaper summarization).
+- **Attribution on every response**: each tool call returns
+  `attribution.citations[]`, whose first entry is the primary source (the
+  upstream page when there is one), each with `cite_url`, `as_of` and
+  `source_hash`, so downstream agents can surface citations and verify
+  provenance.
+- **Honest status**: every answer carries `meta.status` (complete, partial,
+  stale or unseeded) with a structured `meta.diagnostic`. Tools whose data
+  source is not connected yet answer `unseeded` with a reason rather than
+  failing or returning empty data as if it were complete.
+- **Zero-config demo**: without a key, 16 tools work under a shared daily
+  cap; a free key (2,000 calls a month) opens all 105.
 
 ## Links
 
@@ -85,15 +90,17 @@ server for AI agents that need ground-truth crypto data.
 
 - Package published and installable: `npx -y @blockchainacademics/mcp`
 - Live-tested against `api.blockchainacademics.com` prior to each release
-  (see [CHANGELOG](https://github.com/blockchainacademics/bca-mcp/blob/main/CHANGELOG.md) —
-  v0.2.1 and v0.4.0 were production-audit driven)
-- MIT licensed, TypeScript, stdio transport, zero runtime crashes
-  (all errors surface as MCP responses with `isError: true`)
-- `server.json` conforms to the 2025-09-01 MCP registry schema
+  (see [CHANGELOG](https://github.com/blockchainacademics/bca-mcp/blob/main/CHANGELOG.md):
+  v0.2.1, v0.4.0 and v0.6.3 were production-audit driven; 0.6.3 followed a
+  probe of every tool on 2026-10-31)
+- MIT licensed, TypeScript, stdio transport; every failed tool call returns
+  an MCP result with `isError: true` and a JSON error code
+- Every tool carries MCP annotations (title, readOnlyHint, openWorldHint)
+- `server.json` conforms to the 2025-12-11 MCP registry schema
 
 ## Maintainer
 
-Blockchain Academics — dev@blockchainacademics.com
+Blockchain Academics, dev@blockchainacademics.com
 Happy to respond to review feedback within 24h.
 ```
 
@@ -105,12 +112,12 @@ Happy to respond to review feedback within 24h.
 1. Have Claude Desktop closed.
 2. Have `claude_desktop_config.json` open in a visible editor.
 3. Have a valid `BCA_API_KEY` (format: `bca_live_...`) copied to clipboard.
-4. QuickTime or Loom screen recorder primed at 1080p, window mode (not full screen — keeps file small).
+4. QuickTime or Loom screen recorder primed at 1080p, window mode (not full screen, which keeps the file small).
 
 **Storyboard (5 beats, ~12s each):**
 
-### Beat 1 (0:00–0:10) — The config
-> "This is `@blockchainacademics/mcp` — 99 crypto tools for Claude. Here's the config."
+### Beat 1 (0:00 to 0:10): The config
+> "This is `@blockchainacademics/mcp`: 105 crypto tools for Claude. Here's the config."
 
 On screen: paste this snippet into `claude_desktop_config.json`:
 
@@ -128,12 +135,12 @@ On screen: paste this snippet into `claude_desktop_config.json`:
 
 Save file.
 
-### Beat 2 (0:10–0:20) — Restart
+### Beat 2 (0:10 to 0:20): Restart
 > "Restart Claude Desktop."
 
-Cmd+Q Claude, reopen. Show the hammer/tools icon populating — 99 tools under `blockchainacademics`.
+Cmd+Q Claude, reopen. Show the hammer/tools icon populating: 105 tools under `blockchainacademics`.
 
-### Beat 3 (0:20–0:35) — Ask a question
+### Beat 3 (0:20 to 0:35): Ask a question
 > "Let's ask it about a recent Bitcoin ETF story."
 
 Type this exact prompt into Claude Desktop:
@@ -142,13 +149,13 @@ Type this exact prompt into Claude Desktop:
 Search crypto news about Bitcoin ETF approvals in the last 30 days, cite your sources.
 ```
 
-### Beat 4 (0:35–0:50) — Tool call visible
+### Beat 4 (0:35 to 0:50): Tool call visible
 Let Claude invoke `search_news`. Expand the tool-call UI so viewer sees:
 - Tool name: `search_news`
-- Arguments: `{"query": "Bitcoin ETF approvals", "since": "2026-03-22T00:00:00Z", "limit": 5}`
+- Arguments: `{"query": "Bitcoin ETF approvals", "since": "<a date 30 days back>T00:00:00Z", "limit": 5}`
 
-### Beat 5 (0:50–1:00) — Cited response
-Scroll to Claude's answer. Hover over one of the inline citations to show the `cite_url` resolves to `blockchainacademics.com/...`. Briefly highlight the `as_of` timestamp visible in the raw tool response.
+### Beat 5 (0:50 to 1:00): Cited response
+Scroll to Claude's answer. Hover over one of the inline citations to show the `cite_url` resolves to the source article. Briefly highlight the `as_of` timestamp in `attribution.citations[0]` of the raw tool response.
 
 > "Every response is cited, timestamped, and hashed. Ground truth for agents. Repo in the PR description."
 
@@ -161,26 +168,26 @@ Scroll to Claude's answer. Hover over one of the inline citations to show the `c
 Tick each before opening the PR.
 
 ### Package integrity
-- [ ] `package.json` version = `0.4.0` ✅ (verified)
-- [ ] `server.json` version = `0.4.0` ✅ (verified, matches)
-- [ ] `server.json` `_meta.tool.version` = `0.4.0` ✅ (verified)
-- [ ] `server.json` `_meta.tool_count` = `99` ✅ (verified)
-- [ ] Sum of `_meta.tool_categories[].count` = 99 → **VERIFY**: 7+4+4+3+6+6+13+6+4+5+5+4+4+4+2+3+4+7+8 = **99 ✅**
-- [ ] README tool-category table totals to 99 → **FLAG**: README currently lists v0.2.0 header and sums to 99 across 20 rows, but category groupings differ slightly from `server.json` (README splits "Memos + theses + social" and "Currencies" into 2 rows of 6+2; server.json merges into "Memos / theses / social / currencies" count 8). **Not a blocker — review before PR and decide whether to align.**
-- [ ] LICENSE present and MIT ✅ (verified)
+- [ ] `package.json` version = `0.6.3`
+- [ ] `server.json` version = `0.6.3` and `packages[0].version` = `0.6.3`
+- [ ] `server.json` `_meta.tool.version` = `0.6.3`
+- [ ] `server.json` `_meta.tool_count` = `105`
+- [ ] Sum of `_meta.tool_categories[].count` = 105: 7+4+4+6+6+6+16+6+4+5+5+4+4+4+2+3+4+7+8 = **105** across 19 categories (`npm run build` refuses to write `tools.json` when a tool is missing from the categories or the total differs)
+- [ ] README tool-category table totals to 105 across 20 rows (README splits "Memos + theses + social" and "Currencies" into rows of 6 and 2; `server.json` merges them into one category of 8). **Not a blocker.**
+- [ ] LICENSE present and MIT
 - [ ] Install command works clean on a fresh machine: `npx -y @blockchainacademics/mcp` (**run once from a non-dev shell to confirm**)
-- [ ] `npm view @blockchainacademics/mcp version` returns `0.4.0` (**run to confirm registry propagation**)
+- [ ] `npm view @blockchainacademics/mcp version` returns `0.6.3` (**run to confirm registry propagation**)
 
 ### Security
-- [ ] npm publish token **rotated** after any recent CI/debug use — **MANUAL, Wael must do**
-- [ ] No `.env`, `.npmrc`, or API keys in the published tarball → run `npm pack --dry-run` and eyeball the file list
-- [ ] `files: ["dist","README.md","LICENSE","CHANGELOG.md"]` in `package.json` ✅ (verified — tight allowlist, no src/ leakage)
+- [ ] npm publish token **rotated** after any recent CI/debug use (**MANUAL, Wael must do**)
+- [ ] No `.env`, `.npmrc`, or API keys in the published tarball: run `rm -rf dist && npm run build && npm pack --dry-run` and eyeball the file list
+- [ ] `files: ["dist","README.md","LICENSE","CHANGELOG.md","tools.json"]` in `package.json` (tight allowlist, no src/ leakage)
 
 ### README quality gates
-- [ ] README has **2+ client integration examples** ✅ (Claude Desktop + programmatic/LangChain shown)
-- [ ] README has attribution block example ✅
-- [ ] README has error-code table ✅
-- [ ] README links to API signup ✅ (note: points to `/api`; dev console launches Q2 2026)
+- [ ] README has **2+ client integration examples** (Claude Desktop + programmatic/LangChain shown)
+- [ ] README has the attribution block example (`citations[]`) and the Response status section
+- [ ] README has error-code table
+- [ ] README links to API signup (https://blockchainacademics.com/crypto-api/signup)
 
 ### PR hygiene
 - [ ] Loom URL pasted into PR body (replacing `<PASTE LOOM URL HERE>`)
@@ -206,7 +213,7 @@ git merge --ff-only upstream/main
 # 3. Create branch
 git checkout -b add-blockchainacademics-mcp
 
-# 4. Edit README.md — insert the entry from §1 of this doc
+# 4. Edit README.md: insert the entry from §1 of this doc
 #    alphabetically under "B" in the Community Servers section.
 #    Use your editor of choice:
 $EDITOR README.md
@@ -217,17 +224,17 @@ git diff README.md   # sanity-check the exact line
 
 # 6. Commit
 git add README.md
-git commit -m "Add @blockchainacademics/mcp — crypto news, entities, indicators (99 tools)"
+git commit -m "Add @blockchainacademics/mcp: crypto news, entities, indicators (105 tools)"
 
 # 7. Push to fork
 git push -u origin add-blockchainacademics-mcp
 
-# 8. Open PR (paste body from §3 of this doc — remember to replace Loom URL)
+# 8. Open PR (paste body from §3 of this doc; remember to replace Loom URL)
 gh pr create \
   --repo modelcontextprotocol/servers \
   --base main \
   --head "$(gh api user -q .login):add-blockchainacademics-mcp" \
-  --title "Add @blockchainacademics/mcp — crypto news, entities, indicators (99 tools)" \
+  --title "Add @blockchainacademics/mcp: crypto news, entities, indicators (105 tools)" \
   --body-file /tmp/bca-mcp-pr-body.md
 # (first, write §3 body to /tmp/bca-mcp-pr-body.md with Loom URL filled in)
 
@@ -236,24 +243,23 @@ gh pr create \
 
 ---
 
-## 7. Version-drift audit (performed 2026-04-21)
+## 7. Version-drift audit (updated 2026-11-01)
 
 | Location | Version | Match |
 |---|---|---|
-| `package.json` `version` | 0.4.0 | ✅ |
-| `server.json` `version` | 0.4.0 | ✅ |
-| `server.json` `packages[0].version` | 0.4.0 | ✅ |
-| `server.json` `_meta....tool.version` | 0.4.0 | ✅ |
-| `CHANGELOG.md` latest entry | 0.4.0 (2026-04-21) | ✅ |
-| npm registry (to verify at publish time) | 0.4.0 | **run `npm view`** |
+| `package.json` `version` | 0.6.3 | ✅ |
+| `src/version.ts` `VERSION` | 0.6.3 | ✅ (`npm run version:check`) |
+| `server.json` `version` | 0.6.3 | ✅ |
+| `server.json` `packages[0].version` | 0.6.3 | ✅ |
+| `server.json` `_meta....tool.version` | 0.6.3 | ✅ |
+| `CHANGELOG.md` latest entry | 0.6.3 | ✅ |
+| npm registry (to verify at publish time) | 0.6.3 | **run `npm view`** |
 
-**No drift detected across local artifacts.** Confirm npm registry after any final re-publish.
+**No drift across local artifacts.** Confirm npm registry after any final re-publish.
 
 ---
 
-## 8. Known nits (non-blocking, worth fixing post-merge)
+## 8. Known nits (non-blocking)
 
-1. **README header says "Tool categories (v0.2.0)"** but package is on v0.4.0. Bump to `(v0.4.0)` — 1-char change, improves trust.
-2. **Category grouping drift** between README (20 rows) and `server.json._meta.tool_categories` (19 rows) — README splits "Memos + theses + social" and "Currencies" while server.json merges them. Both total 99; reviewer won't block, but alignment is cleaner.
-3. **Free-tier number mismatch** — `server.json` env-var description says "2,000 calls/month", README §API Key says "1,000 calls/month". Pick one and unify.
-4. **BLOCKER — `BCA_API_BASE` vs `BCA_API_BASE_URL` drift.** `src/client.ts:29` reads `process.env["BCA_API_BASE_URL"]`, but `server.json` declares the env var as `BCA_API_BASE`. Any user who follows `server.json` to set a staging base URL will have it silently ignored. **Fix before submission** — update `server.json` `environment_variables[1].name` from `"BCA_API_BASE"` to `"BCA_API_BASE_URL"` (matches both source and README), then republish or at minimum update the registry manifest. Reviewers who test the declared config path will catch this.
+1. **Category grouping**: the README table has 20 rows and `server.json._meta.tool_categories` has 19 (README splits "Memos + theses + social" and "Currencies"; server.json merges them). Both total 105; reviewer won't block, but alignment is cleaner.
+2. Resolved since the 0.4.0 audit: the README header no longer carries a version, both free-tier mentions say 2,000 calls a month, and the client reads `BCA_API_BASE` (the name `server.json` declares) with `BCA_API_BASE_URL` still accepted.

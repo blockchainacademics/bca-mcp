@@ -2,7 +2,7 @@
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability in `@blockchainacademics/mcp`, please report it **privately** — **do not open a public GitHub issue**.
+If you discover a security vulnerability in `@blockchainacademics/mcp`, please report it **privately**: **do not open a public GitHub issue**.
 
 **Email:** `security@blockchainacademics.com`
 
@@ -31,11 +31,11 @@ Critical security fixes are published as patch releases to the current minor lin
 
 We follow **coordinated disclosure** with a **90-day** window:
 
-1. **Day 0** — Report received, acknowledgement sent.
-2. **Day 1–7** — Triage, severity scoring (CVSS), initial fix plan shared with reporter.
-3. **Day 7–60** — Fix implemented, tested, patch release published to npm.
-4. **Day 60–90** — Reporter validates fix; public advisory drafted.
-5. **Day 90 (or earlier by mutual agreement)** — Public disclosure via GitHub Security Advisory and npm deprecation notice for affected versions if warranted.
+1. **Day 0**: Report received, acknowledgement sent.
+2. **Day 1 to 7**: Triage, severity scoring (CVSS), initial fix plan shared with reporter.
+3. **Day 7 to 60**: Fix implemented, tested, patch release published to npm.
+4. **Day 60 to 90**: Reporter validates fix; public advisory drafted.
+5. **Day 90 (or earlier by mutual agreement)**: Public disclosure via GitHub Security Advisory and npm deprecation notice for affected versions if warranted.
 
 If a vulnerability is being actively exploited in the wild, we will accelerate disclosure.
 
@@ -61,7 +61,7 @@ For highly sensitive reports, encrypt to the following key:
 -----END PGP PUBLIC KEY BLOCK-----
 ```
 
-Fingerprint: `TODO — populate once key is generated`
+Fingerprint: `TODO: populate once key is generated`
 
 ## Scope
 
@@ -75,7 +75,7 @@ Fingerprint: `TODO — populate once key is generated`
 
 - Upstream API endpoints the MCP server proxies to (reported to `blockchainacademics-api` project)
 - The Model Context Protocol specification itself (report to `modelcontextprotocol/specification`)
-- Third-party dependencies with their own disclosure channels — use GitHub's "Report a vulnerability" against the upstream project
+- Third-party dependencies with their own disclosure channels: use GitHub's "Report a vulnerability" against the upstream project
 
 ## Credits
 

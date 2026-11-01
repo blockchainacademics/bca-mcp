@@ -1,23 +1,23 @@
 {
-  "_comment": "Entry to add to modelcontextprotocol/servers upstream. Upstream has historically used a bulleted README list (Community Servers section) but has been restructured repeatedly in 2025-2026. Pick the variant that matches the CURRENT state of main before editing. All three formats below are semantically equivalent — Wael only commits ONE of them to the upstream repo.",
+  "_comment": "Entry to add to modelcontextprotocol/servers upstream. Upstream has historically used a bulleted README list (Community Servers section) but has been restructured repeatedly in 2025-2026. Pick the variant that matches the CURRENT state of main before editing. All three formats below are semantically equivalent: Wael only commits ONE of them to the upstream repo.",
 
   "target_repo": "https://github.com/modelcontextprotocol/servers",
   "insert_position": "alphabetical under B (sorts as 'Blockchain Academics')",
   "insert_section": "🌎 Community Servers (or equivalent current heading)",
 
-  "variant_a_readme_bullet": "- **[Blockchain Academics](https://github.com/blockchainacademics/bca-mcp)** — Canonical crypto MCP: 99 tools across news, entities, academy lessons, market data, on-chain, sentiment, proprietary indicators, and agent-backed research generation. Hybrid `attribution.citations[]` ships the real upstream URL first (Bankless, CoinGecko, Etherscan, SEC, …) plus the BCA editorial deep-link for ground-truth attribution. Zero-config demo on first run (no API key needed): `npx -y @blockchainacademics/mcp`",
+  "variant_a_readme_bullet": "- **[Blockchain Academics](https://github.com/blockchainacademics/bca-mcp)** - Canonical crypto MCP: 105 tools across news, entities, academy lessons, market data, on-chain, sentiment, proprietary indicators, and agent-backed research generation. Hybrid `attribution.citations[]` puts the primary source first (the real upstream URL such as the original article, CoinGecko, Etherscan or the SEC), with the BCA editorial link where the site has a page for the data. Zero-config demo on first run (16 tools, no API key needed): `npx -y @blockchainacademics/mcp`",
 
-  "variant_b_readme_table_row": "| [Blockchain Academics](https://github.com/blockchainacademics/bca-mcp) | `@blockchainacademics/mcp` | Canonical crypto MCP — 99 tools spanning news, entities, academy, market data, on-chain, sentiment, proprietary indicators, and agent-backed generation. Hybrid citations: real upstream URL first, BCA deep-link second. |",
+  "variant_b_readme_table_row": "| [Blockchain Academics](https://github.com/blockchainacademics/bca-mcp) | `@blockchainacademics/mcp` | Canonical crypto MCP: 105 tools spanning news, entities, academy, market data, on-chain, sentiment, proprietary indicators, and agent-backed generation. Hybrid citations: the real upstream URL first, the BCA editorial link where the site has a page. |",
 
   "variant_c_manifest_entry": {
     "name": "Blockchain Academics",
     "slug": "blockchainacademics",
-    "description": "Canonical crypto MCP — 99 tools spanning news, entities, academy, market data, on-chain, sentiment, proprietary indicators, and agent-backed generation. Wraps api.blockchainacademics.com with a hybrid `attribution.citations[]` envelope on every response (real upstream URL first, BCA editorial deep-link second).",
+    "description": "Canonical crypto MCP: 105 tools spanning news, entities, academy, market data, on-chain, sentiment, proprietary indicators, and agent-backed generation. Wraps api.blockchainacademics.com with an `attribution.citations[]` envelope on every response (citations[0] is the primary source: the real upstream URL when there is one, then the BCA editorial link where the site has a page).",
     "repository": "https://github.com/blockchainacademics/bca-mcp",
     "package": {
       "registry": "npm",
       "name": "@blockchainacademics/mcp",
-      "version": "0.5.1"
+      "version": "0.6.3"
     },
     "install": {
       "claude_desktop_zero_config": {
@@ -47,13 +47,13 @@
       "defi",
       "on-chain"
     ],
-    "tool_count": 99,
+    "tool_count": 105,
     "highlights": [
-      "Zero-config first run (v0.5.0+): `npx -y @blockchainacademics/mcp` works without any API key — the package ships with a public demo key that unlocks 10 marquee tools (price, trending, fear-greed, market overview, news search, sentiment, entity, explainer, recent stories, topic). 100/day shared cap + 20/day per-IP guard.",
-      "99 tools across 19 categories (news, market data, on-chain, sentiment, proprietary indicators, agent-backed generation, directories, fundamentals, chain-specific, microstructure, narrative, regulatory, security, memes, compute/AI, services, history, corpus meta, memos/theses/social/currencies)",
-      "Hybrid `attribution.citations[]` envelope: citations[0] is the real upstream URL (Bankless, CoinGecko, Etherscan, SEC, DefiLlama, …), citations[1] is the BCA editorial deep-link. LLMs get true provenance first.",
-      "Honest `meta.status` enum on every response (complete | unseeded | partial | stale) — vendor-degraded and not-yet-ingested data are explicitly flagged with structured `meta.diagnostic` rather than masked as empty arrays. `meta.tier` and `meta.upgrade_url` carry tier hints back to agents.",
-      "Battle-tested: 1,820 sustained-load calls, 91% zero-error, 0 citation drift (2026-06-02).",
+      "Zero-config first run: `npx -y @blockchainacademics/mcp` works without any API key. The package ships with a public demo key that opens 16 tools (price, market overview, trending, fear and greed, sentiment, news search, as-of snapshot, entity by slug, explainer, academy search, recent stories, topic, grants search and detail, jobs list and detail), under a shared cap of 100 calls a day plus 20 a day per IP.",
+      "105 tools across 19 categories (news, market data, on-chain, sentiment, proprietary indicators, agent-backed generation, directories, fundamentals, chain-specific, microstructure, narrative, regulatory, security, memes, compute/AI, services, history, corpus meta, memos/theses/social/currencies)",
+      "Hybrid `attribution.citations[]` envelope: citations[0] is the primary source, the real upstream URL (the original article, CoinGecko, Etherscan, SEC, DefiLlama, ...) when there is one; a BCA editorial link follows where the site has a page for the data. LLMs get true provenance first.",
+      "Honest `meta.status` enum on every response (complete | unseeded | partial | stale): vendor-degraded, stale and not-yet-ingested data are explicitly flagged with structured `meta.diagnostic` rather than masked as empty arrays. `meta.tier` and `meta.upgrade_url` carry tier hints back to agents.",
+      "Battle-tested: 1,820 sustained-load calls, 91% zero-error, 0 citation drift (2026-06-02); every tool probed again on 2026-10-31 before 0.6.3.",
       "Security hardening (H-1 + H-2 + H-3 + MCP-TS-2): BCA_API_BASE allowlist, prompt-injection fencing on tool data, webhook SSRF guard, redirect rejection."
     ],
     "maintainer": {
@@ -61,14 +61,14 @@
       "email": "dev@blockchainacademics.com",
       "url": "https://blockchainacademics.com"
     },
-    "server_json_schema": "https://static.modelcontextprotocol.io/schemas/2025-09-01/server.schema.json",
+    "server_json_schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
     "server_json_url": "https://github.com/blockchainacademics/bca-mcp/blob/main/server.json"
   },
 
   "decision_notes": [
     "If upstream README.md on main uses a plain bulleted list under 'Community Servers', use variant_a_readme_bullet.",
     "If upstream switched to a markdown table with columns (Server | Package | Description), use variant_b_readme_table_row.",
-    "If upstream migrated to a JSON/YAML manifest (e.g. community-servers.json) for programmatic listing, adapt variant_c_manifest_entry to the current schema. The fields in variant_c are a superset — prune to match.",
+    "If upstream migrated to a JSON/YAML manifest (e.g. community-servers.json) for programmatic listing, adapt variant_c_manifest_entry to the current schema. The fields in variant_c are a superset: prune to match.",
     "In all cases: keep the diff to a single file and a minimal addition (1 line for README variants; 1 entry for manifest variants). Reviewers reject mega-diffs."
   ]
 }

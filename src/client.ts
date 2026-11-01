@@ -21,8 +21,8 @@ const USER_AGENT = `@blockchainacademics/mcp/${VERSION} (+https://github.com/blo
 // H-1 (v0.3.1): strict allowlist of base URLs. Env vars and constructor args
 // are both validated against this list at startup. An attacker who controls
 // BCA_API_BASE (malicious shell profile, hostile MCP client config,
-// compromised CI secret) would otherwise redirect every outbound request —
-// including the user's X-API-Key — to an attacker-controlled host.
+// compromised CI secret) would otherwise redirect every outbound request,
+// including the user's X-API-Key, to an attacker-controlled host.
 // Mirrors the Python sibling's allowlist in `src/bca_mcp/client.py` so both
 // servers accept the exact same set of bases.
 const ALLOWED_EXACT_BASES: ReadonlyArray<string> = [
@@ -58,11 +58,17 @@ export function formatAllowlistError(url: string): string {
 
 // HIGH: cap response body size to prevent a malicious or compromised upstream
 // from exhausting host memory. 10 MiB is well above any legitimate envelope
-// this API returns (largest real responses — agent-job outputs — are ~200 KB).
+// this API returns (largest real responses, agent-job outputs, are ~200 KB).
 const MAX_BODY_BYTES = 10 * 1024 * 1024;
 
 // Error bodies are only read for their detail, so they get a far smaller cap.
 const MAX_ERROR_BODY_BYTES = 64 * 1024;
+
+// BCA_AUTH message for a key that cannot be sent as a header value. Fixed
+// text, same as the Python sibling: it never repeats the key.
+export const INVALID_KEY_HEADER_MESSAGE =
+  "BCA_API_KEY is not a valid HTTP header value (it contains a control character); check the key";
+
 // The API's error detail is passed to the host model, truncated to this many
 // characters (code points, so a cut never splits a surrogate pair).
 export const MAX_DETAIL_CHARS = 500;
@@ -157,7 +163,7 @@ const DEFAULT_PAGE_INFO = {
 /**
  * Normalise an arbitrary upstream JSON body into the canonical envelope shape.
  *
- * Primary path: upstream is already canonical — `{data, attribution:{citations[]}, meta}`.
+ * Primary path: upstream is already canonical, `{data, attribution:{citations[]}, meta}`.
  * We still sanitise meta/pageInfo to fill safe defaults for older middleware
  * instances that may omit a sub-field.
  *
@@ -255,7 +261,7 @@ export function normalizeEnvelope<T>(json: unknown): ResponseEnvelope<T> {
     };
   }
 
-  // Raw path: no .data field at all — wrap the whole body
+  // Raw path: no .data field at all; wrap the whole body
   return synthesizeCanonical<T>(json as T, "raw");
 }
 
@@ -395,7 +401,9 @@ export class BcaClient {
     // public, rate-limited, and gated to the 16-tool demo allowlist by the backend.
     // The fallback exists so `npx -y @blockchainacademics/mcp` is a true
     // zero-config first-run experience instead of a BCA_AUTH wall.
-    const userKey = opts.apiKey ?? process.env["BCA_API_KEY"];
+    // A pasted key often brings a trailing newline or space: it is trimmed,
+    // and a blank key counts as no key (demo), as in the Python sibling.
+    const userKey = (opts.apiKey ?? process.env["BCA_API_KEY"])?.trim() || undefined;
     this.apiKey = userKey ?? BCA_DEMO_KEY_FALLBACK;
     this.usingDemoKey = !userKey && BCA_DEMO_KEY_FALLBACK.length > 0;
 
@@ -454,19 +462,32 @@ export class BcaClient {
       }
     }
 
+    // The headers are built before the request so a key that is not a
+    // valid header value (a line break inside it, say) fails here. The
+    // runtime's TypeError repeats the value ('Headers.append: "<key>" is an
+    // invalid header value'), and X-API-Key is the only header that varies,
+    // so the error is replaced with a fixed message: the key never reaches
+    // the host model or a transcript.
+    let headers: Headers;
+    try {
+      headers = new Headers({
+        "X-API-Key": this.apiKey,
+        Accept: "application/json",
+        "User-Agent": USER_AGENT,
+        ...(method === "POST" ? { "Content-Type": "application/json" } : {}),
+      });
+    } catch {
+      throw new BcaAuthError(INVALID_KEY_HEADER_MESSAGE);
+    }
+
     let res: Response;
     try {
       const init: RequestInit = {
         method,
-        headers: {
-          "X-API-Key": this.apiKey,
-          Accept: "application/json",
-          "User-Agent": USER_AGENT,
-          ...(method === "POST" ? { "Content-Type": "application/json" } : {}),
-        },
+        headers,
         // MCP-TS-2: never follow redirects automatically. WHATWG fetch
         // strips only a small allow-list of headers (Authorization,
-        // Cookie, Proxy-Authorization) on cross-origin redirects — our
+        // Cookie, Proxy-Authorization) on cross-origin redirects; our
         // custom X-API-Key would be replayed to whatever Location the
         // response points at. A compromised or misconfigured upstream
         // could therefore exfiltrate the key to an attacker-controlled
@@ -483,7 +504,7 @@ export class BcaClient {
       throw new BcaNetworkError(err);
     }
 
-    // Explicitly reject redirects — see MCP-TS-2 note above. `res.type === "opaqueredirect"`
+    // Explicitly reject redirects (see MCP-TS-2 note above). `res.type === "opaqueredirect"`
     // is what browser fetch returns under manual-redirect; Node's undici surfaces the
     // raw 3xx status. Handle both shapes.
     if (res.type === "opaqueredirect" || (res.status >= 300 && res.status < 400)) {
@@ -498,7 +519,7 @@ export class BcaClient {
       // helpful signup URL from the backend instead of a generic auth error.
       // The backend emits 403 + { error: { code: "BCA_TIER_LOCKED", message: "..." } }
       // when a demo key hits a non-allowlisted tool. We surface that message
-      // verbatim — it includes the upgrade URL.
+      // verbatim: it includes the upgrade URL.
       let upstreamCode: string | undefined;
       let upstreamMsg: string | undefined;
       const j = await readErrorJson(res);
@@ -580,7 +601,7 @@ export class BcaClient {
     // Canonical envelope (JSON:API-inspired, locked 2026-04-22):
     //   { data, attribution: { citations: [...] }, meta: { status, request_id, pageInfo } }
     // We still accept the legacy flat shape for backward compat during the
-    // rolling REST deploy — the shim logs a one-time warning so drift is
+    // rolling REST deploy; the shim logs a one-time warning so drift is
     // visible. All call sites see the canonical shape.
     return normalizeEnvelope<T>(json);
   }

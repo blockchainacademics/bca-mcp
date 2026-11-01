@@ -1,6 +1,6 @@
 # @blockchainacademics/mcp
 
-The canonical crypto MCP server for AI agents. **105 tools** spanning 3,501+ editorial articles, 150+ entity dossiers, 38 academy lessons in 8 courses, aggregated market + on-chain data, proprietary indicators, and async agent-backed generation, all exposed as MCP tools your AI agent can call natively.
+The canonical crypto MCP server for AI agents. **105 tools** spanning 3,800+ editorial articles, 150+ entity dossiers, 38 academy lessons in 8 courses, aggregated market + on-chain data, proprietary indicators, and async agent-backed generation, all exposed as MCP tools your AI agent can call natively.
 
 ## Tool categories
 
@@ -27,9 +27,9 @@ The canonical crypto MCP server for AI agents. **105 tools** spanning 3,501+ edi
 | Memos + theses + social | 6 | `list_memos`, `get_memo`, `list_theses`, `get_thesis`, `get_social_signals`, `get_social_signals_detail` |
 | Currencies | 2 | `list_currencies`, `get_currency_feed` |
 
-Every tool response carries `cite_url` (with UTM src attribution), `as_of` (time-travel snapshot), and `source_hash` (content integrity).
+Every tool response carries `attribution.citations[]` (each entry a `cite_url`, an `as_of` time and a `source_hash`) and a `meta.status` that says how complete the answer is (see [Response status](#response-status)).
 
-Tools for unreleased integrations (Twitter social pulse, DEXTools, bonk.fun, Bittensor) return `{status: "integration_pending", reason, eta}` rather than failing. The MCP server is fully usable today.
+Tools whose data source is not connected yet (bonk.fun, CoinGlass liquidations and exchange flows, the degen leaderboard, the memecoin analyzer, among others) answer with `meta.status: "unseeded"` and a reason instead of failing, and their descriptions say so.
 
 ## Why
 
@@ -56,7 +56,7 @@ Restart Claude Desktop. 16 tools work without a key, with real data and real cit
 
 `get_price`, `get_trending`, `get_fear_greed`, `get_market_overview`, `search_news`, `get_sentiment`, `get_entity`, `get_explainer`, `get_recent_stories`, `get_topic`, `search_grants`, `get_grant`, `list_jobs`, `get_job`, `search_academy`, `get_as_of_snapshot`
 
-Every other tool answers with a clean upgrade message (`BCA_TIER_LOCKED`) that links to the free signup. Demo calls share a daily cap: 100 calls a day across all demo users, and 20 a day per IP.
+`get_entity` works by slug without a key; its ticker form needs one. Every other tool answers with a clean upgrade message (`BCA_TIER_LOCKED`) that links to the free signup. Demo calls share a daily cap: 100 calls a day across all demo users, and 20 a day per IP.
 
 ### Claude Desktop (full 105 tools)
 
@@ -107,28 +107,30 @@ See [`examples/research-agent.ts`](./examples/research-agent.ts) for a full tool
 
 ### `search_news`
 
-Full-text search across 3,501+ editorial crypto articles.
+Full-text search across 3,800+ editorial crypto articles.
 
 | arg | type | required | description |
 |---|---|---|---|
 | `query` | string (1-512) | yes | Search query |
 | `entity` | string | no | Entity slug filter (e.g. `ethereum`) |
+| `ticker` | string | no | Ticker filter (e.g. `ETH`) |
 | `since` | ISO 8601 | no | Earliest publish date |
 | `topic` | string | no | Topic filter (e.g. `regulation`) |
 | `limit` | number (1-50) | no | Default 10 |
+| `offset` | number | no | Results to skip, for paging (default 0) |
 
 Example: `{ "query": "circle IPO", "since": "2026-01-01T00:00:00Z", "limit": 5 }`
 
 ### `get_entity`
 
-Fetch a canonical entity dossier. Provide exactly one of:
+Fetch an entity dossier. Provide exactly one of:
 
 | arg | type | description |
 |---|---|---|
-| `slug` | string | e.g. `"vitalik-buterin"`, `"circle"` |
-| `ticker` | string | e.g. `"ETH"`, `"SOL"` (case-insensitive) |
+| `slug` | string | e.g. `"vitalik-buterin"`, `"circle"`; works without a key |
+| `ticker` | string | e.g. `"ETH"`, `"SOL"` (case-insensitive); returns every matching entity and needs an API key |
 
-Aliases resolve automatically (`CZ` → `changpeng-zhao`, `Maker` → `makerdao`, `BSC` → `bnb-chain`, …).
+Aliases in slug form resolve to the canonical entity (`cz` → `changpeng-zhao`, `maker` → `makerdao`, `bsc` → `bnb-chain`, …).
 
 ### `get_explainer`
 
@@ -136,45 +138,70 @@ Fetch BCA Academy material (38 lessons in 8 courses). Provide exactly one of:
 
 | arg | type | description |
 |---|---|---|
-| `slug` | string | Course slug, e.g. `"defi-fundamentals"`, `"understanding-bitcoin"` |
+| `slug` | string | Course slug (e.g. `"defi-fundamentals"`, `"understanding-bitcoin"`) for the course and its lesson index, or lesson slug (e.g. `"decentralized-exchanges"`) for the lesson with its full text |
 | `topic` | string | Topic keyword that resolves to matching academy material, e.g. `"defi"` |
+
+## Response status
+
+`meta.status` says how complete an answer is. Branch on it before you trust `data`:
+
+| `meta.status` | Meaning | Where the detail is |
+|---|---|---|
+| `complete` | A full, fresh answer. | no `meta.diagnostic` |
+| `partial` | Data is returned, but some inputs or sections are missing or defaulted, or one upstream source failed. | `meta.diagnostic.reason`, plus `meta.diagnostic.missing` (what is absent) or, for a failed source, `vendor` and `upstream_status` |
+| `stale` | Data is returned, but it is older than the tool promises. | `meta.diagnostic.reason`, `meta.diagnostic.as_of` (when the data was produced) and `meta.diagnostic.age_seconds` |
+| `unseeded` | There is no real data yet: nothing matched, the table is empty, or the source is not connected. `data` may still carry the echoed query or placeholders. | `meta.diagnostic.reason` and `meta.diagnostic.eta` |
+
+Lists that page by offset (`search_news`, `search_grants`, `list_entities`, `list_entity_mentions`, `search_academy`) set `meta.pageInfo.hasNextPage` when more results exist.
 
 ## Attribution
 
-Every response includes a structured `attribution` block:
+Every response includes a structured `attribution` block with a `citations` array:
 
 ```json
 {
   "data": { ... },
   "attribution": {
-    "cite_url": "https://blockchainacademics.com/...",
-    "as_of": "2026-04-19T12:34:56Z",
-    "source_hash": "sha256:..."
-  }
+    "citations": [
+      {
+        "cite_url": "https://www.coingecko.com/en/coins/bitcoin",
+        "as_of": "2026-11-01T12:34:56Z",
+        "source_hash": "sha256:..."
+      },
+      {
+        "cite_url": "https://blockchainacademics.com/...?src=...",
+        "as_of": "2026-11-01T12:34:56Z",
+        "source_hash": "sha256:..."
+      }
+    ]
+  },
+  "meta": { "status": "complete", "request_id": "...", "pageInfo": { ... } }
 }
 ```
 
-When your agent surfaces BCA content to a user, attribute via the `cite_url`. Fields are preserved as `null` when upstream omits them so downstream agents can detect missing provenance.
+`citations[0]` is the primary source: the upstream page when the data has one (the original article, CoinGecko, Etherscan, DefiLlama, a regulator), otherwise the BCA page for the record, otherwise the tool's entry in the API reference. A BCA link follows the upstream one only where the site has a page for the data. When your agent surfaces BCA content to a user, attribute via `citations[0].cite_url`. Fields are preserved as `null` when upstream omits them so downstream agents can detect missing provenance.
 
 ## API Key
 
 **Not required to try it.** When `BCA_API_KEY` is unset, the server falls back to a baked-in public demo key: the 16 tools listed under [Install](#install) work, and every other tool answers with a clean upgrade message.
 
-For the full 105 tools, get a free key at [blockchainacademics.com/crypto-api/signup](https://blockchainacademics.com/crypto-api/signup?ref=mcp-npm-apikey) (2,000 calls/month). Paid tiers unlock agent-backed research generation and proprietary on-chain indicators.
+For more, get a free key at [blockchainacademics.com/crypto-api/signup](https://blockchainacademics.com/crypto-api/signup?ref=mcp-npm-apikey) (2,000 calls/month): it opens the 52 free-tier tools. Paid tiers unlock the rest, such as agent-backed research generation, crypto Twitter intelligence and the proprietary indicators; each tool's description names its tier when it is not free.
 
 Set `BCA_API_KEY` in your MCP client env. Optionally override `BCA_API_BASE` (default `https://api.blockchainacademics.com`). `BCA_API_BASE_URL` is also accepted for backward compatibility.
 
 ## Errors
 
-The server never crashes the stdio process. All failures surface as MCP responses with `isError: true` and a JSON body:
+Every failed tool call returns an MCP tool result with `isError: true` and a JSON body:
 
 ```json
 { "error": { "code": "BCA_AUTH", "message": "..." } }
 ```
 
+A request that is not a valid MCP call at all (arguments that are not an object, for example) is answered by the MCP SDK with a JSON-RPC error instead.
+
 | Code | Meaning |
 |---|---|
-| `BCA_AUTH` | Invalid `BCA_API_KEY` (HTTP 401/403) |
+| `BCA_AUTH` | Invalid `BCA_API_KEY` (HTTP 401/403), or a key that cannot be sent as a header value (a line break inside it); the key itself is never repeated in the message |
 | `BCA_TIER_LOCKED` | Tool not in your current tier's allowlist (HTTP 403). Without a key this applies to 89 of the 105 tools; the message includes the signup URL. |
 | `BCA_RATE_LIMIT` | Rate limit exceeded (HTTP 429; honor `Retry-After`) |
 | `BCA_UPSTREAM` | BCA API returned an error status or malformed JSON. For a 4xx the message carries the API's own detail (up to 500 characters) inside an `<untrusted_content>` fence; a 5xx stays generic. |

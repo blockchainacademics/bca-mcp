@@ -11,11 +11,13 @@
  */
 import { z } from "zod";
 
-export const slugSchema = (label = "slug") =>
+// `max` defaults to 240, the API's usual slug cap; a few routes cap lower
+// (job company 160, DefiLlama protocol 64, chain 32) and pass their own.
+export const slugSchema = (label = "slug", max = 240) =>
   z
     .string()
     .min(1)
-    .max(240)
+    .max(max)
     .regex(
       /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
       `${label} must be kebab-case lowercase [a-z0-9-]`,
@@ -27,6 +29,15 @@ export const tickerSchema = () =>
     .min(1)
     .max(12)
     .regex(/^[A-Za-z0-9]{1,12}$/, "ticker must be 1-12 alphanumerics");
+
+// ISO 3166 alpha-2 country code, the only form the regulatory routes take
+// (the API reads EL as GR and UK as GB).
+export const countryCodeSchema = () =>
+  z
+    .string()
+    .min(2)
+    .max(2)
+    .regex(/^[A-Za-z]{2}$/, "country must be a two-letter ISO 3166 code (e.g. 'US', 'GB', 'DE')");
 
 // --- zod -> JSON Schema ------------------------------------------------------
 //

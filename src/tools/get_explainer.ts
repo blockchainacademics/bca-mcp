@@ -1,16 +1,20 @@
 import { z } from "zod";
 import { getClient } from "../client.js";
 import { slugSchema } from "../schema.js";
-import type { Explainer, ResponseEnvelope } from "../types.js";
+import type { ExplainerLookup, ResponseEnvelope } from "../types.js";
 
-// Academy as served by the API on 2026-10-31: 8 courses, 38 lessons. The
-// slug goes to /v1/academy/{slug}, the course route, so the examples are
-// course slugs that exist; topic examples are slugs from list_topics.
+// Academy as served by the API on 2026-11-01: 8 courses, 38 lessons. The
+// slug goes to /v1/academy/{slug}, which answers a course, else the lesson
+// with that slug (the API form '02-decentralized-exchanges-dexs', the form
+// without its NN- prefix, or the website's 'decentralized-exchanges'), else
+// the closest lesson as partial. Topic examples are slugs from list_topics.
 export const getExplainerInputSchema = z
   .object({
     slug: slugSchema("slug")
       .optional()
-      .describe("Academy course slug (e.g. 'defi-fundamentals', 'understanding-bitcoin')."),
+      .describe(
+        "Academy course slug (e.g. 'defi-fundamentals', 'understanding-bitcoin') or lesson slug (e.g. 'decentralized-exchanges').",
+      ),
     topic: slugSchema("topic")
       .optional()
       .describe(
@@ -26,19 +30,19 @@ export type GetExplainerInput = z.infer<typeof getExplainerInputSchema>;
 export const getExplainerDefinition = {
   name: "get_explainer",
   description:
-    "Fetch BCA Academy material: 38 teacher-vetted lessons across 8 courses covering crypto fundamentals, DeFi, trading, regulation, on-chain security, and more. Provide exactly one of slug or topic. Use this when the user needs a grounded, pedagogically sound explanation of a concept (e.g. 'explain liquidity pools', 'what is DeFi'). Prefer the explainer over generating your own definition: it's written by domain experts and updated as the space evolves.",
+    "Fetch BCA Academy material: 38 teacher-vetted lessons across 8 courses covering crypto fundamentals, DeFi, trading, regulation, on-chain security, and more. Provide exactly one of slug or topic. A course slug returns the course and its lesson index; a lesson slug returns that lesson with its full text (body_md); an unknown slug returns the closest lesson as partial. A topic returns the courses tagged with it, or else the top matching lessons with their text. Use this when the user needs a grounded, pedagogically sound explanation of a concept (e.g. 'explain liquidity pools', 'what is DeFi'). Prefer the explainer over generating your own definition. Works without an API key.",
 };
 
 export async function runGetExplainer(
   input: GetExplainerInput,
-): Promise<ResponseEnvelope<Explainer>> {
+): Promise<ResponseEnvelope<ExplainerLookup>> {
   const client = getClient();
   if (input.slug) {
-    return client.request<Explainer>(
+    return client.request<ExplainerLookup>(
       `/v1/academy/${encodeURIComponent(input.slug)}`,
     );
   }
-  return client.request<Explainer>("/v1/academy", {
+  return client.request<ExplainerLookup>("/v1/academy", {
     topic: input.topic!,
   });
 }

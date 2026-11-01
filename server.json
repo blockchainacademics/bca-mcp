@@ -11,7 +11,7 @@
     {
       "registryType": "npm",
       "identifier": "@blockchainacademics/mcp",
-      "version": "0.6.2",
+      "version": "0.6.3",
       "transport": {
         "type": "stdio"
       },

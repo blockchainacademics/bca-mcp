@@ -1,10 +1,10 @@
-# Blockchain Academics — AWS Bedrock Agent ActionGroup Definition
+# Blockchain Academics: AWS Bedrock Agent ActionGroup Definition
 
 ## ActionGroup Name
 `BlockchainAcademicsIntelligence`
 
 ## Description
-Live crypto intelligence — prices, news, and canonical entity records — powered by the Blockchain Academics API.
+Live crypto intelligence (prices, news, and canonical entity records) from the Blockchain Academics API.
 
 ## Backing
 - **Invocation type:** OpenAPI schema (Lambda proxy optional)
@@ -19,12 +19,16 @@ Grant `secretsmanager:GetSecretValue` for the secret holding `BCA_API_KEY`.
 
 ## Function Schema (3 most useful tools)
 
+Every answer is wrapped in the BCA envelope:
+`{ "data": ..., "attribution": { "citations": [ { "cite_url", "as_of", "source_hash" } ] }, "meta": { "status", "request_id", "pageInfo" } }`.
+`citations[0]` is the primary source, and `meta.status` is `complete`, `partial`, `stale` or `unseeded`. The schemas below describe `data`.
+
 ```json
 {
   "openapi": "3.0.0",
   "info": {
     "title": "Blockchain Academics Intelligence",
-    "version": "0.2.3",
+    "version": "0.6.3",
     "description": "Crypto intelligence actions for Bedrock agents."
   },
   "servers": [
@@ -34,55 +38,40 @@ Grant `secretsmanager:GetSecretValue` for the secret holding `BCA_API_KEY`.
     "/v1/market/price": {
       "get": {
         "operationId": "get_price",
-        "summary": "Get live and historical price for a crypto asset.",
-        "description": "Returns spot price, 24h change, market cap, and optional OHLCV history for any of 200+ tracked assets.",
+        "summary": "Get the spot price of one or more crypto assets.",
+        "description": "Spot price, 24h change, market cap and 24h volume from CoinGecko for up to 50 assets per call.",
         "parameters": [
           {
-            "name": "symbol",
+            "name": "ids",
             "in": "query",
             "required": true,
-            "description": "Ticker symbol (e.g. BTC, ETH, SOL). Case-insensitive.",
-            "schema": { "type": "string" }
+            "description": "Comma-separated CoinGecko ids, up to 50 (e.g. 'bitcoin,ethereum,solana').",
+            "schema": { "type": "string", "minLength": 1, "maxLength": 512 }
           },
           {
-            "name": "timeframe",
+            "name": "vs",
             "in": "query",
             "required": false,
-            "description": "Optional history window. One of: 1h, 24h, 7d, 30d, 90d, 1y.",
-            "schema": {
-              "type": "string",
-              "enum": ["1h", "24h", "7d", "30d", "90d", "1y"]
-            }
+            "description": "Quote currency, 3 to 10 lowercase letters (default usd).",
+            "schema": { "type": "string", "pattern": "^[a-z]{3,10}$", "default": "usd" }
           }
         ],
         "responses": {
           "200": {
-            "description": "Price payload.",
+            "description": "Envelope whose data maps each id to its quote (e.g. data.bitcoin.usd, usd_market_cap, usd_24h_vol, usd_24h_change, last_updated_at).",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "symbol": { "type": "string" },
-                    "price_usd": { "type": "number" },
-                    "change_24h_pct": { "type": "number" },
-                    "market_cap_usd": { "type": "number" },
-                    "ohlcv": {
-                      "type": "array",
-                      "items": {
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": {
                         "type": "object",
-                        "properties": {
-                          "t": { "type": "integer", "description": "Unix ms" },
-                          "o": { "type": "number" },
-                          "h": { "type": "number" },
-                          "l": { "type": "number" },
-                          "c": { "type": "number" },
-                          "v": { "type": "number" }
-                        }
+                        "additionalProperties": { "type": "number" }
                       }
                     }
-                  },
-                  "required": ["symbol", "price_usd"]
+                  }
                 }
               }
             }
@@ -90,11 +79,11 @@ Grant `secretsmanager:GetSecretValue` for the secret holding `BCA_API_KEY`.
         }
       }
     },
-    "/v1/news/search": {
+    "/v1/articles/search": {
       "get": {
         "operationId": "search_news",
-        "summary": "Search entity-tagged, sentiment-scored crypto news.",
-        "description": "Full-text search across 200+ vetted crypto sources. Results include canonical entity tags, sentiment score, and source metadata.",
+        "summary": "Search BCA's entity- and ticker-tagged crypto articles.",
+        "description": "Full-text search across BCA's editorial articles. Each result carries entity and ticker tags, a sentiment bucket and score, and source metadata.",
         "parameters": [
           {
             "name": "q",
@@ -111,6 +100,13 @@ Grant `secretsmanager:GetSecretValue` for the secret holding `BCA_API_KEY`.
             "schema": { "type": "string" }
           },
           {
+            "name": "ticker",
+            "in": "query",
+            "required": false,
+            "description": "Filter by ticker (e.g. 'ETH').",
+            "schema": { "type": "string" }
+          },
+          {
             "name": "since",
             "in": "query",
             "required": false,
@@ -121,34 +117,40 @@ Grant `secretsmanager:GetSecretValue` for the secret holding `BCA_API_KEY`.
             "name": "limit",
             "in": "query",
             "required": false,
-            "description": "Max results (1-50, default 10).",
-            "schema": { "type": "integer", "minimum": 1, "maximum": 50, "default": 10 }
+            "description": "Max results (1-100, default 20).",
+            "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 }
           }
         ],
         "responses": {
           "200": {
-            "description": "Array of news articles.",
+            "description": "Envelope whose data holds the matching articles.",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "results": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": { "type": "string" },
-                          "title": { "type": "string" },
-                          "url": { "type": "string", "format": "uri" },
-                          "source": { "type": "string" },
-                          "published_at": { "type": "string", "format": "date-time" },
-                          "sentiment": { "type": "number", "minimum": -1, "maximum": 1 },
-                          "entities": {
-                            "type": "array",
-                            "items": { "type": "string" }
-                          },
-                          "summary": { "type": "string" }
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "total": { "type": "integer" },
+                        "results": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "slug": { "type": "string" },
+                              "title": { "type": "string" },
+                              "summary": { "type": "string" },
+                              "source_name": { "type": "string" },
+                              "source_url": { "type": "string", "format": "uri" },
+                              "canonical_url": { "type": "string", "format": "uri" },
+                              "published_at": { "type": "string", "format": "date-time" },
+                              "sentiment_bucket": { "type": "string" },
+                              "sentiment_score": { "type": "number" },
+                              "entities": { "type": "array", "items": { "type": "string" } },
+                              "tickers": { "type": "array", "items": { "type": "string" } }
+                            }
+                          }
                         }
                       }
                     }
@@ -163,67 +165,50 @@ Grant `secretsmanager:GetSecretValue` for the secret holding `BCA_API_KEY`.
     "/v1/entities/{slug}": {
       "get": {
         "operationId": "get_entity",
-        "summary": "Fetch canonical entity record (project, person, org, narrative).",
-        "description": "Returns canonical BCA entity with aliases, relationships, recent coverage, and linked research memos/theses.",
+        "summary": "Fetch a canonical entity record (chain, project, person or ticker).",
+        "description": "Returns the BCA entity dossier for a slug or a known alias ('cz' resolves to changpeng-zhao). meta.status is partial while the dossier has no summary or mentions.",
         "parameters": [
           {
             "name": "slug",
             "in": "path",
             "required": true,
-            "description": "Canonical slug (e.g. 'bitcoin', 'changpeng-zhao', 'makerdao').",
+            "description": "Canonical slug or alias (e.g. 'bitcoin', 'changpeng-zhao', 'makerdao').",
             "schema": { "type": "string" }
           }
         ],
         "responses": {
           "200": {
-            "description": "Entity record.",
+            "description": "Envelope whose data.result is the entity.",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "slug": { "type": "string" },
-                    "name": { "type": "string" },
-                    "type": {
-                      "type": "string",
-                      "enum": ["project", "person", "org", "narrative", "chain", "protocol"]
-                    },
-                    "aliases": {
-                      "type": "array",
-                      "items": { "type": "string" }
-                    },
-                    "description": { "type": "string" },
-                    "relationships": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "target_slug": { "type": "string" },
-                          "relation": { "type": "string" }
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "result": {
+                          "type": "object",
+                          "properties": {
+                            "slug": { "type": "string" },
+                            "display_name": { "type": "string" },
+                            "kind": {
+                              "type": "string",
+                              "enum": ["chain", "project", "person", "ticker", "protocol", "exchange", "fund"]
+                            },
+                            "ticker": { "type": "string" },
+                            "website": { "type": "string" },
+                            "twitter": { "type": "string" },
+                            "summary": { "type": "string" },
+                            "mention_count": { "type": "integer" },
+                            "last_mentioned_at": { "type": "string", "format": "date-time" },
+                            "resolved_from_alias": { "type": "string" }
+                          },
+                          "required": ["slug", "display_name", "kind"]
                         }
                       }
-                    },
-                    "recent_articles": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": { "type": "string" },
-                          "title": { "type": "string" },
-                          "url": { "type": "string" }
-                        }
-                      }
-                    },
-                    "memos": {
-                      "type": "array",
-                      "items": { "type": "string" }
-                    },
-                    "theses": {
-                      "type": "array",
-                      "items": { "type": "string" }
                     }
-                  },
-                  "required": ["slug", "name", "type"]
+                  }
                 }
               }
             }
@@ -251,15 +236,15 @@ Grant `secretsmanager:GetSecretValue` for the secret holding `BCA_API_KEY`.
 ## Sample Bedrock Agent Instruction
 
 ```
-You are a crypto intelligence agent. For any token, person, protocol, or narrative the user mentions, call get_entity to resolve it to a canonical slug, then use get_price for market data and search_news for recent coverage. Cite article URLs. Never invent prices or headlines.
+You are a crypto intelligence agent. For any token, person, protocol, or narrative the user mentions, call get_entity to resolve it to a canonical slug, then use get_price (with the CoinGecko id) for market data and search_news for recent coverage. Cite article URLs. Treat answers whose meta.status is partial, stale or unseeded as incomplete. Never invent prices or headlines.
 ```
 
 ## Deployment Notes
 - Store `BCA_API_KEY` in AWS Secrets Manager as `bca/api-key`.
 - Attach Lambda layer that injects `X-API-Key` from Secrets Manager into outbound calls (or use Bedrock's built-in API schema auth).
-- Full 98-tool OpenAPI available at `https://api.blockchainacademics.com/openapi.json` — import directly for broader coverage (sentiment, indicators, on-chain, agent-jobs, etc.).
+- The full OpenAPI at `https://api.blockchainacademics.com/openapi.json` covers every route behind the 105 MCP tools; import it directly for broader coverage (sentiment, indicators, on-chain, agent jobs, etc.).
 
 ## Support
 - Docs: https://blockchainacademics.com/crypto-api/docs
 - Landing: https://blockchainacademics.com/crypto-api
-- Signup: https://blockchainacademics.com/crypto-api/pricing
+- Signup: https://blockchainacademics.com/crypto-api/signup

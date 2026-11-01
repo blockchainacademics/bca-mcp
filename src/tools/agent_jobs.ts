@@ -1,9 +1,13 @@
 /**
- * Agent-backed generation tools (category 6). Async — return {job_id, status_url};
- * callers poll get_agent_job until status=completed. Pro/Team tier.
+ * Agent-backed generation tools (category 6). Async: each returns
+ * {job_id, status_url}; callers poll get_agent_job until status is done or
+ * failed. Pro or Team tier.
  *
  * Backend endpoints confirmed from /v1/agent-jobs/*: due-diligence,
  * tokenomics-model, summarize-whitepaper, translate-contract, monitor-keyword.
+ * Parameters a job cannot apply yet (due diligence focus, tokenomics
+ * scenarios, whitepaper length other than standard) are accepted and named
+ * in the answer's ignored_params (app/api/v1/agent_jobs.py, 2026-11-01).
  */
 import { promises as dns } from "node:dns";
 import { isIP } from "node:net";
@@ -21,10 +25,10 @@ import type { ResponseEnvelope } from "../types.js";
 // layer so bad values never reach the API:
 //
 //   * HTTPS scheme only (no http, no ftp, no file, no gopher).
-//   * Hostname only — bare IP literals are rejected outright.
+//   * Hostname only: bare IP literals are rejected outright.
 //   * Every IP that DNS returns for the hostname must be public (not private
 //     / loopback / link-local / unspecified / reserved / multicast). DNS
-//     rebinding defense: check ALL returned IPs, not just the first — if any
+//     rebinding defense: check ALL returned IPs, not just the first; if any
 //     resolves to a private range, reject.
 //
 // Mirrors `src/bca_mcp/tools/agent_jobs.py::_validate_webhook_url` so both
@@ -82,7 +86,7 @@ export async function validateWebhookUrl(url: string): Promise<void> {
     throw new BcaBadRequestError("webhook_url must include a hostname.");
   }
 
-  // Reject bare IP literals in the URL — webhooks should go to named hosts.
+  // Reject bare IP literals in the URL: webhooks should go to named hosts.
   // Node's URL parser preserves the brackets on `hostname` for IPv6 literals
   // (e.g. `new URL('https://[::1]/').hostname === '[::1]'`), so strip them
   // before the isIP() check.
@@ -131,12 +135,12 @@ export const generateDueDiligenceInputSchema = z.object({
     .array(z.string().min(1).max(64))
     .max(16)
     .optional()
-    .describe("Optional focus areas (e.g. ['tokenomics', 'audits'])."),
+    .describe("Optional focus areas (e.g. ['tokenomics', 'audits']). Accepted but not applied yet: the report covers every section."),
 });
 export const generateDueDiligenceDefinition = {
   name: "generate_due_diligence",
   description:
-    "Kick off a full due-diligence report (tokenomics + team + audits + risk + narrative). Required: entity_slug. depth ∈ {light, standard, deep}. Async: returns {job_id, status_url}; poll get_agent_job. Pro tier.",
+    "Kick off a full due diligence report on an entity (tokenomics, team, audits, risk and narrative). Required: entity_slug. depth: light, standard or deep. focus is accepted but not applied yet (the answer lists it under ignored_params). Async: returns job_id and status_url; poll get_agent_job. Pro tier.",
 };
 export async function runGenerateDueDiligence(
   input: z.infer<typeof generateDueDiligenceInputSchema>,
@@ -151,15 +155,31 @@ export async function runGenerateDueDiligence(
 // --- generate_tokenomics_model --------------------------------------------
 export const generateTokenomicsModelInputSchema = z.object({
   entity_slug: slugSchema("entity_slug"),
-  horizon_days: z.number().int().min(30).max(3650).default(365),
+  horizon_days: z
+    .number()
+    .int()
+    .min(30)
+    .max(3650)
+    .default(365)
+    .describe("Simulation horizon in days (30 to 3,650), rounded up to whole months."),
+  unlock_shock_pct: z
+    .number()
+    .min(0)
+    .max(100)
+    .optional()
+    .describe("Optional unlock shock, as a percent of supply (0 to 100)."),
+  // No default: the job models one unlock schedule, so a default list would
+  // be sent, and reported back as ignored, on every call.
   scenarios: z
     .array(z.enum(["base", "bull", "bear"]))
-    .default(["base", "bull", "bear"]),
+    .max(3)
+    .optional()
+    .describe("Accepted but not modeled yet: the job simulates one unlock schedule."),
 });
 export const generateTokenomicsModelDefinition = {
   name: "generate_tokenomics_model",
   description:
-    "Simulate emission/unlock impact on FDV across scenarios. Async, Team tier. Returns {job_id, status_url}.",
+    "Simulate how emissions and unlocks move an entity's FDV over a horizon: horizon_days (rounded up to whole months, up to 120) and an optional unlock_shock_pct. scenarios is accepted but not modeled yet (the answer lists it under ignored_params). Async: returns job_id, status_url and the horizon_months used; poll get_agent_job. Team tier.",
 };
 export async function runGenerateTokenomicsModel(
   input: z.infer<typeof generateTokenomicsModelInputSchema>,
@@ -174,12 +194,22 @@ export const summarizeWhitepaperInputSchema = z.object({
     .url()
     .max(2048)
     .describe("Public URL of the whitepaper (PDF or HTML)."),
-  length: z.enum(["brief", "standard", "deep"]).default("standard"),
+  language: z
+    .string()
+    .min(2)
+    .max(2)
+    .regex(/^[a-z]{2}$/, "language must be a two-letter lowercase code (e.g. 'en', 'es')")
+    .optional()
+    .describe("Summary language, a two-letter code (default en)."),
+  length: z
+    .enum(["brief", "standard", "deep"])
+    .default("standard")
+    .describe("Accepted, but the summary has one fixed structure (standard); brief and deep are not applied yet."),
 });
 export const summarizeWhitepaperDefinition = {
   name: "summarize_whitepaper",
   description:
-    "Fetch + structurally summarize a whitepaper URL. Async, Pro tier. Returns {job_id, status_url}.",
+    "Fetch a whitepaper URL (PDF or HTML) and summarize it into one fixed structure: TL;DR, key points, tokenomics, team and risks, in the language asked for (default en). length other than standard is accepted but not applied yet (the answer lists it under ignored_params). Async: returns job_id and status_url; poll get_agent_job. Pro tier.",
 };
 export async function runSummarizeWhitepaper(
   input: z.infer<typeof summarizeWhitepaperInputSchema>,
@@ -196,7 +226,7 @@ export const translateContractInputSchema = z.object({
 export const translateContractDefinition = {
   name: "translate_contract",
   description:
-    "Translate a smart contract between languages (Solidity ↔ Vyper ↔ Move ↔ Anchor). Required: code, source_language, target_language. Async, Team tier.",
+    "Translate a smart contract between languages (Solidity ↔ Vyper ↔ Move ↔ Anchor). Required: code, source_language, target_language (the two must differ). Async: returns job_id and status_url; poll get_agent_job. Team tier.",
 };
 export async function runTranslateContract(
   input: z.infer<typeof translateContractInputSchema>,
@@ -206,19 +236,29 @@ export async function runTranslateContract(
 
 // --- monitor_keyword -------------------------------------------------------
 export const monitorKeywordInputSchema = z.object({
-  keyword: z.string().min(1).max(200),
+  keyword: z
+    .string()
+    .min(2)
+    .max(200)
+    .describe("Keyword or phrase to watch (2 to 200 characters)."),
   webhook_url: z
     .string()
     .url()
     .max(2048)
     .regex(/^https:\/\//, "webhook_url must use https://")
     .describe("HTTPS webhook URL for notifications (required)."),
-  window_hours: z.number().int().min(1).max(168).default(24),
+  window_hours: z
+    .number()
+    .int()
+    .min(1)
+    .max(168)
+    .default(24)
+    .describe("Lookback window in hours (1 to 168), stored with the job for the watcher."),
 });
 export const monitorKeywordDefinition = {
   name: "monitor_keyword",
   description:
-    "Register a keyword monitor: fires a webhook when the keyword appears across corpus. Required: keyword, webhook_url (https URL). Async, Pro tier.",
+    "Save a keyword subscription: keyword plus an https webhook_url. The watcher is not built yet, so no webhook is sent: the answer comes back with meta.status unseeded and webhook_delivery not_active, and the job receipt under data. Required: keyword, webhook_url. Pro tier.",
 };
 export async function runMonitorKeyword(
   input: z.infer<typeof monitorKeywordInputSchema>,
@@ -237,12 +277,12 @@ export const getAgentJobInputSchema = z.object({
     .min(1)
     .max(128)
     .regex(/^[A-Za-z0-9_-]+$/, "job_id must be [A-Za-z0-9_-]")
-    .describe("Job ID returned from any generate_* tool."),
+    .describe("Job ID returned by an agent tool (generate_*, summarize_whitepaper, translate_contract, monitor_keyword)."),
 });
 export const getAgentJobDefinition = {
   name: "get_agent_job",
   description:
-    "Poll the status of an async agent job. Returns {status: queued|running|completed|failed, output?, error?}.",
+    "Poll an async agent job: kind, status (queued, running, done or failed), created, started and finished times, result when done and error when failed. monitor_keyword jobs answer unseeded with webhook_delivery not_active, since no watcher sends webhooks yet. Jobs are visible only to the key that started them. Pro tier.",
 };
 const _SUMMARIZE_KINDS = ["summarize-whitepaper", "summarize_whitepaper"];
 const _SUMMARIZE_UNTRUSTED_FIELDS = ["summary", "abstract", "body", "body_markdown"];
@@ -275,21 +315,33 @@ function _fenceString(source: string, value: string): string {
   return `<untrusted_content source="${source}">\n${neutralizeFenceTokens(value) as string}\n</untrusted_content>`;
 }
 
-function _fenceField(
-  output: Record<string, unknown>,
-  key: string,
-  source: string,
-): void {
-  const v = output[key];
-  if (typeof v === "string" && v.length > 0) {
-    output[key] = _fenceString(source, v);
-  } else if (Array.isArray(v)) {
-    output[key] = v.map((item) =>
+function _fenceValue(source: string, v: unknown): unknown {
+  if (typeof v === "string" && v.length > 0) return _fenceString(source, v);
+  if (Array.isArray(v)) {
+    return v.map((item) =>
       typeof item === "string" && item.length > 0
         ? _fenceString(source, item)
         : item,
     );
   }
+  return v;
+}
+
+function _fenceField(
+  output: Record<string, unknown>,
+  key: string,
+  source: string,
+): void {
+  if (!(key in output)) return;
+  const v = output[key];
+  if (v && typeof v === "object" && !Array.isArray(v)) {
+    // The whitepaper summary is an object (tldr, key_points, tokenomics,
+    // team, risks): fence each of its string and string-list members.
+    const nested = v as Record<string, unknown>;
+    for (const [k, inner] of Object.entries(nested)) nested[k] = _fenceValue(source, inner);
+    return;
+  }
+  output[key] = _fenceValue(source, v);
 }
 
 export async function runGetAgentJob(
@@ -308,15 +360,19 @@ export async function runGetAgentJob(
       : typeof data?.job_type === "string"
         ? (data.job_type as string)
         : "";
-  const output = data?.output as Record<string, unknown> | undefined;
-  if (output) {
+  // The API returns the skill output as `result` (`output` in the older
+  // shape); both are fenced.
+  for (const key of ["result", "output"]) {
+    const output = data?.[key];
+    if (!output || typeof output !== "object" || Array.isArray(output)) continue;
+    const record = output as Record<string, unknown>;
     if (_SUMMARIZE_KINDS.includes(jobKind)) {
-      for (const key of _SUMMARIZE_UNTRUSTED_FIELDS) {
-        _fenceField(output, key, "summarize_whitepaper");
+      for (const field of _SUMMARIZE_UNTRUSTED_FIELDS) {
+        _fenceField(record, field, "summarize_whitepaper");
       }
     } else if (_TRANSLATE_KINDS.includes(jobKind)) {
-      for (const key of _TRANSLATE_UNTRUSTED_FIELDS) {
-        _fenceField(output, key, "translate_contract");
+      for (const field of _TRANSLATE_UNTRUSTED_FIELDS) {
+        _fenceField(record, field, "translate_contract");
       }
     }
   }
