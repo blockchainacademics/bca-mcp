@@ -16,9 +16,12 @@ export const searchNewsInputSchema = z.object({
   ticker: tickerSchema()
     .optional()
     .describe("Ticker filter (e.g. 'ETH', 'SOL'): articles tagged with that coin."),
+  // The API parses this as a datetime and also takes a bare date
+  // (2026-10-01), so the client checks only the length, as for
+  // list_entity_mentions.since; a value the API cannot read is its 422.
   since: z
     .string()
-    .datetime({ offset: true })
+    .max(64)
     .optional()
     .describe(
       "ISO 8601 date; return articles published on or after this timestamp.",

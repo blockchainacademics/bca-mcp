@@ -189,10 +189,14 @@ export async function runGenerateTokenomicsModel(
 
 // --- summarize_whitepaper --------------------------------------------------
 export const summarizeWhitepaperInputSchema = z.object({
+  // The API's SummarizeWhitepaperRequest.url is a pydantic HttpUrl, which
+  // answers 422 for any scheme but http and https.
   url: z
     .string()
+    .min(1)
     .url()
     .max(2048)
+    .regex(/^https?:\/\//, "url must use http:// or https://")
     .describe("Public URL of the whitepaper (PDF or HTML)."),
   language: z
     .string()
@@ -243,6 +247,7 @@ export const monitorKeywordInputSchema = z.object({
     .describe("Keyword or phrase to watch (2 to 200 characters)."),
   webhook_url: z
     .string()
+    .min(1)
     .url()
     .max(2048)
     .regex(/^https:\/\//, "webhook_url must use https://")
@@ -315,14 +320,20 @@ function _fenceString(source: string, value: string): string {
   return `<untrusted_content source="${source}">\n${neutralizeFenceTokens(value) as string}\n</untrusted_content>`;
 }
 
+// Fence every non-empty string in `v`: a string, or the strings at any depth
+// inside a list or an object. The whitepaper summary is an object (tldr,
+// key_points, tokenomics, team, risks) whose tokenomics member is itself an
+// object (supply, emission and distribution notes), so one level is not
+// enough. Objects are updated in place: their keys come from JSON.parse as
+// own properties, so assigning to an existing key never reaches a prototype.
+// Same as _fence_value in the Python sibling.
 function _fenceValue(source: string, v: unknown): unknown {
-  if (typeof v === "string" && v.length > 0) return _fenceString(source, v);
-  if (Array.isArray(v)) {
-    return v.map((item) =>
-      typeof item === "string" && item.length > 0
-        ? _fenceString(source, item)
-        : item,
-    );
+  if (typeof v === "string") return v.length > 0 ? _fenceString(source, v) : v;
+  if (Array.isArray(v)) return v.map((item) => _fenceValue(source, item));
+  if (v && typeof v === "object") {
+    const record = v as Record<string, unknown>;
+    for (const k of Object.keys(record)) record[k] = _fenceValue(source, record[k]);
+    return record;
   }
   return v;
 }
@@ -333,15 +344,7 @@ function _fenceField(
   source: string,
 ): void {
   if (!(key in output)) return;
-  const v = output[key];
-  if (v && typeof v === "object" && !Array.isArray(v)) {
-    // The whitepaper summary is an object (tldr, key_points, tokenomics,
-    // team, risks): fence each of its string and string-list members.
-    const nested = v as Record<string, unknown>;
-    for (const [k, inner] of Object.entries(nested)) nested[k] = _fenceValue(source, inner);
-    return;
-  }
-  output[key] = _fenceValue(source, v);
+  output[key] = _fenceValue(source, output[key]);
 }
 
 export async function runGetAgentJob(

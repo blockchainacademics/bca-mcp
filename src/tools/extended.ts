@@ -282,7 +282,7 @@ export const getAuditReportsInputSchema = z.object({ entity_slug: slugSchema("en
 export const getAuditReportsDefinition = {
   name: "get_audit_reports",
   description:
-    "Audits on file for an entity: BCA-reviewed audits with firm, date, report link, findings by severity and BCA's editorial score (averaged into bca_editorial_score). Rows with source defillama are audit links from DefiLlama protocol metadata: firm parsed from the link, no date or findings, so the answer is partial. Unseeded when nothing is on file. Starter tier.",
+    "Audits on file for an entity: BCA-reviewed audits with firm, date, report link, findings by severity and BCA's editorial score (averaged into bca_editorial_score). Rows with source defillama are audit links from DefiLlama protocol metadata: firm parsed from the link, no date or findings. Partial when only such links are on file; unseeded when nothing is on file. Starter tier.",
 };
 export const runGetAuditReports = (i: any) => clientGet(`/v1/fundamentals/audits`, i);
 
@@ -482,10 +482,16 @@ export const getOptionsFlowInputSchema = z.object({
     .max(200)
     .optional()
     .describe("Instruments returned, largest open interest first (1 to 200, default 50)."),
+  // The API's _normalise_expiry takes 13NOV26 or 2026-11-13 and answers 422
+  // for anything else; the Python sibling checks the same two forms.
   expiry: z
     .string()
     .min(7)
     .max(10)
+    .regex(
+      /^(?:[0-9]{1,2}[A-Za-z]{3}[0-9]{2}|[0-9]{4}-[0-9]{2}-[0-9]{2})$/,
+      "expiry must look like 13NOV26 or 2026-11-13",
+    )
     .optional()
     .describe("Only this expiry, as 13NOV26 or 2026-11-13."),
 });
@@ -645,7 +651,7 @@ export const getMicaStatusInputSchema = z.object({
 export const getMicaStatusDefinition = {
   name: "get_mica_status",
   description:
-    "EU MiCA applicability by country, with national authorities: one country (ISO-2), or every Member State on file when country is omitted or EU (27 EU Member States, EEA states once seeded). Partial while some Member States have no row. A country outside the EU and EEA lists answers unseeded. Per project status is not tracked: entity_slug is ignored. Pro tier.",
+    "EU MiCA applicability by country, with national authorities: one country (ISO-2), or every Member State on file when country is omitted or EU (27 EU Member States, EEA states once seeded). Partial while some Member States have no row. A country outside the EU and EEA lists answers unseeded unless BCA has a reviewed row for it. Per project status is not tracked: entity_slug is ignored. Pro tier.",
 };
 export const runGetMicaStatus = (i: any) => clientGet(`/v1/regulatory/mica`, i);
 
@@ -711,7 +717,7 @@ export const scanContractInputSchema = z.object({
 export const scanContractDefinition = {
   name: "scan_contract",
   description:
-    "Etherscan source check for an Ethereum contract: verified or not, contract name, compiler version, proxy flag and owner when it can be read. No honeypot or exploit simulation. Required: address (0x EVM address). Starter tier.",
+    "Etherscan source check for an Ethereum contract: verified or not, contract name, compiler version, proxy flag and implementation address, license and a source preview. No owner lookup, honeypot test or exploit simulation. Required: address (0x EVM address). Starter tier.",
 };
 export const runScanContract = (i: any) => clientGet(`/v1/security/scan-contract`, i);
 

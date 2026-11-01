@@ -30,6 +30,11 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 - `server.json` `packages[0].version` is 0.6.3.
 - Submission copy (SUBMISSION_ENTRY.json, ANTHROPIC_SUBMISSION.md, SUBMISSION_CHECKLIST.md, registry/, docs/launch/, docs/submissions/) has no em dashes and states 105 tools in 19 categories, 16 tools without a key and 38 lessons in 8 courses; tool names, REST routes and parameters in it are the real ones. SECURITY.md has no em dashes either.
 - `examples/research-agent.ts` reads the fenced `data` payload and its `results`, so its `get_entity` step runs (it read a `data.articles` key the tool result never had).
+- `summarize_whitepaper.url` must start with http:// or https://, as the API's URL type requires; other schemes failed with a 422 from the API and now fail locally with `BCA_BAD_REQUEST`.
+- `get_options_flow.expiry` is checked locally for the two forms the API reads (13NOV26 or 2026-11-13).
+- `search_news.since` takes a bare ISO date such as 2026-10-01, as its description and the API do; it was refused unless it carried a time.
+- `get_agent_job` fences the strings of the whitepaper summary at every depth, so the `tokenomics` object and named team entries are fenced too (only the top level was).
+- Descriptions: `scan_contract` lists the fields it returns (no owner lookup), `get_audit_reports` is partial only when every audit on file is a DefiLlama link, and `get_mica_status` returns a reviewed row for a country outside the EU and EEA instead of always answering unseeded.
 
 ## [0.6.2] — 2026-10-19
 

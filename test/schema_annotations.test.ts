@@ -97,7 +97,11 @@ describe("tools/list schemas (F05, F37)", () => {
     assert.equal(limit["maximum"], 50);
     assert.equal(limit["default"], 10);
     assert.deepEqual(tool("search_news").inputSchema["required"], ["query"]);
-    assert.equal(props("search_news")["since"]!["format"], "date-time");
+    // since takes a bare ISO date too (the API parses both), so it carries a
+    // length bound instead of format date-time; the converter's date-time
+    // output is checked on a synthetic schema below.
+    assert.equal(props("search_news")["since"]!["format"], undefined);
+    assert.equal(props("search_news")["since"]!["maxLength"], 64);
 
     const horizon = props("generate_tokenomics_model")["horizon_days"]!;
     assert.deepEqual(
