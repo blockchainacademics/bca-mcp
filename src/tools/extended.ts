@@ -463,7 +463,7 @@ export const getFundingRatesInputSchema = z.object({
 export const getFundingRatesDefinition = {
   name: "get_funding_rates",
   description:
-    "Perpetual funding rates for a symbol on Binance, Bybit and Hyperliquid (USDT pairs): rate, mark price and next funding time per venue, and the mean across the venues that answered. dYdX is listed as pending. Pro tier.",
+    "Perpetual funding rates for a symbol on Binance, Bybit and Hyperliquid (USDT pairs): each venue's raw rate with its funding interval (1, 4 or 8 hours), the rate on an 8 hour basis and annualized, mark price and next funding time, plus the mean of the 8 hour rates of the venues whose interval is known. dYdX is listed as pending, so the answer is partial. Pro tier.",
 };
 export const runGetFundingRates = (i: any) =>
   clientGet(`/v1/microstructure/funding-rates`, i);
