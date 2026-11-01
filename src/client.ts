@@ -570,11 +570,11 @@ export class BcaClient {
     let json: unknown;
     try {
       json = JSON.parse(bodyText);
-    } catch (err) {
-      throw new BcaUpstreamError(
-        res.status,
-        `Invalid JSON from BCA API: ${String(err)}`,
-      );
+    } catch {
+      // The parser's message quotes the start of the body ("Unexpected token
+      // 'I', "IGNORE ALL"... is not valid JSON"), which is upstream text, so
+      // it is left out: nothing from the API reaches the host model unfenced.
+      throw new BcaUpstreamError(res.status, "Invalid JSON from BCA API");
     }
 
     // Canonical envelope (JSON:API-inspired, locked 2026-04-22):

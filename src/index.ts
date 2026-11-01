@@ -5,7 +5,7 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { ZodError, type ZodTypeAny } from "zod";
+import { ZodError, ZodIssueCode, type ZodIssue, type ZodTypeAny } from "zod";
 
 import { BcaBadRequestError, BcaError, formatValidationError } from "./errors.js";
 import { VERSION } from "./version.js";
@@ -94,25 +94,46 @@ export interface ToolEntry {
   readonly run: (args: unknown) => Promise<ResponseEnvelope<unknown>>;
 }
 
+/**
+ * One "Unrecognized key" issue per argument the tool does not take. tools/list
+ * advertises additionalProperties: false, but a zod object drops unknown keys
+ * without a word, so a misspelled or renamed argument (deadline_days for
+ * deadline, objective for notes) would vanish while the call succeeds. The
+ * Python sibling rejects them the same way (pydantic extra="forbid").
+ */
+function undeclaredKeyIssues(args: unknown, declared: ReadonlySet<string>): ZodIssue[] {
+  if (args === null || typeof args !== "object" || Array.isArray(args)) return [];
+  return Object.keys(args)
+    .filter((key) => !declared.has(key))
+    .map((key) => ({ code: ZodIssueCode.custom, path: [key], message: "Unrecognized key" }));
+}
+
 /** Factory that produces a ToolEntry from a (schema, definition, runner) triad. */
 function entry<T>(
   schema: ZodTypeAny,
   def: { name: string; description: string },
   runner: (input: T) => Promise<any>,
 ): ToolEntry {
+  const inputSchema = zodToJsonSchema(schema);
+  // The argument names tools/list advertises; any other key is rejected.
+  const declared = new Set(Object.keys((inputSchema["properties"] as object | undefined) ?? {}));
   return {
     name: def.name,
     description: def.description,
     schema,
-    inputSchema: zodToJsonSchema(schema),
+    inputSchema,
     annotations: toolAnnotations(def.name),
     run: async (args) => {
       // Arguments are validated here, before any request is built, so bad
       // input never reaches the API. The .refine() one-of rules (get_entity,
-      // get_explainer) are enforced by this same parse.
-      const parsed = schema.safeParse(args ?? {});
-      if (!parsed.success) {
-        throw new BcaBadRequestError(formatValidationError(def.name, parsed.error));
+      // get_explainer) are enforced by this same parse, and keys the tool
+      // does not take are listed with the other problems.
+      const input = args ?? {};
+      const parsed = schema.safeParse(input);
+      const unknown = undeclaredKeyIssues(input, declared);
+      if (!parsed.success || unknown.length > 0) {
+        const issues = [...(parsed.success ? [] : parsed.error.issues), ...unknown];
+        throw new BcaBadRequestError(formatValidationError(def.name, new ZodError(issues)));
       }
       return runner(parsed.data as T);
     },

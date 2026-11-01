@@ -81,19 +81,28 @@ const MAX_ISSUES = 10;
 const MAX_ISSUE_CHARS = 200;
 
 /**
+ * The first `max` characters of `text` plus "...". Counted in code points, so
+ * a cut never leaves half a surrogate pair: zod echoes the caller's value in
+ * some messages (an invalid enum value, say), and a lone surrogate in the
+ * result breaks clients whose JSON decoder rejects it.
+ */
+function cap(text: string, max: number): string {
+  const chars = Array.from(text);
+  return chars.length > max ? `${chars.slice(0, max).join("")}...` : text;
+}
+
+/**
  * Render a zod validation failure as "field: problem" pairs, e.g.
  * `Invalid arguments for search_news: query: Required; limit: Number must be
  * less than or equal to 50`. A rule on the whole object (no field path, such
  * as get_entity's "exactly one of slug or ticker") is listed without a field.
+ * The field is capped too: an unrecognized key is named by the caller.
  */
 export function formatValidationError(toolName: string, err: ZodError): string {
   const parts: string[] = [];
   for (const issue of err.issues) {
-    const field = issue.path.map(String).join(".");
-    const problem =
-      issue.message.length > MAX_ISSUE_CHARS
-        ? `${issue.message.slice(0, MAX_ISSUE_CHARS)}...`
-        : issue.message;
+    const field = cap(issue.path.map(String).join("."), MAX_ISSUE_CHARS);
+    const problem = cap(issue.message, MAX_ISSUE_CHARS);
     const text = field ? `${field}: ${problem}` : problem;
     if (!parts.includes(text)) parts.push(text);
   }

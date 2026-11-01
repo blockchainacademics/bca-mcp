@@ -76,19 +76,37 @@ describe("book_kol_campaign matches KOLCampaignRequest", () => {
     }
   });
 
-  it("POSTs the API's field names and nothing from the 0.6.2 shape", async () => {
+  it("POSTs the API's field names", async () => {
     const { calls } = capture();
     const res = await callTool("book_kol_campaign", {
       ...kol,
       target_chains: ["solana"],
       notes: "Launch week",
-      objective: "dropped: not an API field",
     });
     assert.equal(res.isError, undefined);
     assert.equal(calls.length, 1);
     assert.equal(calls[0]!.method, "POST");
     assert.ok(calls[0]!.url.endsWith("/v1/services/book-kol-campaign"));
     assert.deepEqual(calls[0]!.body, { ...kol, target_chains: ["solana"], notes: "Launch week" });
+  });
+
+  it("a 0.6.2 field is reported, not dropped while the brief is filed without it", async () => {
+    const { calls } = capture();
+    const res = await callTool("book_kol_campaign", {
+      ...kol,
+      objective: "Korean retail awareness for the launch",
+      target_audience: "Korean retail",
+      launch_window_days: 14,
+    });
+    assert.equal(res.isError, true);
+    assert.equal(calls.length, 0, "nothing is sent");
+    const err = JSON.parse(res.content[0]!.text).error;
+    assert.equal(err.code, "BCA_BAD_REQUEST");
+    assert.equal(
+      err.message,
+      "Invalid arguments for book_kol_campaign: objective: Unrecognized key; " +
+        "target_audience: Unrecognized key; launch_window_days: Unrecognized key",
+    );
   });
 
   it("the old 0.6.2 arguments now fail locally with a clear message", async () => {
@@ -161,10 +179,20 @@ describe("submit_listing matches ListingSubmissionRequest", () => {
 
   it("POSTs the API's field names", async () => {
     const { calls } = capture();
-    const res = await callTool("submit_listing", { ...listing, entity: "dropped" });
+    const res = await callTool("submit_listing", listing);
     assert.equal(res.isError, undefined);
     assert.ok(calls[0]!.url.endsWith("/v1/services/submit-listing"));
     assert.deepEqual(calls[0]!.body, listing);
+  });
+
+  it("the 0.6.2 entity field is reported, not dropped", async () => {
+    const { calls } = capture();
+    const res = await callTool("submit_listing", { ...listing, entity: "example-bot" });
+    assert.equal(res.isError, true);
+    assert.equal(calls.length, 0);
+    const err = JSON.parse(res.content[0]!.text).error;
+    assert.equal(err.code, "BCA_BAD_REQUEST");
+    assert.equal(err.message, "Invalid arguments for submit_listing: entity: Unrecognized key");
   });
 });
 
@@ -193,6 +221,23 @@ describe("request_custom_research matches CustomResearchRequest", () => {
       target_wordcount: 3000,
       deadline: "within 2 weeks",
     });
+  });
+
+  it("the removed deadline_days is reported instead of filing the request without a deadline", async () => {
+    const { calls } = capture();
+    const res = await callTool("request_custom_research", {
+      contact_email: "analyst@example.com",
+      topic: "Restaking risk",
+      deadline_days: 3,
+    });
+    assert.equal(res.isError, true);
+    assert.equal(calls.length, 0);
+    const err = JSON.parse(res.content[0]!.text).error;
+    assert.equal(err.code, "BCA_BAD_REQUEST");
+    assert.equal(
+      err.message,
+      "Invalid arguments for request_custom_research: deadline_days: Unrecognized key",
+    );
   });
 
   it("describes what the API requires and returns", () => {
