@@ -72,7 +72,8 @@ server for AI agents that need ground-truth crypto data.
   source is not connected yet answer `unseeded` with a reason rather than
   failing or returning empty data as if it were complete.
 - **Zero-config demo**: without a key, 16 tools work under a shared daily
-  cap; a free key (2,000 calls a month) opens all 105.
+  cap; a free key (2,000 calls a month) opens 52, and paid plans open the
+  rest.
 
 ## Links
 

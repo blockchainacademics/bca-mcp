@@ -304,7 +304,7 @@ describe("demo banner text", () => {
     assert.equal(
       DEMO_BANNER,
       "[bca-mcp] Running in DEMO mode: 16 tools work without a key, under a shared daily cap.\n" +
-        "[bca-mcp] Get a free key for all tools: https://blockchainacademics.com/crypto-api/signup?ref=mcp-first-run\n" +
+        "[bca-mcp] A free key opens 52 tools and paid plans open the rest: https://blockchainacademics.com/crypto-api/signup?ref=mcp-first-run\n" +
         "[bca-mcp] Set: export BCA_API_KEY=bca_...   (or add to your client config)\n",
     );
   });

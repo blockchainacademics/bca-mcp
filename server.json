@@ -18,7 +18,7 @@
       "environmentVariables": [
         {
           "name": "BCA_API_KEY",
-          "description": "Optional. When unset, the server uses a public demo key: 16 tools work under a shared daily cap. Set a free key (2,000 calls a month) for all 105 tools: https://blockchainacademics.com/crypto-api/signup.",
+          "description": "Optional. When unset, the server uses a public demo key: 16 tools work under a shared daily cap. A free key (2,000 calls a month) opens 52 tools and paid plans open the rest: https://blockchainacademics.com/crypto-api/signup.",
           "isRequired": false,
           "isSecret": true,
           "format": "string"

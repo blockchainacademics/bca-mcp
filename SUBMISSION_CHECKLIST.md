@@ -130,8 +130,8 @@ one.
 npx -y @blockchainacademics/mcp
 ```
 
-Without a key, 16 tools work under a shared daily cap. For all 105, add a free
-key in `claude_desktop_config.json`:
+Without a key, 16 tools work under a shared daily cap. A free key opens 52
+tools and paid plans open the rest; add the key in `claude_desktop_config.json`:
 
 ```json
 {

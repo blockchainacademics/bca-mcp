@@ -58,7 +58,7 @@ Restart Claude Desktop. 16 tools work without a key, with real data and real cit
 
 `get_entity` works by slug without a key; its ticker form needs one. Every other tool answers with a clean upgrade message (`BCA_TIER_LOCKED`) that links to the free signup. Demo calls share a daily cap: 100 calls a day across all demo users, and 20 a day per IP.
 
-### Claude Desktop (full 105 tools)
+### Claude Desktop (with an API key)
 
 Get a free key at [blockchainacademics.com/crypto-api/signup](https://blockchainacademics.com/crypto-api/signup?ref=mcp-npm-readme) (2,000 calls/month per user) and add the env block:
 
@@ -74,7 +74,7 @@ Get a free key at [blockchainacademics.com/crypto-api/signup](https://blockchain
 }
 ```
 
-Restart Claude Desktop. All 105 tools appear in the tool picker.
+Restart Claude Desktop. All 105 tools appear in the tool picker: a free key opens 52 of them, and paid plans open the rest (see [API Key](#api-key)).
 
 ### Programmatic (LangChain, Eliza, custom agents)
 

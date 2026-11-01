@@ -43,6 +43,32 @@ describe("README and registry copy", () => {
     assert.ok(DEMO_BANNER.includes(`${DEMO_TOOLS.length} tools work without a key`));
   });
 
+  it("the banner, README, server.json and submission copy give the free key's real reach", () => {
+    // A tool on a paid plan names its tier in its description; the others are
+    // the free tier (52 of the 105 on 2026-11-01).
+    const paid = TOOLS.filter((t) => /\b(Starter|Pro|Team) tier\b/.test(t.description));
+    const free = TOOLS.length - paid.length;
+    assert.equal(free, 52);
+    assert.ok(DEMO_BANNER.includes(`A free key opens ${free} tools and paid plans open the rest`));
+    assert.ok(readme.includes(`opens the ${free} free-tier tools`));
+    const server = JSON.parse(read("server.json"));
+    const key = server.packages[0].environmentVariables.find(
+      (v: { name: string }) => v.name === "BCA_API_KEY",
+    );
+    assert.ok(String(key.description).includes(`opens ${free} tools and paid plans open the rest`));
+    const copy: Array<[string, string]> = [
+      ["banner", DEMO_BANNER],
+      ["README.md", readme],
+      ["server.json", String(key.description)],
+      ...["ANTHROPIC_SUBMISSION.md", "SUBMISSION_CHECKLIST.md", "docs/submissions/anthropic_mcp_directory.md"].map(
+        (path): [string, string] => [path, read(path)],
+      ),
+    ];
+    for (const [where, text] of copy) {
+      assert.ok(!/for all (105|tools)|opens all 105|full 105 tools/i.test(text), `${where} says a free key opens every tool`);
+    }
+  });
+
   it("README lists every demo tool and the locked count", () => {
     for (const name of DEMO_TOOLS) assert.ok(readme.includes(`\`${name}\``), `README lists ${name}`);
     assert.match(readme, /16 tools work without a key/);
