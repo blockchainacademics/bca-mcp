@@ -11,7 +11,7 @@ I built a crypto tool layer for AI agents: 105 tools, backed by a curated corpus
 
 **Body:**
 
-Been lurking here for years. I work at DEXTools (integrations and business development), and I co-founded DEXT Force Ventures, which invested in 100+ companies with $15M deployed onchain. Finally shipping something I always wished existed.
+Been lurking here for years. Finally shipping something I always wished existed.
 
 Short version: most AI agents that "analyze crypto" are running on paper-thin data: CoinGecko price, maybe an Etherscan call, a Twitter scrape if they're ambitious. Then the LLM hallucinates a narrative and nobody can trace where the "facts" came from. That's fine for a demo. It's useless for anything serious.
 
@@ -36,4 +36,4 @@ Break it. Tell me what tools are missing. If you're building an agent, a bot, or
 
 Not trying to pitch. Trying to ship something that pulls its weight for the people building on it.
 
-Wael (integrations and business development at DEXTools, co-founder of DEXT Force Ventures)
+Wael, founder of Blockchain Academics
