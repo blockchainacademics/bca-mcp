@@ -97,8 +97,14 @@ describe("README and registry copy", () => {
     ];
     for (const path of paths) {
       const text = read(path);
-      // Ex-DEXTools, never its builder or a member of its team.
-      assert.ok(!/I built DEXTools|DEXTools team|I run DEXT Force/i.test(text), `${path}: owner bio`);
+      // The owner works at DEXTools (integrations and business development):
+      // never "ex-DEXTools", its builder or founder, or "the DEXTools team".
+      assert.ok(
+        !/ex-DEXTools|I built DEXTools|founde(d|r of) DEXTools|DEXTools (co-?)?founder|DEXTools team|I run DEXT Force/i.test(text),
+        `${path}: owner bio`,
+      );
+      // DEXTools is his employer, never a sister company or part of a BCA group.
+      assert.ok(!/DEXTools[^.\n]*\bsister\b|\bsister\b[^.\n]*DEXTools|BCA group/i.test(text), `${path}: DEXTools affiliation`);
       // Memos and theses have no content yet, from DEXT Force Ventures or anyone.
       assert.ok(!/(memos|theses)[^.\n]*from DEXT Force/i.test(text), `${path}: memos claim`);
       // The 2026-06-02 load test is not the claim; the 0.6.3 tool runs are.
@@ -113,7 +119,7 @@ describe("README and registry copy", () => {
       "docs/launch/twitter_announcement_thread.md",
     ]) {
       const text = read(path);
-      assert.match(text, /ex-DEXTools/, path);
+      assert.match(text, /I work at DEXTools \(integrations and business development\)/, path);
       assert.match(text, /co-founde(d|r of) DEXT Force Ventures, which invested in 100\+ companies with \$15M deployed onchain/, path);
     }
     // The probe records (keyed runs of 2026-10-31 and 2026-11-01): 92 tools

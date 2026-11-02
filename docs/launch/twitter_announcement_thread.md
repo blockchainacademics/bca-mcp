@@ -57,13 +57,13 @@ v0.6.3 live on npm + PyPI. Open REST at api.blockchainacademics.com. Docs at blo
 Free tier included: 2,000 calls a month, no credit card.
 
 **7/**
-I'm ex-DEXTools.
+I work at DEXTools (integrations and business development).
 
 I co-founded DEXT Force Ventures, which invested in 100+ companies with $15M deployed onchain.
 
-I've watched this market for 7 years.
+For 7 years I kept wishing for a crypto knowledge layer agents can actually trust.
 
-The thing I kept wishing existed, a crypto knowledge layer that agents can actually trust, didn't exist. So we built it.
+It didn't exist. So we built it.
 
 **8/**
 5 tiers, starting free, scaling to institutional.

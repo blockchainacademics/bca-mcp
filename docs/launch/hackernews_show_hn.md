@@ -11,7 +11,7 @@ Show HN: bca-mcp, 105 crypto tools for AI agents with a proprietary corpus
 
 Hi HN,
 
-I'm Wael, ex-DEXTools and co-founder of DEXT Force Ventures, which invested in 100+ companies with $15M deployed onchain. For the past several months we've been building bca-mcp, a Model Context Protocol server (plus open REST API) exposing 105 tools for AI agents that need to reason about crypto markets.
+I'm Wael. I work at DEXTools (integrations and business development) and co-founded DEXT Force Ventures, which invested in 100+ companies with $15M deployed onchain. For the past several months we've been building bca-mcp, a Model Context Protocol server (plus open REST API) exposing 105 tools for AI agents that need to reason about crypto markets.
 
 What makes it different from the existing MCPs in this space is the data layer. Most crypto MCPs I've seen are thin wrappers over CoinGecko, Etherscan, or DEXTools. Ours sits on top of a proprietary editorial corpus: 3,800+ curated and deduplicated articles, 150+ entity dossiers with alias resolution (e.g., "CZ" and "Changpeng Zhao" collapse to the same entity), 38 academy lessons in 8 courses, a cross-domain entity graph, and a history API for backtesting sentiment and narrative features.
 
