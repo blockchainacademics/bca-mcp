@@ -19,7 +19,7 @@ Once the Loom is recorded, submission is ~5 minutes of copy-paste.
 - [ ] `server.json` `_meta....tool.version` = `0.6.3`
 - [ ] `_meta....tool_count` = `105` and `sum(tool_categories[].count) = 105` (19 categories)
 - [ ] `npm view @blockchainacademics/mcp version` returns `0.6.3` (registry propagated)
-- [ ] `npx -y @blockchainacademics/mcp` boots clean on a non-dev shell (fresh machine); without a key it prints the demo banner (16 tools work without a key)
+- [ ] `npx -y @blockchainacademics/mcp` boots clean on a non-dev shell (fresh machine); without a key it prints the demo banner (17 tools work without a key)
 - [ ] `LICENSE` present at repo root (MIT)
 - [ ] `CHANGELOG.md` has a `0.6.3` entry
 - [ ] GitHub tag `v0.6.3` pushed: `git tag -a v0.6.3 -m "v0.6.3" && git push origin v0.6.3`
@@ -130,7 +130,7 @@ one.
 npx -y @blockchainacademics/mcp
 ```
 
-Without a key, 16 tools work under a shared daily cap. A free key opens 52
+Without a key, 17 tools work under a shared daily cap. A free key opens 52
 tools and paid plans open the rest; add the key in `claude_desktop_config.json`:
 
 ```json

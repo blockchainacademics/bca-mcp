@@ -15,7 +15,7 @@ export const getArticleInputSchema = z.object({
 export const getArticleDefinition = {
   name: "get_article",
   description:
-    "Fetch one BCA article by slug: title, summary, full text (body_md), author, source, publish date, topics, tickers and entity slugs, with the article as its citation. Use after search_news when you need the full text. An unknown slug is an error (HTTP 404).",
+    "Fetch one BCA article by slug: title, summary, full text (body_md), author, source, publish date, topics, tickers and entity slugs, with the article as its citation. Use after search_news when you need the full text. An unknown slug is an error (HTTP 404). Works without an API key.",
 };
 // Text fields that come from the article itself (body, summary, excerpt).
 const ARTICLE_TEXT_FIELDS = ["body_md", "body", "excerpt", "body_markdown", "summary"];

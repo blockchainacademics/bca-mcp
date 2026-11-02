@@ -27,7 +27,7 @@ Insert alphabetically under `B` (sorts as "Blockchain Academics") in the
 Community Servers section:
 
 ```markdown
-- **[Blockchain Academics](https://github.com/blockchainacademics/bca-mcp)** - Canonical crypto MCP: 105 tools across news, entities, academy lessons, market data, on-chain, sentiment, proprietary indicators, and agent-backed research generation. Every response carries `attribution.citations[]` (cite_url, as_of, source_hash) and an honest `meta.status`. 16 tools work without a key: `npx -y @blockchainacademics/mcp`
+- **[Blockchain Academics](https://github.com/blockchainacademics/bca-mcp)** - Canonical crypto MCP: 105 tools across news, entities, academy lessons, market data, on-chain, sentiment, proprietary indicators, and agent-backed research generation. Every response carries `attribution.citations[]` (cite_url, as_of, source_hash) and an honest `meta.status`. 17 tools work without a key: `npx -y @blockchainacademics/mcp`
 ```
 
 ### 1b. README entry: table-row fallback
@@ -71,7 +71,7 @@ server for AI agents that need ground-truth crypto data.
   stale or unseeded) with a structured `meta.diagnostic`. Tools whose data
   source is not connected yet answer `unseeded` with a reason rather than
   failing or returning empty data as if it were complete.
-- **Zero-config demo**: without a key, 16 tools work under a shared daily
+- **Zero-config demo**: without a key, 17 tools work under a shared daily
   cap; a free key (2,000 calls a month) opens 52, and paid plans open the
   rest.
 

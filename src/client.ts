@@ -398,7 +398,7 @@ export class BcaClient {
     this.isNonDefaultBase = resolved !== DEFAULT_BASE;
 
     // Auth fallback chain (v0.5.0): explicit > env > demo. Demo key is
-    // public, rate-limited, and gated to the 16-tool demo allowlist by the backend.
+    // public, rate-limited, and gated to the 17-tool demo allowlist by the backend.
     // The fallback exists so `npx -y @blockchainacademics/mcp` is a true
     // zero-config first-run experience instead of a BCA_AUTH wall.
     // A pasted key often brings a trailing newline or space: it is trimmed,

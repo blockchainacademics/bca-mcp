@@ -1,6 +1,6 @@
 /**
  * Docs stay in step with the code (probe units F36 and F51): the README
- * lists the 16 demo tools the API allowlists, the counts match, and no
+ * lists the 17 demo tools the API allowlists, the counts match, and no
  * user-facing copy carries an em dash.
  */
 import { describe, it } from "node:test";
@@ -13,13 +13,15 @@ import { DEMO_BANNER } from "../src/demo_banner.js";
 const root = new URL("../", import.meta.url);
 const read = (path: string) => readFileSync(new URL(path, root), "utf8");
 
-// Mirror of the API's app/api/v1/_demo_allowlist.py (main, 2026-10-31).
+// Mirror of the API's app/api/v1/_demo_allowlist.py (2026-11-02: the 16 of
+// 2026-10-31 plus get_article).
 const DEMO_TOOLS = [
   "get_price",
   "get_trending",
   "get_fear_greed",
   "get_market_overview",
   "search_news",
+  "get_article",
   "get_sentiment",
   "get_entity",
   "get_explainer",
@@ -39,8 +41,84 @@ describe("README and registry copy", () => {
   it("the demo tools exist and the banner count matches", () => {
     const names = new Set(TOOLS.map((t) => t.name));
     for (const name of DEMO_TOOLS) assert.ok(names.has(name), `${name} is a tool`);
-    assert.equal(DEMO_TOOLS.length, 16);
+    assert.equal(DEMO_TOOLS.length, 17);
     assert.ok(DEMO_BANNER.includes(`${DEMO_TOOLS.length} tools work without a key`));
+  });
+
+  it("every demo tool's description says it works without a key", () => {
+    for (const name of DEMO_TOOLS) {
+      const tool = TOOLS.find((t) => t.name === name)!;
+      // get_entity: only the slug form ("the slug form works without one").
+      assert.match(tool.description, /works without (an API key|one)/i, name);
+    }
+    assert.match(TOOLS.find((t) => t.name === "get_article")!.description, /Works without an API key\./);
+  });
+
+  it("no submission, registry or launch copy still counts 16 demo tools", () => {
+    const paths = [
+      "README.md",
+      "server.json",
+      "ANTHROPIC_SUBMISSION.md",
+      "SUBMISSION_CHECKLIST.md",
+      "SUBMISSION_ENTRY.json",
+      "docs/submissions/anthropic_mcp_directory.md",
+      "docs/submissions/eliza_registry.md",
+      "docs/submissions/virtuals_io_submission.md",
+      "registry/eliza-plugin.md",
+      "registry/virtuals-manifest.json",
+      "docs/launch/hackernews_show_hn.md",
+      "docs/launch/reddit_r_MachineLearning_or_cryptodev.md",
+      "docs/launch/twitter_announcement_thread.md",
+      "docs/launch/linkedin_post.md",
+    ];
+    for (const path of paths) {
+      const text = read(path);
+      assert.ok(!/\b16 tools\b|\b16 of (which|them)\b|\(16 without|\b89 of the 105\b|\bother 89\b/.test(text), `${path} counts 16 demo tools`);
+    }
+    assert.match(read("server.json"), /17 tools work under a shared daily cap/);
+    assert.match(read("SUBMISSION_ENTRY.json"), /opens 17 tools \(/);
+  });
+
+  it("launch and submission copy keep the owner's bio and the verified test claim", () => {
+    const paths = [
+      "SUBMISSION_ENTRY.json",
+      "ANTHROPIC_SUBMISSION.md",
+      "SUBMISSION_CHECKLIST.md",
+      "docs/submissions/anthropic_mcp_directory.md",
+      "docs/submissions/eliza_registry.md",
+      "docs/submissions/virtuals_io_submission.md",
+      "registry/eliza-plugin.md",
+      "registry/virtuals-manifest.json",
+      "docs/launch/hackernews_show_hn.md",
+      "docs/launch/reddit_r_MachineLearning_or_cryptodev.md",
+      "docs/launch/twitter_announcement_thread.md",
+      "docs/launch/twitter_single_tweet.md",
+      "docs/launch/linkedin_post.md",
+    ];
+    for (const path of paths) {
+      const text = read(path);
+      // Ex-DEXTools, never its builder or a member of its team.
+      assert.ok(!/I built DEXTools|DEXTools team|I run DEXT Force/i.test(text), `${path}: owner bio`);
+      // Memos and theses have no content yet, from DEXT Force Ventures or anyone.
+      assert.ok(!/(memos|theses)[^.\n]*from DEXT Force/i.test(text), `${path}: memos claim`);
+      // The 2026-06-02 load test is not the claim; the 0.6.3 tool runs are.
+      assert.ok(!/1,820|91% zero-error|zero-error under/i.test(text), `${path}: old load-test stat`);
+      assert.ok(!text.includes("\u2014"), `${path}: em dash`);
+    }
+    for (const path of [
+      "docs/launch/hackernews_show_hn.md",
+      "docs/launch/reddit_r_MachineLearning_or_cryptodev.md",
+      "docs/launch/twitter_announcement_thread.md",
+    ]) {
+      const text = read(path);
+      assert.match(text, /ex-DEXTools/, path);
+      assert.match(text, /co-founde(d|r of) DEXT Force Ventures, which invested in 100\+ companies with \$15M deployed onchain/, path);
+    }
+    assert.ok(
+      read("SUBMISSION_ENTRY.json").includes(
+        "Every tool was tested on 2026-10-31 and again after the fixes on 2026-11-01, with zero crashes.",
+      ),
+    );
   });
 
   it("the banner, README, server.json and submission copy give the free key's real reach", () => {
@@ -71,10 +149,10 @@ describe("README and registry copy", () => {
 
   it("README lists every demo tool and the locked count", () => {
     for (const name of DEMO_TOOLS) assert.ok(readme.includes(`\`${name}\``), `README lists ${name}`);
-    assert.match(readme, /16 tools work without a key/);
-    assert.match(readme, /89 of the 105 tools/);
+    assert.match(readme, /17 tools work without a key/);
+    assert.match(readme, /88 of the 105 tools/);
     assert.match(readme, /clean upgrade message/);
-    assert.ok(!/10 marquee|91 of the 105|~10 tools/.test(readme));
+    assert.ok(!/10 marquee|91 of the 105|89 of the 105|16 tools work|~10 tools/.test(readme));
   });
 
   it("README states the real academy size", () => {

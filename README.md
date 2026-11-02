@@ -52,9 +52,9 @@ The package ships with a public demo key baked in. No signup needed to try it. A
 }
 ```
 
-Restart Claude Desktop. 16 tools work without a key, with real data and real citations:
+Restart Claude Desktop. 17 tools work without a key, with real data and real citations:
 
-`get_price`, `get_trending`, `get_fear_greed`, `get_market_overview`, `search_news`, `get_sentiment`, `get_entity`, `get_explainer`, `get_recent_stories`, `get_topic`, `search_grants`, `get_grant`, `list_jobs`, `get_job`, `search_academy`, `get_as_of_snapshot`
+`get_price`, `get_trending`, `get_fear_greed`, `get_market_overview`, `search_news`, `get_article`, `get_sentiment`, `get_entity`, `get_explainer`, `get_recent_stories`, `get_topic`, `search_grants`, `get_grant`, `list_jobs`, `get_job`, `search_academy`, `get_as_of_snapshot`
 
 `get_entity` works by slug without a key; its ticker form needs one. Every other tool answers with a clean upgrade message (`BCA_TIER_LOCKED`) that links to the free signup. Demo calls share a daily cap: 100 calls a day across all demo users, and 20 a day per IP.
 
@@ -183,7 +183,7 @@ Every response includes a structured `attribution` block with a `citations` arra
 
 ## API Key
 
-**Not required to try it.** When `BCA_API_KEY` is unset, the server falls back to a baked-in public demo key: the 16 tools listed under [Install](#install) work, and every other tool answers with a clean upgrade message.
+**Not required to try it.** When `BCA_API_KEY` is unset, the server falls back to a baked-in public demo key: the 17 tools listed under [Install](#install) work, and every other tool answers with a clean upgrade message.
 
 For more, get a free key at [blockchainacademics.com/crypto-api/signup](https://blockchainacademics.com/crypto-api/signup?ref=mcp-npm-apikey) (2,000 calls/month): it opens the 52 free-tier tools. Paid tiers unlock the rest, such as agent-backed research generation, crypto Twitter intelligence and the proprietary indicators; each tool's description names its tier when it is not free.
 
@@ -202,7 +202,7 @@ A request that is not a valid MCP call at all (arguments that are not an object,
 | Code | Meaning |
 |---|---|
 | `BCA_AUTH` | Invalid `BCA_API_KEY` (HTTP 401/403), or a key that cannot be sent as a header value (a line break inside it); the key itself is never repeated in the message |
-| `BCA_TIER_LOCKED` | Tool not in your current tier's allowlist (HTTP 403). Without a key this applies to 89 of the 105 tools; the message includes the signup URL. |
+| `BCA_TIER_LOCKED` | Tool not in your current tier's allowlist (HTTP 403). Without a key this applies to 88 of the 105 tools; the message includes the signup URL. |
 | `BCA_RATE_LIMIT` | Rate limit exceeded (HTTP 429; honor `Retry-After`) |
 | `BCA_UPSTREAM` | BCA API returned an error status or malformed JSON. For a 4xx the message carries the API's own detail (up to 500 characters) inside an `<untrusted_content>` fence; a 5xx stays generic. |
 | `BCA_NETWORK` | Network failure or 20s timeout exceeded |

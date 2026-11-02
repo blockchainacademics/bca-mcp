@@ -78,7 +78,7 @@ const { tools } = await bca.listTools();
 ```
 
 ## Auth
-Single env var: `BCA_API_KEY`, optional. Without it, 16 tools work on the public demo key under a shared daily cap. Free key (2,000 calls a month) at https://blockchainacademics.com/crypto-api/signup; paid plans at https://blockchainacademics.com/crypto-api/pricing.
+Single env var: `BCA_API_KEY`, optional. Without it, 17 tools work on the public demo key under a shared daily cap. Free key (2,000 calls a month) at https://blockchainacademics.com/crypto-api/signup; paid plans at https://blockchainacademics.com/crypto-api/pricing.
 
 ## Rate Limits
 Per key, enforced by the API (requests per second and calls per UTC day):

@@ -5,7 +5,7 @@
   "insert_position": "alphabetical under B (sorts as 'Blockchain Academics')",
   "insert_section": "🌎 Community Servers (or equivalent current heading)",
 
-  "variant_a_readme_bullet": "- **[Blockchain Academics](https://github.com/blockchainacademics/bca-mcp)** - Canonical crypto MCP: 105 tools across news, entities, academy lessons, market data, on-chain, sentiment, proprietary indicators, and agent-backed research generation. Hybrid `attribution.citations[]` puts the primary source first (the real upstream URL such as the original article, CoinGecko, Etherscan or the SEC), with the BCA editorial link where the site has a page for the data. Zero-config demo on first run (16 tools, no API key needed): `npx -y @blockchainacademics/mcp`",
+  "variant_a_readme_bullet": "- **[Blockchain Academics](https://github.com/blockchainacademics/bca-mcp)** - Canonical crypto MCP: 105 tools across news, entities, academy lessons, market data, on-chain, sentiment, proprietary indicators, and agent-backed research generation. Hybrid `attribution.citations[]` puts the primary source first (the real upstream URL such as the original article, CoinGecko, Etherscan or the SEC), with the BCA editorial link where the site has a page for the data. Zero-config demo on first run (17 tools, no API key needed): `npx -y @blockchainacademics/mcp`",
 
   "variant_b_readme_table_row": "| [Blockchain Academics](https://github.com/blockchainacademics/bca-mcp) | `@blockchainacademics/mcp` | Canonical crypto MCP: 105 tools spanning news, entities, academy, market data, on-chain, sentiment, proprietary indicators, and agent-backed generation. Hybrid citations: the real upstream URL first, the BCA editorial link where the site has a page. |",
 
@@ -49,11 +49,11 @@
     ],
     "tool_count": 105,
     "highlights": [
-      "Zero-config first run: `npx -y @blockchainacademics/mcp` works without any API key. The package ships with a public demo key that opens 16 tools (price, market overview, trending, fear and greed, sentiment, news search, as-of snapshot, entity by slug, explainer, academy search, recent stories, topic, grants search and detail, jobs list and detail), under a shared cap of 100 calls a day plus 20 a day per IP.",
+      "Zero-config first run: `npx -y @blockchainacademics/mcp` works without any API key. The package ships with a public demo key that opens 17 tools (price, market overview, trending, fear and greed, sentiment, news search, article full text, as-of snapshot, entity by slug, explainer, academy search, recent stories, topic, grants search and detail, jobs list and detail), under a shared cap of 100 calls a day plus 20 a day per IP.",
       "105 tools across 19 categories (news, market data, on-chain, sentiment, proprietary indicators, agent-backed generation, directories, fundamentals, chain-specific, microstructure, narrative, regulatory, security, memes, compute/AI, services, history, corpus meta, memos/theses/social/currencies)",
       "Hybrid `attribution.citations[]` envelope: citations[0] is the primary source, the real upstream URL (the original article, CoinGecko, Etherscan, SEC, DefiLlama, ...) when there is one; a BCA editorial link follows where the site has a page for the data. LLMs get true provenance first.",
       "Honest `meta.status` enum on every response (complete | unseeded | partial | stale): vendor-degraded, stale and not-yet-ingested data are explicitly flagged with structured `meta.diagnostic` rather than masked as empty arrays. `meta.tier` and `meta.upgrade_url` carry tier hints back to agents.",
-      "Battle-tested: 1,820 sustained-load calls, 91% zero-error, 0 citation drift (2026-06-02); every tool probed again on 2026-10-31 before 0.6.3.",
+      "Every tool was tested on 2026-10-31 and again after the fixes on 2026-11-01, with zero crashes.",
       "Security hardening (H-1 + H-2 + H-3 + MCP-TS-2): BCA_API_BASE allowlist, prompt-injection fencing on tool data, webhook SSRF guard, redirect rejection."
     ],
     "maintainer": {

@@ -41,7 +41,6 @@ What's under the hood:
 - Curated news pipeline (not RSS spam)
 - Entity graph with alias resolution (CZ → Changpeng Zhao, etc.)
 - History API for backtesting sentiment/narrative
-- Memos + theses from DEXT Force Ventures
 - On-chain + microstructure + regulatory + security
 
 **6/**
@@ -58,7 +57,11 @@ v0.6.3 live on npm + PyPI. Open REST at api.blockchainacademics.com. Docs at blo
 Free tier included: 2,000 calls a month, no credit card.
 
 **7/**
-I built DEXTools. I run DEXT Force Ventures. I've watched this market for 7 years.
+I'm ex-DEXTools.
+
+I co-founded DEXT Force Ventures, which invested in 100+ companies with $15M deployed onchain.
+
+I've watched this market for 7 years.
 
 The thing I kept wishing existed, a crypto knowledge layer that agents can actually trust, didn't exist. So we built it.
 

@@ -11,7 +11,7 @@ I built a crypto tool layer for AI agents: 105 tools, backed by a curated corpus
 
 **Body:**
 
-Been lurking here for years. Finally shipping something I wish existed when I was on the DEXTools team.
+Been lurking here for years. I'm ex-DEXTools, and I co-founded DEXT Force Ventures, which invested in 100+ companies with $15M deployed onchain. Finally shipping something I always wished existed.
 
 Short version: most AI agents that "analyze crypto" are running on paper-thin data: CoinGecko price, maybe an Etherscan call, a Twitter scrape if they're ambitious. Then the LLM hallucinates a narrative and nobody can trace where the "facts" came from. That's fine for a demo. It's useless for anything serious.
 
@@ -19,7 +19,7 @@ So we built bca-mcp. 105 tools across 19 categories, for agents that need to act
 
 **What's in it:**
 - news, market data, on-chain, sentiment, indicators, fundamentals, agent jobs
-- 66 more tools: narrative tracking, regulatory, security, memes, microstructure, directories, memos, theses, history API
+- 66 more tools: narrative tracking, regulatory, security, memes, microstructure, directories, history API
 - Proprietary editorial corpus underneath: 3,800+ curated articles, 150+ entity dossiers with alias resolution, 38 academy lessons in 8 courses
 
 **The part devs will care about:**
@@ -36,4 +36,4 @@ Break it. Tell me what tools are missing. If you're building an agent, a bot, or
 
 Not trying to pitch. Trying to ship something that pulls its weight for the people building on it.
 
-Wael (ex-DEXTools, DEXT Force Ventures)
+Wael (ex-DEXTools, co-founder of DEXT Force Ventures)

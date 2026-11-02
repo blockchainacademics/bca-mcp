@@ -29,7 +29,7 @@ pnpm add @blockchainacademics/eliza-plugin
 BCA_API_KEY=bca_live_xxxxxxxxxxxxxxxxxxxxx
 ```
 
-Optional: without a key the MCP server runs on its public demo key (16 tools, shared daily cap). Free key (2,000 calls a month) at https://blockchainacademics.com/crypto-api/signup; paid plans at https://blockchainacademics.com/crypto-api/pricing.
+Optional: without a key the MCP server runs on its public demo key (17 tools, shared daily cap). Free key (2,000 calls a month) at https://blockchainacademics.com/crypto-api/signup; paid plans at https://blockchainacademics.com/crypto-api/pricing.
 
 ## Register in `agent/src/index.ts`
 

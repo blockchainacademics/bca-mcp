@@ -308,7 +308,7 @@ export async function callBcaTool(name: string, args: unknown) {
 pnpm add @elizaos/plugin-bca
 
 # 2. Get a BCA API key (free tier: 2,000 calls/month). Without one the MCP
-#    server runs on its public demo key: 16 tools under a shared daily cap.
+#    server runs on its public demo key: 17 tools under a shared daily cap.
 # https://blockchainacademics.com/crypto-api/signup
 
 # 3. Set the env var

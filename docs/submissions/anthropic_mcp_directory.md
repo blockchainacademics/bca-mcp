@@ -27,7 +27,7 @@ uvx bca-mcp
 ```
 
 ## Authentication
-Optional. Without `BCA_API_KEY`, 16 tools work on a public demo key under a shared daily cap. A free key (2,000 calls a month) opens 52 tools, and paid plans open the rest: https://blockchainacademics.com/crypto-api/pricing.
+Optional. Without `BCA_API_KEY`, 17 tools work on a public demo key under a shared daily cap. A free key (2,000 calls a month) opens 52 tools, and paid plans open the rest: https://blockchainacademics.com/crypto-api/pricing.
 
 ## Tool Count by Category (105 total, 19 categories)
 | Category | Tools | Examples |

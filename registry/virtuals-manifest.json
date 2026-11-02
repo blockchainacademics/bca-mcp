@@ -66,7 +66,7 @@
     "env_variable": "BCA_API_KEY",
     "issuer": "https://blockchainacademics.com/crypto-api/signup",
     "free_tier_calls_per_month": 2000,
-    "notes": "Optional. Without BCA_API_KEY the package uses a public demo key: 16 tools work under a shared cap of 100 calls a day plus 20 a day per IP. A free key (2,000 calls a month, attribution required) opens every free tool; paid tiers open the rest."
+    "notes": "Optional. Without BCA_API_KEY the package uses a public demo key: 17 tools work under a shared cap of 100 calls a day plus 20 a day per IP. A free key (2,000 calls a month, attribution required) opens every free tool; paid tiers open the rest."
   },
   "pricing": {
     "model": "freemium-tiered",
@@ -90,7 +90,7 @@
         "calls_per_month": 25000,
         "features": [
           "Everything in Free",
-          "24 more tools: OHLC candles, DEX pair data, wallet and transaction lookups, the risk score, yields, VCs and trading bots, regulatory status, tax rules and SEC filings, audits and roadmaps, narrative tracking, RWA tokens, memos and theses, Bitcoin L2s and AI crypto metrics, marketing templates, contract scan"
+          "24 more tools: OHLC candles, DEX pair data, wallet and transaction lookups, the risk score, yields, VCs and trading bots, regulatory status, tax rules and SEC filings, audits and roadmaps, narrative tracking, RWA tokens, Bitcoin L2s and AI crypto metrics, marketing templates, contract scan"
         ]
       },
       {
