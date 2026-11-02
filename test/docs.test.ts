@@ -103,6 +103,8 @@ describe("README and registry copy", () => {
       assert.ok(!/(memos|theses)[^.\n]*from DEXT Force/i.test(text), `${path}: memos claim`);
       // The 2026-06-02 load test is not the claim; the 0.6.3 tool runs are.
       assert.ok(!/1,820|91% zero-error|zero-error under/i.test(text), `${path}: old load-test stat`);
+      // Those runs left out the write and paid tools: never "every tool".
+      assert.ok(!/every tool (was |were |is )?(tested|probed|called|exercised)/i.test(text), `${path}: every tool claim`);
       assert.ok(!text.includes("\u2014"), `${path}: em dash`);
     }
     for (const path of [
@@ -114,9 +116,12 @@ describe("README and registry copy", () => {
       assert.match(text, /ex-DEXTools/, path);
       assert.match(text, /co-founde(d|r of) DEXT Force Ventures, which invested in 100\+ companies with \$15M deployed onchain/, path);
     }
+    // The probe records (keyed runs of 2026-10-31 and 2026-11-01): 92 tools
+    // called live on both dates, zero crashes; 12 write or paid tools were
+    // never called live, and get_tx waited on another call on 2026-11-01.
     assert.ok(
       read("SUBMISSION_ENTRY.json").includes(
-        "Every tool was tested on 2026-10-31 and again after the fixes on 2026-11-01, with zero crashes.",
+        "92 of the 105 tools were called live against the production API on 2026-10-31 and again after the fixes on 2026-11-01, with zero crashes. Tools that write records or run paid compute were not called live.",
       ),
     );
   });

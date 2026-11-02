@@ -53,7 +53,7 @@
       "105 tools across 19 categories (news, market data, on-chain, sentiment, proprietary indicators, agent-backed generation, directories, fundamentals, chain-specific, microstructure, narrative, regulatory, security, memes, compute/AI, services, history, corpus meta, memos/theses/social/currencies)",
       "Hybrid `attribution.citations[]` envelope: citations[0] is the primary source, the real upstream URL (the original article, CoinGecko, Etherscan, SEC, DefiLlama, ...) when there is one; a BCA editorial link follows where the site has a page for the data. LLMs get true provenance first.",
       "Honest `meta.status` enum on every response (complete | unseeded | partial | stale): vendor-degraded, stale and not-yet-ingested data are explicitly flagged with structured `meta.diagnostic` rather than masked as empty arrays. `meta.tier` and `meta.upgrade_url` carry tier hints back to agents.",
-      "Every tool was tested on 2026-10-31 and again after the fixes on 2026-11-01, with zero crashes.",
+      "92 of the 105 tools were called live against the production API on 2026-10-31 and again after the fixes on 2026-11-01, with zero crashes. Tools that write records or run paid compute were not called live.",
       "Security hardening (H-1 + H-2 + H-3 + MCP-TS-2): BCA_API_BASE allowlist, prompt-injection fencing on tool data, webhook SSRF guard, redirect rejection."
     ],
     "maintainer": {
