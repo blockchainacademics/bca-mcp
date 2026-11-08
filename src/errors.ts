@@ -177,7 +177,24 @@ export const validationMessage: z.core.$ZodErrorMap = (issue) => {
 };
 
 /** The parts of a zod issue formatValidationError reads. */
-type ValidationIssue = Pick<z.core.$ZodIssue, "code" | "path" | "message">;
+type ValidationIssue = Pick<z.core.$ZodIssue, "code" | "path" | "message"> & {
+  readonly origin?: string;
+  readonly minimum?: number | bigint;
+  readonly maximum?: number | bigint;
+};
+
+/**
+ * True for the safe integer range zod 4 checks on every .int() (origin
+ * "int"), which tools/list does not advertise; a bound the tool sets itself
+ * has origin "number".
+ */
+function isSafeRangeIssue(issue: ValidationIssue): boolean {
+  if (issue.origin !== "int") return false;
+  return (
+    (issue.code === "too_big" && issue.maximum === Number.MAX_SAFE_INTEGER) ||
+    (issue.code === "too_small" && issue.minimum === Number.MIN_SAFE_INTEGER)
+  );
+}
 
 /**
  * Render zod validation issues as "field: problem" pairs, e.g.
@@ -195,9 +212,14 @@ export function formatValidationError(
   // wrong lists only that problem, as it did on zod 3.
   const fieldKey = (issue: ValidationIssue) => JSON.stringify(issue.path.map(String));
   const mistyped = new Set(issues.filter((i) => i.code === "invalid_type").map(fieldKey));
+  // An integer past the safe range that also breaks the field's own bound
+  // (limit: 1e20 against at most 50) lists only that bound, as on zod 3; with
+  // no bound of its own (offset: 1e20), the safe range is the problem shown.
+  const otherProblem = new Set(issues.filter((i) => !isSafeRangeIssue(i)).map(fieldKey));
   const parts: string[] = [];
   for (const issue of issues) {
     if (issue.code !== "invalid_type" && mistyped.has(fieldKey(issue))) continue;
+    if (isSafeRangeIssue(issue) && otherProblem.has(fieldKey(issue))) continue;
     const field = cap(issue.path.map(String).join("."), MAX_ISSUE_CHARS);
     const problem = cap(issue.message, MAX_ISSUE_CHARS);
     const text = field ? `${field}: ${problem}` : problem;

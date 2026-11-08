@@ -122,6 +122,22 @@ describe("argument validation errors", () => {
     assert.equal(err.message, "Invalid arguments for search_news: query: Expected string, received array");
   });
 
+  it("an integer past the safe range names the field's own bound, or the range when it has none", async () => {
+    // zod 4's .int() also checks +/-(2^53 - 1), which tools/list does not
+    // advertise; a field that sets a bound of its own lists only that bound.
+    const cases: Array<[Record<string, unknown>, string]> = [
+      [{ query: "btc", limit: 1e20 }, "limit: Number must be less than or equal to 50"],
+      [{ query: "btc", limit: -1e20 }, "limit: Number must be greater than or equal to 1"],
+      [{ query: "btc", offset: -1e20 }, "offset: Number must be greater than or equal to 0"],
+      [{ query: "btc", offset: 1e20 }, "offset: Number must be less than or equal to 9007199254740991"],
+    ];
+    for (const [args, problems] of cases) {
+      const err = await callError("search_news", args);
+      assert.equal(err.code, "BCA_BAD_REQUEST");
+      assert.equal(err.message, `Invalid arguments for search_news: ${problems}`);
+    }
+  });
+
   it("string bounds count code points, as tools/list's minLength and maxLength do", async () => {
     // Three emoji are six UTF-16 units but three characters: below the 4
     // character minimum of request_custom_research.topic.
