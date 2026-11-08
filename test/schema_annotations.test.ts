@@ -57,10 +57,10 @@ describe("tools/list schemas (F05, F37)", () => {
   it("advertised properties match the zod shape for every tool (refine included)", () => {
     let withArgs = 0;
     for (const t of TOOLS) {
-      // Independent walk: strip .refine() effects, read the object shape.
-      let s: any = t.schema;
-      while (s?._def?.typeName === "ZodEffects") s = s._def.schema;
-      const shapeKeys = Object.keys(s.shape).sort();
+      // Independent read: in zod 4 .refine() returns the object itself (no
+      // ZodEffects wrapper), so every tool schema is a ZodObject with a shape.
+      assert.ok(t.schema instanceof z.ZodObject, `${t.name} schema is a zod object`);
+      const shapeKeys = Object.keys((t.schema as z.ZodObject).shape).sort();
       const advertised = Object.keys(t.inputSchema["properties"] as object).sort();
       assert.deepEqual(advertised, shapeKeys, `${t.name} properties`);
       if (shapeKeys.length > 0) withArgs++;
@@ -129,13 +129,62 @@ describe("tools/list schemas (F05, F37)", () => {
   });
 
   it("emits string formats for email and url checks", () => {
-    assert.equal(props("book_kol_campaign")["contact_email"]!["format"], "email");
+    // The format by name only: zod 4 would add the regex it checks addresses
+    // with as a pattern.
+    for (const name of ["book_kol_campaign", "request_custom_research", "submit_listing"]) {
+      const { description: _description, ...email } = props(name)["contact_email"]!;
+      assert.deepEqual(email, { type: "string", format: "email", maxLength: 254 }, `${name}.contact_email`);
+    }
+    // The .regex() after the url check keeps format uri (zod 4 alone drops it).
     const url = props("summarize_whitepaper")["url"]!;
     assert.equal(url["format"], "uri");
     assert.equal(url["maxLength"], 2048);
+    assert.equal(url["pattern"], "^https?:\\/\\/");
     const hook = props("monitor_keyword")["webhook_url"]!;
     assert.equal(hook["format"], "uri");
     assert.equal(hook["pattern"], "^https:\\/\\/");
+    const listing = props("submit_listing")["listing_url"]!;
+    assert.equal(listing["format"], "uri");
+    assert.equal(listing["pattern"], "^https?:\\/\\/");
+  });
+
+  it("integers advertise only the bounds the tool sets", () => {
+    // zod 4 checks .int() against the safe integer range; tools/list does not
+    // advertise that range, so a lower bound alone stays alone.
+    const offset = props("search_news")["offset"]!;
+    assert.deepEqual(
+      { type: offset["type"], minimum: offset["minimum"], maximum: offset["maximum"] },
+      { type: "integer", minimum: 0, maximum: undefined },
+    );
+    for (const t of listTools()) {
+      for (const [name, p] of Object.entries(t.inputSchema["properties"] as Record<string, JsonSchema>)) {
+        for (const key of ["minimum", "maximum"]) {
+          const bound = Math.abs(Number(p[key] ?? 0));
+          assert.ok(bound !== Number.MAX_SAFE_INTEGER, `${t.name}.${name} ${key}`);
+        }
+      }
+    }
+  });
+
+  it("no tool schema carries $schema, $ref, $defs or definitions", () => {
+    const keys = (node: unknown, out = new Set<string>()): Set<string> => {
+      if (Array.isArray(node)) node.forEach((item) => keys(item, out));
+      else if (node && typeof node === "object") {
+        for (const [key, value] of Object.entries(node)) {
+          out.add(key);
+          // Property names are data, not keywords.
+          if (key === "properties") Object.values(value as object).forEach((v) => keys(v, out));
+          else keys(value, out);
+        }
+      }
+      return out;
+    };
+    for (const t of listTools()) {
+      const found = keys(t.inputSchema);
+      for (const key of ["$schema", "$ref", "$defs", "definitions", "$id"]) {
+        assert.equal(found.has(key), false, `${t.name} has ${key}`);
+      }
+    }
   });
 
   it("no tool or parameter description contains an em dash", () => {
@@ -165,7 +214,7 @@ describe("tools/list schemas (F05, F37)", () => {
   });
 });
 
-describe("zodToJsonSchema converter", () => {
+describe("zodToJsonSchema converter (z.toJSONSchema with the tools/list override)", () => {
   enum Color {
     Red = "red",
     Blue = "blue",
@@ -176,64 +225,82 @@ describe("zodToJsonSchema converter", () => {
   }
   const schema = z
     .object({
-      color: z.nativeEnum(Color).describe("Native string enum."),
-      level: z.nativeEnum(Level).optional(),
+      color: z.enum(Color).describe("Native string enum."),
+      level: z.enum(Level).optional(),
       kind: z.literal("fixed"),
-      mode: z.union([z.literal("a"), z.literal("b")]).default("a"),
-      mixed: z.union([z.string().email(), z.number().int()]),
-      maybe: z.string().max(5).nullable(),
+      mode: z.enum(["a", "b"]).default("a"),
+      mixed: z.union([z.email(), z.number().int()]),
       ratio: z.number().gt(0).lt(1).multipleOf(0.05),
+      count: z.number().int().min(0),
+      huge: z.number().int().max(Number.MAX_SAFE_INTEGER),
       code: z.string().length(4).startsWith("ab"),
       shout: z.string().regex(/^[a-z]+$/i),
-      when: z.string().datetime().optional(),
+      both: z.string().regex(/^a/).regex(/z$/),
+      staff: z.email().regex(/@example\.com$/),
+      site: z.url().max(100).regex(/^https:\/\//),
+      when: z.iso.datetime().optional(),
+      local: z.iso.datetime({ local: true }).optional(),
       trimmed: z
         .string()
         .min(3)
         .transform((s) => s.trim()),
       nested: z.object({ inner: z.boolean().default(true) }).optional(),
       tags: z.array(z.string()).min(1).max(3),
-      meta: z.record(z.number()),
-      anything: z.unknown(),
+      started: z.date().optional(),
     })
-    .refine((v) => v.ratio > 0, { message: "unused" })
+    .refine((v) => v.ratio > 0, { error: "unused" })
     .describe("Root description.");
   const out = zodToJsonSchema(schema);
   const p = out["properties"] as Record<string, JsonSchema>;
 
-  it("unwraps ZodEffects at the root and keeps the root description", () => {
+  it("a refined root keeps its fields and description, closed, without $schema", () => {
     assert.equal(out["type"], "object");
     assert.equal(out["description"], "Root description.");
     assert.equal(out["additionalProperties"], false);
+    assert.equal("$schema" in out, false);
+    assert.equal(Object.keys(p).length, 19);
   });
 
-  it("required lists only fields that cannot be omitted", () => {
+  it("required lists only fields that cannot be omitted (a default makes a field optional)", () => {
     assert.deepEqual(out["required"], [
-      "color", "kind", "mixed", "maybe", "ratio", "code", "shout", "trimmed", "tags", "meta",
+      "color", "kind", "mixed", "ratio", "count", "huge", "code", "shout", "both", "staff",
+      "site", "trimmed", "tags",
     ]);
   });
 
-  it("handles native enums, literals and unions", () => {
+  it("handles native enums, literals, defaults and unions", () => {
     assert.deepEqual(p["color"], { type: "string", enum: ["red", "blue"], description: "Native string enum." });
     assert.deepEqual(p["level"], { type: "number", enum: [1, 2] });
     assert.deepEqual(p["kind"], { type: "string", const: "fixed" });
     assert.deepEqual(p["mode"], { type: "string", enum: ["a", "b"], default: "a" });
+    // Below the root a union stays an anyOf; the email branch has no pattern
+    // and the integer branch no safe integer bounds.
     assert.deepEqual(p["mixed"], {
       anyOf: [{ type: "string", format: "email" }, { type: "integer" }],
     });
   });
 
-  it("handles nullable, exclusive bounds, multipleOf and exact length", () => {
-    assert.deepEqual(p["maybe"], { type: ["string", "null"], maxLength: 5 });
+  it("numbers: exclusive bounds and multipleOf; .int() adds no safe integer bounds", () => {
     assert.deepEqual(p["ratio"], { type: "number", exclusiveMinimum: 0, exclusiveMaximum: 1, multipleOf: 0.05 });
-    assert.deepEqual(p["code"], { type: "string", minLength: 4, maxLength: 4, pattern: "^ab" });
+    assert.deepEqual(p["count"], { type: "integer", minimum: 0 });
+    // A bound the schema sets itself stays, even at the safe integer limit.
+    assert.deepEqual(p["huge"], { type: "integer", maximum: Number.MAX_SAFE_INTEGER });
   });
 
-  it("drops patterns whose flags JSON Schema cannot express", () => {
+  it("strings: format by name, patterns only from the schema's own checks", () => {
+    // startsWith is a pattern, not a format.
+    assert.deepEqual(p["code"], { type: "string", minLength: 4, maxLength: 4, pattern: "^ab.*" });
+    // A flag JSON Schema cannot carry (i) drops the pattern.
     assert.deepEqual(p["shout"], { type: "string" });
+    assert.deepEqual(p["both"], { type: "string", allOf: [{ pattern: "^a" }, { pattern: "z$" }] });
+    assert.deepEqual(p["staff"], { type: "string", format: "email", pattern: "@example\\.com$" });
+    assert.deepEqual(p["site"], { type: "string", maxLength: 100, format: "uri", pattern: "^https:\\/\\/" });
+    assert.deepEqual(p["when"], { type: "string", format: "date-time" });
+    // A datetime without an offset is not an RFC 3339 date-time.
+    assert.deepEqual(p["local"], { type: "string" });
   });
 
-  it("follows transforms, nested objects, arrays, records and unknown", () => {
-    assert.deepEqual(p["when"], { type: "string", format: "date-time" });
+  it("follows transforms (input side), nested objects and arrays", () => {
     assert.deepEqual(p["trimmed"], { type: "string", minLength: 3 });
     assert.deepEqual(p["nested"], {
       type: "object",
@@ -241,8 +308,11 @@ describe("zodToJsonSchema converter", () => {
       additionalProperties: false,
     });
     assert.deepEqual(p["tags"], { type: "array", items: { type: "string" }, minItems: 1, maxItems: 3 });
-    assert.deepEqual(p["meta"], { type: "object", additionalProperties: { type: "number" } });
-    assert.deepEqual(p["anything"], {});
+  });
+
+  it("a type JSON Schema cannot express accepts any value instead of throwing", () => {
+    assert.deepEqual(p["started"], {});
+    assert.deepEqual(zodToJsonSchema(z.object({ n: z.bigint() }))["properties"], { n: {} });
   });
 
   it("returns a bare object schema for a non-object root", () => {

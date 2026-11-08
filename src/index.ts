@@ -5,9 +5,14 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { ZodError, ZodIssueCode, type ZodIssue, type ZodTypeAny } from "zod";
+import { z } from "zod";
 
-import { BcaBadRequestError, BcaError, formatValidationError } from "./errors.js";
+import {
+  BcaBadRequestError,
+  BcaError,
+  formatValidationError,
+  validationMessage,
+} from "./errors.js";
 import { VERSION } from "./version.js";
 import { getClient } from "./client.js";
 import { DEMO_BANNER } from "./demo_banner.js";
@@ -84,7 +89,7 @@ export interface ToolEntry {
   readonly name: string;
   readonly description: string;
   // The zod schema that validates the arguments at call time.
-  readonly schema: ZodTypeAny;
+  readonly schema: z.ZodType;
   // Full JSON Schema of the arguments (see zodToJsonSchema in schema.ts).
   readonly inputSchema: JsonSchema;
   // MCP hints: title, read only or write, open world (see annotations.ts).
@@ -101,16 +106,16 @@ export interface ToolEntry {
  * deadline, objective for notes) would vanish while the call succeeds. The
  * Python sibling rejects them the same way (pydantic extra="forbid").
  */
-function undeclaredKeyIssues(args: unknown, declared: ReadonlySet<string>): ZodIssue[] {
+function undeclaredKeyIssues(args: unknown, declared: ReadonlySet<string>): z.core.$ZodIssue[] {
   if (args === null || typeof args !== "object" || Array.isArray(args)) return [];
   return Object.keys(args)
     .filter((key) => !declared.has(key))
-    .map((key) => ({ code: ZodIssueCode.custom, path: [key], message: "Unrecognized key" }));
+    .map((key) => ({ code: "custom" as const, path: [key], message: "Unrecognized key" }));
 }
 
 /** Factory that produces a ToolEntry from a (schema, definition, runner) triad. */
 function entry<T>(
-  schema: ZodTypeAny,
+  schema: z.ZodType,
   def: { name: string; description: string },
   runner: (input: T) => Promise<any>,
 ): ToolEntry {
@@ -129,11 +134,11 @@ function entry<T>(
       // get_explainer) are enforced by this same parse, and keys the tool
       // does not take are listed with the other problems.
       const input = args ?? {};
-      const parsed = schema.safeParse(input);
+      const parsed = schema.safeParse(input, { error: validationMessage });
       const unknown = undeclaredKeyIssues(input, declared);
       if (!parsed.success || unknown.length > 0) {
         const issues = [...(parsed.success ? [] : parsed.error.issues), ...unknown];
-        throw new BcaBadRequestError(formatValidationError(def.name, new ZodError(issues)));
+        throw new BcaBadRequestError(formatValidationError(def.name, issues));
       }
       return runner(parsed.data as T);
     },
@@ -400,8 +405,8 @@ export function errorPayload(
   toolName: string,
 ): { code: string; message: string } {
   if (err instanceof BcaError) return { code: err.code, message: err.message };
-  if (err instanceof ZodError) {
-    return { code: "BCA_BAD_REQUEST", message: formatValidationError(toolName, err) };
+  if (err instanceof z.ZodError) {
+    return { code: "BCA_BAD_REQUEST", message: formatValidationError(toolName, err.issues) };
   }
   return { code: "BCA_UNKNOWN", message: err instanceof Error ? err.message : String(err) };
 }

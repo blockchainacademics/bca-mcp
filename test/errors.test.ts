@@ -73,6 +73,68 @@ describe("argument validation errors", () => {
     assert.match(err.message, /focus\.1: String must contain at least 1 character\(s\)/);
   });
 
+  it("problems keep the wording of the zod 3 releases on zod 4", async () => {
+    const cases: Array<[string, Record<string, unknown>, string]> = [
+      ["search_news", { query: 5 }, "query: Expected string, received number"],
+      ["search_news", { query: "btc", limit: 2.5 }, "limit: Expected integer, received float"],
+      ["search_news", { query: "x".repeat(513) }, "query: String must contain at most 512 character(s)"],
+      [
+        "book_kol_campaign",
+        { contact_email: "not-an-email", project_name: "Example", campaign_type: "x", budget_usd: 100 },
+        "contact_email: Invalid email; " +
+          "campaign_type: Invalid enum value. Expected 'thread' | 'video' | 'space' | 'podcast' | 'hybrid', received 'x'; " +
+          "budget_usd: Number must be greater than or equal to 500",
+      ],
+      [
+        "book_kol_campaign",
+        { contact_email: "founder@example.com", project_name: "Example", campaign_type: 5, budget_usd: 1000 },
+        "campaign_type: Expected 'thread' | 'video' | 'space' | 'podcast' | 'hybrid', received number",
+      ],
+      [
+        "submit_listing",
+        {
+          contact_email: "founder@example.com",
+          directory: "vcs",
+          listing_name: "Example",
+          listing_url: "not a url",
+          description: "x".repeat(20),
+        },
+        "listing_url: Invalid url; listing_url: listing_url must start with http:// or https://",
+      ],
+      // A .regex() without a message of its own.
+      ["scan_contract", { address: "0x123" }, "address: Invalid"],
+      [
+        "generate_due_diligence",
+        { entity_slug: "aave", focus: Array.from({ length: 17 }, () => "x") },
+        "focus: Array must contain at most 16 element(s)",
+      ],
+    ];
+    for (const [name, args, problems] of cases) {
+      const err = await callError(name, args);
+      assert.equal(err.code, "BCA_BAD_REQUEST");
+      assert.equal(err.message, `Invalid arguments for ${name}: ${problems}`);
+    }
+  });
+
+  it("a field of the wrong type lists only the type problem", async () => {
+    // zod 4 also runs the length checks on an array sent for a string.
+    const err = await callError("search_news", { query: ["btc"] });
+    assert.equal(err.message, "Invalid arguments for search_news: query: Expected string, received array");
+  });
+
+  it("string bounds count code points, as tools/list's minLength and maxLength do", async () => {
+    // Three emoji are six UTF-16 units but three characters: below the 4
+    // character minimum of request_custom_research.topic.
+    const err = await callError("request_custom_research", {
+      contact_email: "founder@example.com",
+      topic: "\u{1F680}".repeat(3),
+    });
+    assert.equal(
+      err.message,
+      "Invalid arguments for request_custom_research: topic: String must contain at least 4 character(s)",
+    );
+  });
+
   it("the .refine() one-of rules still apply at call time", async () => {
     for (const [name, args, rule] of [
       ["get_entity", {}, "Provide exactly one of 'slug' or 'ticker'."],

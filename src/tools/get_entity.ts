@@ -16,7 +16,7 @@ export const getEntityInputSchema = z
       .describe("Ticker symbol (e.g. 'ETH', 'SOL'), case-insensitive. Needs an API key: the demo key covers the slug form only."),
   })
   .refine((v) => !!v.slug !== !!v.ticker, {
-    message: "Provide exactly one of 'slug' or 'ticker'.",
+    error: "Provide exactly one of 'slug' or 'ticker'.",
   });
 
 export type GetEntityInput = z.infer<typeof getEntityInputSchema>;

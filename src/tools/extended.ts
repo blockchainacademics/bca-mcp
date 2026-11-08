@@ -740,7 +740,6 @@ const notesSchema = (what: string) =>
 
 export const bookKolCampaignInputSchema = z.object({
   contact_email: z
-    .string()
     .email()
     .max(254)
     .describe("Required. Where BCA Studio sends the recommended KOL slate and quote."),
@@ -780,7 +779,6 @@ export const runBookKolCampaign = (i: any) =>
 
 export const requestCustomResearchInputSchema = z.object({
   contact_email: z
-    .string()
     .email()
     .max(254)
     .describe("Required. Where BCA Research sends the scope and quote."),
@@ -819,7 +817,6 @@ export const runRequestCustomResearch = (i: any) =>
 
 export const submitListingInputSchema = z.object({
   contact_email: z
-    .string()
     .email()
     .max(254)
     .describe("Required. Where the editorial team replies."),
@@ -841,7 +838,6 @@ export const submitListingInputSchema = z.object({
     .max(200)
     .describe("Required. Display name for the listing (2 to 200 characters)."),
   listing_url: z
-    .string()
     .url()
     .max(2083)
     .regex(/^https?:\/\//, "listing_url must start with http:// or https://")

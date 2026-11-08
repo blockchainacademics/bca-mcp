@@ -1,4 +1,4 @@
-import type { ZodError } from "zod";
+import type { z } from "zod";
 import { fenceUntrusted } from "./untrusted.js";
 
 export type BcaErrorCode =
@@ -91,16 +91,113 @@ function cap(text: string, max: number): string {
   return chars.length > max ? `${chars.slice(0, max).join("")}...` : text;
 }
 
+/** A JSON value's type as the messages name it: "array", "null", "number". */
+function typeName(value: unknown): string {
+  if (value === null) return "null";
+  if (Array.isArray(value)) return "array";
+  if (typeof value === "number" && Number.isNaN(value)) return "nan";
+  return typeof value;
+}
+
+/** An enum option as the messages quote it: 'thread'. */
+const quoteOption = (value: unknown): string =>
+  typeof value === "string" ? `'${value}'` : String(value);
+
+// Wording of the size and bound messages per kind of value: the words for an
+// inclusive bound first, then for an exclusive one.
+const BOUND_WORDS: Readonly<
+  Record<string, { lead: string; unit: string; min: [string, string]; max: [string, string] }>
+> = {
+  string: {
+    lead: "String must contain",
+    unit: " character(s)",
+    min: ["at least", "over"],
+    max: ["at most", "under"],
+  },
+  array: {
+    lead: "Array must contain",
+    unit: " element(s)",
+    min: ["at least", "more than"],
+    max: ["at most", "less than"],
+  },
+  number: {
+    lead: "Number must be",
+    unit: "",
+    min: ["greater than or equal to", "greater than"],
+    max: ["less than or equal to", "less than"],
+  },
+};
+
+function boundMessage(
+  issue: { origin: string; inclusive?: boolean; exact?: boolean },
+  limit: number | bigint,
+  side: "min" | "max",
+): string | undefined {
+  const words = BOUND_WORDS[issue.origin === "int" ? "number" : issue.origin];
+  if (!words) return undefined;
+  const [inclusive, exclusive] = words[side];
+  return `${words.lead} ${issue.exact ? "exactly" : issue.inclusive ? inclusive : exclusive} ${limit}${words.unit}`;
+}
+
 /**
- * Render a zod validation failure as "field: problem" pairs, e.g.
+ * The problem text for one argument issue, in the wording the 0.6 releases
+ * gave with zod 3 ("Required", "Number must be less than or equal to 50",
+ * "Invalid enum value. Expected 'dex' | 'bridge', received 'x'"), so the
+ * "field: problem" pairs read the same on zod 4. Passed to safeParse as its
+ * error map: a message the schema sets itself (a .regex() or .refine()
+ * message) still wins, and an issue left undefined here keeps zod's text.
+ */
+export const validationMessage: z.core.$ZodErrorMap = (issue) => {
+  switch (issue.code) {
+    case "invalid_type":
+      if (issue.input === undefined) return "Required";
+      // .int() on a number with a fraction.
+      if (issue.expected === "int") return "Expected integer, received float";
+      return `Expected ${issue.expected}, received ${typeName(issue.input)}`;
+    case "invalid_value": {
+      if (issue.input === undefined) return "Required";
+      const options = issue.values.map(quoteOption).join(" | ");
+      return typeof issue.input === "string"
+        ? `Invalid enum value. Expected ${options}, received '${issue.input}'`
+        : `Expected ${options}, received ${typeName(issue.input)}`;
+    }
+    case "too_small":
+      return boundMessage(issue, issue.minimum, "min");
+    case "too_big":
+      return boundMessage(issue, issue.maximum, "max");
+    case "invalid_format":
+      // A .regex() without a message of its own, and the formats tools use.
+      if (issue.format === "regex") return "Invalid";
+      if (issue.format === "email" || issue.format === "url") return `Invalid ${issue.format}`;
+      return undefined;
+    case "not_multiple_of":
+      return `Number must be a multiple of ${issue.divisor}`;
+  }
+  return undefined;
+};
+
+/** The parts of a zod issue formatValidationError reads. */
+type ValidationIssue = Pick<z.core.$ZodIssue, "code" | "path" | "message">;
+
+/**
+ * Render zod validation issues as "field: problem" pairs, e.g.
  * `Invalid arguments for search_news: query: Required; limit: Number must be
  * less than or equal to 50`. A rule on the whole object (no field path, such
  * as get_entity's "exactly one of slug or ticker") is listed without a field.
  * The field is capped too: an unrecognized key is named by the caller.
  */
-export function formatValidationError(toolName: string, err: ZodError): string {
+export function formatValidationError(
+  toolName: string,
+  issues: ReadonlyArray<ValidationIssue>,
+): string {
+  // zod 4 still runs a field's length checks when its type is wrong (an array
+  // sent for a string adds "Array must contain..."), so a field whose type is
+  // wrong lists only that problem, as it did on zod 3.
+  const fieldKey = (issue: ValidationIssue) => JSON.stringify(issue.path.map(String));
+  const mistyped = new Set(issues.filter((i) => i.code === "invalid_type").map(fieldKey));
   const parts: string[] = [];
-  for (const issue of err.issues) {
+  for (const issue of issues) {
+    if (issue.code !== "invalid_type" && mistyped.has(fieldKey(issue))) continue;
     const field = cap(issue.path.map(String).join("."), MAX_ISSUE_CHARS);
     const problem = cap(issue.message, MAX_ISSUE_CHARS);
     const text = field ? `${field}: ${problem}` : problem;

@@ -22,7 +22,7 @@ export const getExplainerInputSchema = z
       ),
   })
   .refine((v) => !!v.slug !== !!v.topic, {
-    message: "Provide exactly one of 'slug' or 'topic'.",
+    error: "Provide exactly one of 'slug' or 'topic'.",
   });
 
 export type GetExplainerInput = z.infer<typeof getExplainerInputSchema>;

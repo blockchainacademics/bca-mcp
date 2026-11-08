@@ -192,9 +192,8 @@ export const summarizeWhitepaperInputSchema = z.object({
   // The API's SummarizeWhitepaperRequest.url is a pydantic HttpUrl, which
   // answers 422 for any scheme but http and https.
   url: z
-    .string()
-    .min(1)
     .url()
+    .min(1)
     .max(2048)
     .regex(/^https?:\/\//, "url must use http:// or https://")
     .describe("Public URL of the whitepaper (PDF or HTML)."),
@@ -246,9 +245,8 @@ export const monitorKeywordInputSchema = z.object({
     .max(200)
     .describe("Keyword or phrase to watch (2 to 200 characters)."),
   webhook_url: z
-    .string()
-    .min(1)
     .url()
+    .min(1)
     .max(2048)
     .regex(/^https:\/\//, "webhook_url must use https://")
     .describe("HTTPS webhook URL for notifications (required)."),
