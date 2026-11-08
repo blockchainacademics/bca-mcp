@@ -372,10 +372,47 @@ describe("descriptions promise only what the API returns", () => {
   it("states the corpus and registry sizes the API serves", () => {
     assert.match(text("search_news"), /3,800\+ editorial crypto articles/);
     assert.match(text("list_entities"), /about 150 entities/);
-    assert.match(text("get_explainer"), /38 teacher-vetted lessons across 8 courses/);
+    assert.match(text("get_explainer"), /38 lessons across 8 courses/);
     assert.match(text("get_explainer"), /lesson slug/);
     assert.match(text("get_entity"), /needs an API key/);
     assert.match(text("get_as_of_snapshot"), /works without an API key/);
+  });
+
+  it("descriptions say what a tool does and returns, never how the model should behave or what to buy", () => {
+    // Directory review criteria: "Describe what the tool does, and don't tell
+    // Claude how to behave"; descriptions must not "promote products and
+    // services" (directory-submissions.md 4.6, row A3). The Python sibling
+    // runs the same check in tests/test_copy.py.
+    const banned: RegExp[] = [
+      /\bUse (this|after|to|for|when)\b/i,
+      /\bPrefer\b/i,
+      /pretraining|from memory|your own definition|instead of relying/i,
+      /\bpoll get_agent_job\b/i,
+      /\blink (with|to) site_url\b/i,
+      /teacher-vetted|pedagog/i,
+      /before news outlets/i,
+      /accumulation edge|pair trades|reversal/i,
+      /Free to submit|paid to be featured|featured listing|Stripe/i,
+    ];
+    const strings = (node: unknown, out: string[] = []): string[] => {
+      if (Array.isArray(node)) for (const item of node) strings(item, out);
+      else if (node && typeof node === "object") {
+        for (const [key, value] of Object.entries(node)) {
+          if (key === "description" && typeof value === "string") out.push(value);
+          else strings(value, out);
+        }
+      }
+      return out;
+    };
+    for (const t of listTools()) {
+      for (const d of [t.description, ...strings(t.inputSchema)]) {
+        for (const re of banned) assert.ok(!re.test(d), `${t.name}: ${re} in "${d}"`);
+      }
+    }
+    // The tier stays named on every paid tool (52 free-tier tools, see docs.test.ts).
+    assert.match(text("get_token_holders"), /Pro tier/);
+    assert.match(text("translate_contract"), /Team tier/);
+    assert.match(text("submit_listing"), /the free tier is enough/);
   });
 
   it("indicator descriptions explain meta.status", () => {
@@ -396,6 +433,27 @@ describe("package metadata and README", () => {
     const server = JSON.parse(read("server.json"));
     assert.equal(server.version, pkg.version);
     assert.equal(server.packages[0].version, pkg.version);
+    // Every package (npm, then the PyPI edition) and the publisher metadata
+    // carry the same version; the two packages ship in lockstep.
+    for (const p of server.packages) assert.equal(p.version, pkg.version, p.identifier);
+    const meta = server._meta["io.modelcontextprotocol.registry/publisher-provided"];
+    assert.equal(meta.tool.version, pkg.version);
+    assert.deepEqual(
+      server.packages.map((p: { registryType: string; identifier: string }) => `${p.registryType}:${p.identifier}`),
+      ["npm:@blockchainacademics/mcp", "pypi:bca-mcp"],
+    );
+  });
+
+  it("the registry description and the README say it is not financial advice", () => {
+    const server = JSON.parse(read("server.json"));
+    // The 2025-12-11 server.schema.json caps description at 100 characters.
+    assert.ok(server.description.length <= 100, `${server.description.length} characters`);
+    assert.match(server.description, /Not financial advice\./);
+    const readme = read("README.md");
+    assert.match(readme, /^## Not financial advice$/m);
+    assert.match(readme, /^## Privacy$/m);
+    assert.match(readme, /about 150 entity dossiers/);
+    assert.ok(!/150\+ entit|canonical crypto MCP|ground-truth/i.test(readme), "README overclaims");
   });
 
   it("README explains meta.status and the citations array", () => {

@@ -30,7 +30,7 @@ export type GetExplainerInput = z.infer<typeof getExplainerInputSchema>;
 export const getExplainerDefinition = {
   name: "get_explainer",
   description:
-    "Fetch BCA Academy material: 38 teacher-vetted lessons across 8 courses covering crypto fundamentals, DeFi, trading, regulation, on-chain security, and more. Provide exactly one of slug or topic. A course slug returns the course and its lesson index; a lesson slug returns that lesson with its full text (body_md); an unknown slug returns the closest lesson as partial. A topic returns the courses tagged with it, or else the top matching lessons with their text. Use this when the user needs a grounded, pedagogically sound explanation of a concept (e.g. 'explain liquidity pools', 'what is DeFi'). Prefer the explainer over generating your own definition. Works without an API key.",
+    "Fetch BCA Academy material: 38 lessons across 8 courses covering crypto fundamentals, DeFi, trading, regulation and onchain security. Takes exactly one of slug or topic. A course slug returns the course and its lesson index; a lesson slug returns that lesson with its full text (body_md); an unknown slug returns the closest lesson as partial. A topic returns the courses tagged with it, or else the top matching lessons with their text. Applies to requests to explain a crypto concept, such as 'explain liquidity pools' or 'what is DeFi'. Works without an API key.",
 };
 
 export async function runGetExplainer(

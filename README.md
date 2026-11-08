@@ -1,6 +1,6 @@
 # @blockchainacademics/mcp
 
-The canonical crypto MCP server for AI agents. **105 tools** spanning 3,800+ editorial articles, 150+ entity dossiers, 38 academy lessons in 8 courses, aggregated market + on-chain data, proprietary indicators, and async agent-backed generation, all exposed as MCP tools your AI agent can call natively.
+Crypto MCP server for AI agents: cited news, prices, onchain data, sentiment and indicators. **105 tools** spanning 3,800+ editorial articles, about 150 entity dossiers, 38 academy lessons in 8 courses, aggregated market and onchain data, proprietary indicators and async agent-backed generation, all exposed as MCP tools your agent can call.
 
 ## Tool categories
 
@@ -33,7 +33,11 @@ Tools whose data source is not connected yet (bonk.fun, CoinGlass liquidations a
 
 ## Why
 
-LLMs hallucinate about crypto. BCA ships ground-truth editorial content with full attribution. Plug this MCP server into Claude Desktop, LangChain, Eliza, or any MCP-compatible agent and your model queries the BCA corpus like any other tool, with citations, timestamps, and source hashes on every response.
+Every answer says where it came from and how complete it is. `attribution.citations[]` lists the sources, primary source first, with timestamps and source hashes, and `meta.status` says whether the answer is complete, partial, stale or unseeded. An agent can cite each fact and tell a full answer from a thin one. The server works in Claude Desktop, LangChain, Eliza and any other MCP client.
+
+## Not financial advice
+
+The tools return data, analysis and their sources. Nothing they return is financial, investment or tax advice, or a recommendation to buy or sell anything.
 
 ## Install
 
@@ -102,6 +106,31 @@ console.log(res.content);
 ```
 
 See [`examples/research-agent.ts`](./examples/research-agent.ts) for a full tool-chaining loop.
+
+### Eliza
+
+[`@elizaos/plugin-mcp`](https://www.npmjs.com/package/@elizaos/plugin-mcp) loads the server into an Eliza agent. Add it to the character file:
+
+```json
+{
+  "name": "Your Character",
+  "plugins": ["@elizaos/plugin-mcp"],
+  "settings": {
+    "mcp": {
+      "servers": {
+        "blockchain-academics": {
+          "type": "stdio",
+          "command": "npx",
+          "args": ["-y", "@blockchainacademics/mcp"],
+          "env": { "BCA_API_KEY": "" }
+        }
+      }
+    }
+  }
+}
+```
+
+Leave `BCA_API_KEY` empty to use the 17 tools that need no key, or paste your own key.
 
 ## Tools
 
@@ -188,6 +217,12 @@ Every response includes a structured `attribution` block with a `citations` arra
 For more, get a free key at [blockchainacademics.com/crypto-api/signup](https://blockchainacademics.com/crypto-api/signup?ref=mcp-npm-apikey) (2,000 calls/month): it opens the 52 free-tier tools. Paid tiers unlock the rest, such as agent-backed research generation, crypto Twitter intelligence and the proprietary indicators; each tool's description names its tier when it is not free.
 
 Set `BCA_API_KEY` in your MCP client env. Optionally override `BCA_API_BASE` (default `https://api.blockchainacademics.com`). `BCA_API_BASE_URL` is also accepted for backward compatibility.
+
+## Privacy
+
+- Each tool call sends its arguments (for example a search phrase, a coin name, or a wallet or contract address you ask about) and your key, if you set one, over HTTPS to api.blockchainacademics.com, our own API, or to the staging or local base you set in `BCA_API_BASE`. The server sends nothing to any other host; `monitor_keyword` only looks up the webhook's host name in DNS to refuse private addresses.
+- The server stores nothing on your computer. The API counts calls per key per day and does not log request bodies or query parameters that could contain personal data.
+- Full policy, retention and your rights: [blockchainacademics.com/privacy](https://blockchainacademics.com/privacy), section 12 (Crypto API and MCP Server). Privacy requests: [privacy@blockchainacademics.com](mailto:privacy@blockchainacademics.com).
 
 ## Errors
 

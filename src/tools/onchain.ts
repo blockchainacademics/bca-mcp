@@ -25,7 +25,7 @@ export const getWalletProfileInputSchema = z.object({
 export const getWalletProfileDefinition = {
   name: "get_wallet_profile",
   description:
-    "Wallet summary: native balance (in wei and in the chain coin, for example ETH) and up to 25 token holdings. EVM holdings are the net of the newest 1,000 token transfers with likely spam dropped (partial when older history exists); Solana holdings are current SPL balances. No address labels. Starter tier. Use for wallet research.",
+    "Wallet summary: native balance (in wei and in the chain coin, for example ETH) and up to 25 token holdings. EVM holdings are the net of the newest 1,000 token transfers with likely spam dropped (partial when older history exists); Solana holdings are current SPL balances. No address labels. Starter tier.",
 };
 export async function runGetWalletProfile(
   input: z.infer<typeof getWalletProfileInputSchema>,
@@ -77,7 +77,7 @@ export const getTokenHoldersInputSchema = z.object({
 export const getTokenHoldersDefinition = {
   name: "get_token_holders",
   description:
-    "Top holders of an ERC-20 token with balance and share of supply, via Etherscan. EVM chains only, Pro tier. Etherscan serves holder lists on its paid plan only, so this usually answers partial today (meta.diagnostic names the upstream error). Use for concentration and risk analysis.",
+    "Top holders of an ERC-20 token with balance and share of supply, via Etherscan, for holder concentration and risk analysis. EVM chains only, Pro tier. Etherscan serves holder lists on its paid plan only, so this usually answers partial today (meta.diagnostic names the upstream error).",
 };
 export async function runGetTokenHolders(
   input: z.infer<typeof getTokenHoldersInputSchema>,

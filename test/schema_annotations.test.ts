@@ -160,7 +160,7 @@ describe("tools/list schemas (F05, F37)", () => {
 
   it("get_explainer states the real academy size and existing slugs", () => {
     const text = tool("get_explainer").description;
-    assert.match(text, /38 teacher-vetted lessons across 8 courses/);
+    assert.match(text, /38 lessons across 8 courses/);
     assert.ok(!/\b43\b|\b9 courses|what-is-a-blockchain/.test(JSON.stringify(tool("get_explainer"))));
   });
 });

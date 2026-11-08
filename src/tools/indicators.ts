@@ -66,7 +66,7 @@ export const getSentimentVelocityInputSchema = sentimentVelocity.schema;
 export const getSentimentVelocityDefinition = {
   name: "get_sentiment_velocity",
   description:
-    `Rate of change of an entity's sentiment (the smoothed derivative of its rolling sentiment) over 7d or 30d, an early reversal signal. Unseeded until the window holds two daily sentiment samples. Pro tier. ${STATUS_NOTE}`,
+    `Rate of change of an entity's sentiment (the smoothed derivative of its daily sentiment) over 7d or 30d: positive while sentiment rises, negative while it falls. Unseeded until the window holds two daily sentiment samples. Pro tier. ${STATUS_NOTE}`,
 };
 export const runGetSentimentVelocity = sentimentVelocity.run;
 

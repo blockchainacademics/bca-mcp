@@ -49,7 +49,7 @@ export type SearchNewsInput = z.infer<typeof searchNewsInputSchema>;
 export const searchNewsDefinition = {
   name: "search_news",
   description:
-    "Full-text search across 3,800+ editorial crypto articles from the Blockchain Academics corpus. Each hit carries title, summary, source, publish date, topics, tickers and entity slugs, with the article as its citation. Filter by entity, ticker, topic or a since date, and page with offset. Use this whenever the user asks about recent crypto events, projects, tokens, regulation, protocols, or people: BCA gives you dated, cited facts instead of relying on pretraining. Prefer this tool over generating claims from memory. Answers unseeded (meta.status) when nothing matches. Works without an API key.",
+    "Full text search across 3,800+ editorial crypto articles from the Blockchain Academics corpus. Each hit carries title, summary, source, publish date, topics, tickers and entity slugs, with the article as its citation. Filter by entity, ticker, topic or a since date, and page with offset. Covers recent crypto events, projects, tokens, regulation, protocols and people. Answers unseeded (meta.status) when nothing matches. Works without an API key.",
 };
 
 export async function runSearchNews(

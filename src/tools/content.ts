@@ -15,7 +15,7 @@ export const getArticleInputSchema = z.object({
 export const getArticleDefinition = {
   name: "get_article",
   description:
-    "Fetch one BCA article by slug: title, summary, full text (body_md), author, source, publish date, topics, tickers and entity slugs, with the article as its citation. Use after search_news when you need the full text. An unknown slug is an error (HTTP 404). Works without an API key.",
+    "Fetch one BCA article by slug: title, summary, full text (body_md), author, source, publish date, topics, tickers and entity slugs, with the article as its citation. This is the full text behind a search_news hit. An unknown slug is an error (HTTP 404). Works without an API key.",
 };
 // Text fields that come from the article itself (body, summary, excerpt).
 const ARTICLE_TEXT_FIELDS = ["body_md", "body", "excerpt", "body_markdown", "summary"];
@@ -50,7 +50,7 @@ export const listEntityMentionsInputSchema = z.object({
 export const listEntityMentionsDefinition = {
   name: "list_entity_mentions",
   description:
-    "Timeline of BCA article mentions for an entity, newest first: article slug, title and source URL, publish date, sentiment score and bucket, mentions in the article and a context snippet. Page with offset. Use this to reconstruct how coverage evolved over time. Answers unseeded when no public article mentions the entity yet; an unknown entity is an error (HTTP 404).",
+    "Timeline of BCA article mentions for an entity (slug or alias), newest first: article slug, title and source URL, publish date, sentiment score and bucket, mentions in the article and a context snippet. Page with offset. Shows how coverage of a chain, project, person or ticker changed over time. Answers unseeded when no public article mentions the entity yet; an unknown entity is an error (HTTP 404).",
 };
 export async function runListEntityMentions(
   input: z.infer<typeof listEntityMentionsInputSchema>,
@@ -72,7 +72,7 @@ export const listTopicsInputSchema = z.object({});
 export const listTopicsDefinition = {
   name: "list_topics",
   description:
-    "Browse the BCA topic taxonomy: regulation, defi, nft, layer-2, bitcoin, ethereum, solana, stablecoins, rwa and ai-agents, each with its live article count and child topics. Use to discover filter values for search_news.",
+    "Browse the BCA topic taxonomy: regulation, defi, nft, layer-2, bitcoin, ethereum, solana, stablecoins, rwa and ai-agents. Each topic comes with its live article count and child topics, and its slug is a topic filter value for search_news.",
 };
 export async function runListTopics(
   _input: z.infer<typeof listTopicsInputSchema>,

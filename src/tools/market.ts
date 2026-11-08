@@ -32,7 +32,7 @@ export const getPriceInputSchema = z.object({
 export const getPriceDefinition = {
   name: "get_price",
   description:
-    "Spot price, 24h change, market cap and 24h volume for up to 50 tokens, via CoinGecko. Use CoinGecko ids such as 'bitcoin' or 'ethereum', not exchange tickers. Works without an API key.",
+    "Spot price, 24h change, market cap and 24h volume for up to 50 tokens, via CoinGecko. Takes CoinGecko ids such as 'bitcoin' or 'ethereum' (not exchange tickers), comma separated, and an optional quote currency vs (default usd). Works without an API key.",
 };
 export async function runGetPrice(
   input: z.infer<typeof getPriceInputSchema>,
@@ -73,7 +73,7 @@ export const getMarketOverviewInputSchema = z.object({
 export const getMarketOverviewDefinition = {
   name: "get_market_overview",
   description:
-    "Top tokens by market cap from CoinGecko: price, market cap, 24h volume and the 1h, 24h and 7d price change. Use for market-wide context (bull or bear, mover spotting). Works without an API key.",
+    "Top tokens by market cap from CoinGecko (limit, default 20, up to 100): price, market cap, 24h volume and the 1h, 24h and 7d price change. Gives context for the whole market: its direction and the biggest movers. Works without an API key.",
 };
 export async function runGetMarketOverview(
   input: z.infer<typeof getMarketOverviewInputSchema>,
