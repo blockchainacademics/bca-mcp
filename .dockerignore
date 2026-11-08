@@ -1,0 +1,11 @@
+# The image build reads only the paths listed below. Everything else stays out
+# of the build context: git history, tests, local node_modules and dist, .env files.
+*
+!package.json
+!package-lock.json
+!tsconfig.json
+!server.json
+!scripts
+!src
+# Generated at build time from scripts/demo-key.txt.
+src/demo_key.ts
