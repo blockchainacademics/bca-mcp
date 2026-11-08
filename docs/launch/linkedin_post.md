@@ -2,33 +2,34 @@
 
 ---
 
-Seven years in crypto data. One thing kept bothering me.
+Today we're launching Blockchain Academics MCP: 105 crypto tools that AI agents can call, in 19 categories.
 
-Every AI agent I saw trying to reason about crypto markets was built on the same thin stack: CoinGecko prices, maybe Etherscan, a scraped Twitter feed if they were ambitious. Then the prompt would ask the model to "analyze", and the model would confidently hallucinate a narrative that nobody could trace.
+17 of them work with no key and no signup.
 
-That's not intelligence. That's a liability wearing a trench coat.
+An agent that reasons about crypto is only as good as its sources, so every answer carries them. Each citation has a link, a timestamp and a hash, and the first one is the primary source: the original article or the upstream page.
 
-So we built the thing I wished existed.
+Every answer also says how complete it is: complete, partial (and what is missing), stale (and how old the data is) or unseeded (and why there is nothing yet). When a tool has no data yet, it says so instead of making something up.
 
-Today we're launching Blockchain Academics MCP: 105 tools across 19 categories, designed from day one for AI agents that need to reason, cite, and be audited. News, market, on-chain, sentiment, indicators, fundamentals, agent jobs, directories, narrative, regulatory, security, and more.
+What sits underneath:
 
-The difference: a proprietary editorial corpus underneath it. 3,800+ curated articles, 150+ entity dossiers, 38 academy lessons in 8 courses, an alias-resolved entity graph, and a history API for backtesting. Not a wrapper. A substrate.
+3,800+ public articles, each linked to the coins and projects it mentions. Bitcoin alone has 1,400+ linked article mentions, ethereum 1,000+.
 
-Every single response ships with a canonical JSON:API-inspired envelope: `data`, `attribution` (a citations array with cite URL, as-of timestamp, and source hash per entry), and `meta` (an honest status, request_id for support, pageInfo for paging). Your agent can prove where every fact came from. That's the minimum bar for serious work.
+About 150 entity dossiers and 38 academy lessons in 8 courses, next to news, market, wallet, sentiment, regulatory and security tools.
 
-Shipping today:
-- @blockchainacademics/mcp v0.6.3 on npm
-- bca-mcp v0.6.3 on PyPI
-- Open REST at api.blockchainacademics.com
-- Docs at blockchainacademics.com/crypto-api/docs
-- Five pricing tiers at blockchainacademics.com/crypto-api/pricing, starting free
+Sentiment rolled up every hour, indicators recomputed every 4 hours, and daily price history since April.
 
-This is the part of the agentic stack that doesn't ship itself. Infrastructure is unglamorous. You build it because the application layer above it can't exist without it.
+Version 0.6.3 is live on npm, PyPI and the official MCP registry, MIT licensed. The same key works over REST.
 
-If you're building an AI agent, a quant workflow, or an LLM product anywhere near crypto, I'd love your feedback. Break it. Tell me what's missing. The roadmap is written by the people who ship on it.
+A free key opens 52 tools, with 2,000 calls a month and no card. Starter, Pro and Team open the rest.
+
+Docs: https://blockchainacademics.com/crypto-api/docs
+
+Free key: https://blockchainacademics.com/crypto-api/signup
+
+If you're building an agent, a research workflow or a trading tool that touches crypto, try it and tell me what's missing. The roadmap comes from the people who build on it.
 
 Builder to builder.
 
 ---
 
-**Word count:** ~330
+**Word count:** 256 (plain text: LinkedIn shows no markdown, so the post has none)

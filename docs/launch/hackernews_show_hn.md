@@ -3,39 +3,71 @@
 ---
 
 **Title:**
-Show HN: bca-mcp, 105 crypto tools for AI agents with a proprietary corpus
+Show HN: bca-mcp, a crypto MCP server where every answer cites its sources
+
+**URL:**
+https://github.com/blockchainacademics/bca-mcp
 
 ---
 
-**Body:**
+**Text:**
 
-Hi HN,
+bca-mcp is an MCP server that gives AI agents 105 crypto tools in 19 categories: news search, entity dossiers, prices, wallets and transactions, sentiment, indicators, history, grants and jobs. Every answer carries its sources and a status that says how complete it is, so an agent can cite what it says and can tell when data is partial, stale or missing.
 
-I'm Wael, founder of Blockchain Academics. For the past several months we've been building bca-mcp, a Model Context Protocol server (plus open REST API) exposing 105 tools for AI agents that need to reason about crypto markets.
+You can try it without signing up. 17 tools work with no key of your own (the package ships a shared demo key with a daily cap):
 
-What makes it different from the existing MCPs in this space is the data layer. Most crypto MCPs I've seen are thin wrappers over CoinGecko, Etherscan, or DEXTools. Ours sits on top of a proprietary editorial corpus: 3,800+ curated and deduplicated articles, 150+ entity dossiers with alias resolution (e.g., "CZ" and "Changpeng Zhao" collapse to the same entity), 38 academy lessons in 8 courses, a cross-domain entity graph, and a history API for backtesting sentiment and narrative features.
+  npx -y @blockchainacademics/mcp
 
-Tool breakdown (19 categories, 105 total):
-- content and corpus (7), market (4), on-chain (4), sentiment and crypto Twitter (6)
-- indicators (6), fundamentals (6), agent jobs (6)
-- 66 more across 12 categories: directories, chains, compute, memes, microstructure, narrative, regulatory, security, services, history, corpus meta, memos/theses/social/currencies
+or, with Python 3.11+:
 
-Technical notes:
-- Every response is wrapped in a canonical JSON:API-inspired envelope: `{data, attribution: {citations: [{cite_url, as_of, source_hash}]}, meta: {status, request_id, pageInfo}}`. `source_hash` is content-addressed so agents can verify a fact hasn't drifted between calls. `citations` is an array: `citations[0]` is primary, additional entries corroborate (multi-source is a first-class citizen). `meta.status` says whether an answer is complete, partial, stale or unseeded.
-- MCP server packages are OSS (MIT): `@blockchainacademics/mcp` on npm, `bca-mcp` on PyPI, both at v0.6.3.
-- REST API is open at api.blockchainacademics.com with a landing page + OpenAPI.
-- Free tier: 2,000 calls/month, no credit card. Five tiers total. Pricing at blockchainacademics.com/crypto-api/pricing.
-- Docs: blockchainacademics.com/crypto-api/docs.
-- Stack: FastAPI + Postgres + Redis, MCP servers in TypeScript and Python.
+  uvx bca-mcp
 
-What I'd genuinely like feedback on:
-1. The envelope shape (`{data, attribution.citations[], meta}`): is `source_hash` useful or overkill? We went array-only on `citations` specifically to avoid the singleton-vs-array drift that burned us in v0.2.x.
-2. Tool surface: what's missing that an agent developer would want?
-3. The history API (point-in-time queries for sentiment/narrative features): useful for backtesting?
+Add it to Claude Desktop, Cursor or any MCP client and ask about a coin, a project or a person. A free key (2,000 calls a month, no card) opens 52 tools, and the paid plans open the rest.
 
-Happy to answer anything in the thread. The fastest way to form an opinion is to install it and point an agent at it.
+What the data is:
 
-npm i -g @blockchainacademics/mcp
-pip install bca-mcp
+- 3,800+ public articles, each linked to the coins and projects it mentions (bitcoin has 1,400+ linked mentions, ethereum 1,000+), searchable by entity, ticker, topic and date
 
-Wael
+- about 150 entity dossiers with alias resolution ("cz" resolves to changpeng-zhao)
+
+- sentiment rolled up hourly from the news, and indicators such as the coverage index and narrative strength recomputed every 4 hours
+
+- daily price history since April, plus an as_of query that returns the corpus as it stood on a past date
+
+- 38 academy lessons in 8 courses
+
+Every response uses the same envelope:
+
+  {data, attribution: {citations: [{cite_url, as_of, source_hash}]}, meta: {status, request_id, pageInfo}}
+
+citations[0] is the primary source: the upstream page when there is one (the original article, the market data or block explorer page, a regulator), otherwise our page for the record or the tool's reference entry. source_hash is the record's own hash or a hash of the data, so you can tell when an answer changed between calls.
+
+meta.status is complete, partial (meta.diagnostic.missing lists what is absent), stale (meta.diagnostic.as_of says when the data is from) or unseeded (meta.diagnostic.reason says why there is nothing yet). Some tools have no data source connected yet, such as liquidation heatmaps, exchange flows and the memecoin checks. They answer unseeded with the reason instead of making something up.
+
+Details:
+
+- MIT licensed, in TypeScript and Python: https://github.com/blockchainacademics/bca-mcp and https://github.com/blockchainacademics/bca-mcp-python
+
+- 0.6.3 is on npm (with provenance), PyPI and the official MCP registry as io.github.blockchainacademics/mcp
+
+- The same key works over REST, with an OpenAPI spec: https://blockchainacademics.com/crypto-api/docs/reference/rest-api
+
+- Behind it: FastAPI, Postgres and Redis. The MCP servers are thin clients over the REST API.
+
+- Docs: https://blockchainacademics.com/crypto-api/docs, and every tool with its arguments and tier: https://blockchainacademics.com/crypto-api/docs/reference/tools
+
+I'm Wael, founder of Blockchain Academics, and I'll be in the thread. What I'd most like feedback on:
+
+1. The envelope. Is source_hash useful to you, or noise? We made citations an array in 0.3 so clients that read citations[0] keep working as more sources are added.
+
+2. What's missing for the agent you're building?
+
+3. For backtesting, is the as_of corpus query plus the daily history enough, or what else would you need?
+
+---
+
+**Posting notes (Show HN rules: https://news.ycombinator.com/showhn.html):**
+- The title starts with "Show HN", names the project first, and has no superlatives, capitals or exclamation marks. The tool count stays in the text, because HN crops gratuitous numbers from titles.
+- The URL is the repo, not a signup or landing page, and people can try it with no signup (the 17 tools that need no key).
+- Paste the text as it is: HN keeps the indented lines as code and needs the blank lines between list items. If HN does not show the text with the link, post it as the first comment.
+- Stay in the thread to answer questions, and don't ask anyone to upvote or comment.

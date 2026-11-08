@@ -2,16 +2,16 @@
 
 ---
 
-Shipped bca-mcp today.
+Blockchain Academics MCP is live.
 
-105 crypto tools for AI agents, backed by 3,800+ curated articles + 150+ entity dossiers. Not a CoinGecko wrapper.
+105 crypto tools for AI agents. 17 work with no key.
 
-Every response ships citations[]: hash-verifiable, agent-ready.
+Every answer carries its sources and an honest status.
 
-npm i -g @blockchainacademics/mcp
+npx -y @blockchainacademics/mcp
 
-blockchainacademics.com/crypto-api/pricing
+https://blockchainacademics.com/crypto-api/docs
 
 ---
 
-**Char count:** 263 / 280 (the link counts as 23)
+**Char count:** 201 / 280 (the link counts as 23)

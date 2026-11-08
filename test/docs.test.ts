@@ -177,3 +177,76 @@ describe("README and registry copy", () => {
     }
   });
 });
+
+describe("launch posts fit their platforms", () => {
+  const launch = [
+    "docs/launch/hackernews_show_hn.md",
+    "docs/launch/reddit_r_MachineLearning_or_cryptodev.md",
+    "docs/launch/twitter_announcement_thread.md",
+    "docs/launch/twitter_single_tweet.md",
+    "docs/launch/linkedin_post.md",
+  ];
+  const social = launch.filter((path) => !path.includes("hackernews"));
+
+  // X's count (twitter-text v3): a link is 23, code points in four ranges are
+  // 1 and every other one (emoji, arrows, the ellipsis) is 2.
+  const xLength = (text: string): number => {
+    let n = 0;
+    const rest = text.replace(/https?:\/\/\S+/g, () => {
+      n += 23;
+      return "";
+    });
+    for (const ch of rest) {
+      const cp = ch.codePointAt(0)!;
+      const light =
+        cp <= 4351 || (cp >= 8192 && cp <= 8205) || (cp >= 8208 && cp <= 8223) || (cp >= 8242 && cp <= 8247);
+      n += light ? 1 : 2;
+    }
+    return n;
+  };
+
+  it("every X post is at most 280 characters, with a blank line between lines", () => {
+    const thread = read("docs/launch/twitter_announcement_thread.md");
+    const posts = thread
+      .split(/^\*\*[^*\n]+\*\*$/m)
+      .slice(1)
+      .map((block) => block.split("\n---")[0]!.trim());
+    posts.push(read("docs/launch/twitter_single_tweet.md").split("\n---\n")[1]!.trim());
+    assert.ok(posts.length >= 9, "the thread and the single tweet parse");
+    for (const post of posts) {
+      assert.ok(xLength(post) <= 280, `X post over 280: ${post.slice(0, 50)}`);
+      // Short lines separated by blank lines, never one paragraph (owner, 2026-09-23).
+      assert.ok(!/[^\n]\n[^\n]/.test(post), `X post lines need a blank line between them: ${post.slice(0, 50)}`);
+    }
+  });
+
+  it("the Show HN title follows HN's conventions", () => {
+    const hn = read("docs/launch/hackernews_show_hn.md");
+    const title = hn.split("**Title:**\n")[1]!.split("\n")[0]!;
+    assert.match(title, /^Show HN: /);
+    assert.ok(title.length <= 80, "HN titles are at most 80 characters");
+    assert.ok(!/!|\b[A-Z]{4,}\b/.test(title.replace(/^Show HN: /, "")), "no exclamation marks or shouting");
+    // The link is something people can try, never a signup or pricing page.
+    assert.match(hn, /\*\*URL:\*\*\nhttps:\/\/github\.com\/blockchainacademics\/bca-mcp\n/);
+  });
+
+  it("social posts show no domain but blockchainacademics.com, and no post links the API host", () => {
+    // BCA is the source on social posts: X, Reddit and LinkedIn link bare
+    // domains, so nothing but the site may appear (owner, 2026-10-31).
+    for (const path of social) {
+      for (const m of read(path).matchAll(/\b(?:[a-z0-9-]+\.)+(?:com|io|org|net|dev|ai|app|xyz|co|so|md|sh)\b/gi)) {
+        assert.ok(/^(www\.)?blockchainacademics\.com$/i.test(m[0]), `${path} shows ${m[0]}`);
+      }
+    }
+    for (const path of launch) {
+      const text = read(path);
+      // api.blockchainacademics.com answers 301 to /crypto-api: link the site's pages.
+      assert.ok(!/api\.blockchainacademics\.com/.test(text), `${path} links the API host`);
+      // The site and list_entities say about 150 entity dossiers.
+      assert.ok(!/150\+ entit/i.test(text), `${path} says 150+ entities`);
+      // Prices do come from upstream APIs: no "not a wrapper" claims.
+      assert.ok(!/CoinGecko wrapper|not a wrapper|thin wrappers/i.test(text), `${path} wrapper claim`);
+      assert.ok(!/hash-verifiable|No more hallucinated/i.test(text), `${path} overclaims the hash`);
+    }
+  });
+});

@@ -1,39 +1,49 @@
-## Reddit Post: r/cryptocurrency (chosen over r/MachineLearning)
+## Reddit Post: r/CryptoCurrency
 
-**Subreddit choice rationale:** r/MachineLearning is strict about "self-promotion" and generally hostile to anything crypto-adjacent. r/cryptocurrency allows launch posts if framed as a genuine tool release. r/AI_Agents and r/LocalLLaMA are strong secondary targets for cross-posting.
+**Rules found on 2026-11-07, before posting:**
+
+Reddit blocks this machine, so the official rules page could not be read here. Outside rule trackers (checked between May and September 2026) report:
+
+- Self-promotion is restricted. Posting your own product is a common removal.
+- Promotion is allowed only with moderator approval or in the designated, flaired threads.
+- Referral codes and promo links are banned and can cost the account.
+- Posting has an account age and karma gate (one tracker gives 60+ days and 100+ karma), and the daily thread's old exemption from it has ended.
+- AutoMod filters token names, and token or project shilling is removed.
+
+**How this post fits them:**
+
+- Read the sidebar rules first, then send this draft to the mods by modmail. Post only with their OK, under the flair they name.
+- Post from an account that clears the age and karma gate, and stay to answer comments.
+- The affiliation is disclosed in the first paragraph. No referral or tracking links, no price talk, no token picks, and one link (the docs, on blockchainacademics.com).
+- It ends on a question for the sub.
+- If the mods say no, r/mcp is the natural home for an MCP server launch: read its rules page first. Don't cross-post the same text to other subreddits.
 
 ---
 
 **Title:**
-I built a crypto tool layer for AI agents: 105 tools, backed by a curated corpus instead of CoinGecko wrappers [OC]
+Blockchain Academics MCP: crypto tools for AI agents where every answer cites its sources
 
 ---
 
 **Body:**
 
-Been lurking here for years. Finally shipping something I always wished existed.
+Blockchain Academics MCP is an MIT licensed MCP server that lets an AI agent look up crypto news, prices, wallets and transactions, sentiment, grants and jobs: 105 tools in 19 categories. Disclosure: I'm the founder of Blockchain Academics, which makes it and runs the API behind it.
 
-Short version: most AI agents that "analyze crypto" are running on paper-thin data: CoinGecko price, maybe an Etherscan call, a Twitter scrape if they're ambitious. Then the LLM hallucinates a narrative and nobody can trace where the "facts" came from. That's fine for a demo. It's useless for anything serious.
+An agent's crypto answers are only as good as its sources, so every answer comes with them:
 
-So we built bca-mcp. 105 tools across 19 categories, for agents that need to actually reason about this market.
+- `attribution.citations[]` is on every answer. `citations[0]` is the primary source, the original article or the upstream page, with a timestamp and a hash.
+- `meta.status` says how complete the answer is: complete, partial (with what is missing), stale (with how old the data is) or unseeded (with why there is nothing yet). A tool with no data yet says so instead of making something up.
 
-**What's in it:**
-- news, market data, on-chain, sentiment, indicators, fundamentals, agent jobs
-- 66 more tools: narrative tracking, regulatory, security, memes, microstructure, directories, history API
-- Proprietary editorial corpus underneath: 3,800+ curated articles, 150+ entity dossiers with alias resolution, 38 academy lessons in 8 courses
+What's behind it:
 
-**The part devs will care about:**
-Every tool response ships with a canonical JSON:API-inspired envelope: `{data, attribution: {citations: [{cite_url, as_of, source_hash}]}, meta: {status, request_id, pageInfo}}`. Your agent can cite sources and verify the data hasn't drifted between calls. No more "where did the model get that?" `citations` is an array by design so single-source and multi-source responses look the same: `citations[0]` is always primary.
+- 3,800+ public articles, each linked to the coins and projects it mentions (bitcoin has 1,400+ linked mentions, ethereum 1,000+)
+- about 150 entity dossiers ("cz" resolves to Changpeng Zhao)
+- sentiment rolled up every hour, indicators recomputed every 4 hours, daily price history since April
 
-**How to try it:**
-- `npm i -g @blockchainacademics/mcp` or `pip install bca-mcp` (v0.6.3)
-- Open REST: api.blockchainacademics.com
-- Docs: blockchainacademics.com/crypto-api/docs
-- Free tier (2,000 calls/mo, no card): blockchainacademics.com/crypto-api/pricing
+You can try it without signing up. 17 tools work with no key in Claude Desktop, Cursor or any MCP client:
 
-**What I'm actually asking for:**
-Break it. Tell me what tools are missing. If you're building an agent, a bot, or a research workflow: what data sources do you keep fighting with? That's the roadmap.
+    npx -y @blockchainacademics/mcp
 
-Not trying to pitch. Trying to ship something that pulls its weight for the people building on it.
+Python 3.11+: `uvx bca-mcp`. A free key opens 52 tools, and paid plans open the rest. Docs and the full tool list: https://blockchainacademics.com/crypto-api/docs
 
-Wael, founder of Blockchain Academics
+A question for anyone using AI for crypto research: where do agents get crypto facts wrong for you? Stale prices, invented sources, the wrong token behind a ticker? Your answers decide what we fix next.
