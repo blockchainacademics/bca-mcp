@@ -6,7 +6,7 @@ Today we're launching Blockchain Academics MCP: 105 crypto tools that AI agents 
 
 17 of them work with no key and no signup.
 
-An agent that reasons about crypto is only as good as its sources, so every answer carries them. Each citation has a link, a timestamp and a hash, and the first one is the primary source: the original article or the upstream page.
+An agent that reasons about crypto is only as good as its sources, so every answer carries them. Each citation has a link, a timestamp and a hash, and the first one is the primary source: the original article, the upstream data page, or our own page for data we compute.
 
 Every answer also says how complete it is: complete, partial (and what is missing), stale (and how old the data is) or unseeded (and why there is nothing yet). When a tool has no data yet, it says so instead of making something up.
 
@@ -32,4 +32,4 @@ Builder to builder.
 
 ---
 
-**Word count:** 256 (plain text: LinkedIn shows no markdown, so the post has none)
+**Word count:** 264 (plain text: LinkedIn shows no markdown, so the post has none)

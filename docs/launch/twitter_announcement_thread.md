@@ -27,7 +27,7 @@ Indicators, history, grants, jobs, regulation and security
 **3/**
 Every answer carries attribution.citations[].
 
-citations[0] is the primary source: the original article or the upstream page.
+citations[0] is the primary source: the original article, the upstream data page, or our own page for data we compute.
 
 Each citation has a URL, a timestamp and a hash.
 

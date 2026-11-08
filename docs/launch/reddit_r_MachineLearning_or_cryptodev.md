@@ -31,7 +31,7 @@ Blockchain Academics MCP is an MIT licensed MCP server that lets an AI agent loo
 
 An agent's crypto answers are only as good as its sources, so every answer comes with them:
 
-- `attribution.citations[]` is on every answer. `citations[0]` is the primary source, the original article or the upstream page, with a timestamp and a hash.
+- `attribution.citations[]` is on every answer. `citations[0]` is the primary source: the original article, the upstream data page, or our own page for data we compute. Every citation has a timestamp and a hash.
 - `meta.status` says how complete the answer is: complete, partial (with what is missing), stale (with how old the data is) or unseeded (with why there is nothing yet). A tool with no data yet says so instead of making something up.
 
 What's behind it:
