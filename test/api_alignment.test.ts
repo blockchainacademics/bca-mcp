@@ -393,6 +393,10 @@ describe("descriptions promise only what the API returns", () => {
       /before news outlets/i,
       /accumulation edge|pair trades|reversal/i,
       /Free to submit|paid to be featured|featured listing|Stripe/i,
+      // Sending the model to another tool ("use get_job for one role").
+      /\b(use|call|poll|try) [a-z]+_[a-z_]+\b/i,
+      // Orders about the arguments: a description says what the tool takes.
+      /(^|[.;:]\s+)(Provide|Pick|Choose)\b/,
     ];
     const strings = (node: unknown, out: string[] = []): string[] => {
       if (Array.isArray(node)) for (const item of node) strings(item, out);

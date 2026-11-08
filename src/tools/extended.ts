@@ -146,7 +146,7 @@ export const listJobsInputSchema = z.object({
   location: z.string().min(2).max(100).optional().describe("Location substring, e.g. 'London', 'Singapore'"),
   employment_type: z.enum(["full_time", "part_time", "contract", "internship"]).optional(),
   company_slug: slugSchema("company_slug", 160).optional().describe("e.g. coinbase, binance, phantom"),
-  include_description: z.boolean().default(false).describe("Full job descriptions (large); use get_job for one role"),
+  include_description: z.boolean().default(false).describe("Full job descriptions (large). get_job returns one role in full."),
   limit: z.number().int().min(1).max(100).default(25),
   offset: z.number().int().min(0).default(0),
 });
@@ -606,7 +606,7 @@ export const getPredictionMarketsInputSchema = z.object({
 export const getPredictionMarketsDefinition = {
   name: "get_prediction_markets",
   description:
-    "Live prediction market odds from Polymarket and Kalshi, most traded first. Each market's outcomes is a list of {outcome, price}, the price being the implied probability (0 to 1). Pick the venue and a topic (crypto by default); partial, with meta.diagnostic.missing naming the venue, when a venue fails, has no markets or does not cover the topic.",
+    "Live prediction market odds from Polymarket and Kalshi, most traded first. Each market's outcomes is a list of {outcome, price}, the price being the implied probability (0 to 1). Takes a venue and a topic (crypto by default); partial, with meta.diagnostic.missing naming the venue, when a venue fails, has no markets or does not cover the topic.",
 };
 export const runGetPredictionMarkets = (i: any) =>
   clientGet(`/v1/narrative/prediction-markets`, i);
