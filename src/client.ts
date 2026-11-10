@@ -552,7 +552,10 @@ export class BcaClient {
           ? perSecondRetryDelay(res, detail)
           : undefined;
       if (delay === undefined) {
-        throw new BcaRateLimitError(parseRetryAfter(res.headers.get("retry-after")));
+        throw new BcaRateLimitError(
+          parseRetryAfter(res.headers.get("retry-after")),
+          detail === undefined ? undefined : truncateChars(detail, MAX_DETAIL_CHARS),
+        );
       }
       await sleep(delay * 1000 + 100 + Math.random() * 200);
     }

@@ -33,14 +33,19 @@ export class BcaAuthError extends BcaError {
 
 export class BcaRateLimitError extends BcaError {
   readonly retryAfter?: number;
-  constructor(retryAfter?: number) {
+  /** The API's own reason (which limit was hit), as rendered and truncated. */
+  readonly detail?: string;
+  constructor(retryAfter?: number, detail?: string) {
+    // The reason is upstream text, fenced like the detail of any other 4xx.
     super(
       "BCA_RATE_LIMIT",
-      `Rate limit exceeded${retryAfter ? `, retry after ${retryAfter}s` : ""}`,
+      `Rate limit exceeded${retryAfter ? `, retry after ${retryAfter}s` : ""}` +
+        (detail ? `: ${fenceUntrusted("bca-api", detail)}` : ""),
       429,
     );
     this.name = "BcaRateLimitError";
     this.retryAfter = retryAfter;
+    this.detail = detail;
   }
 }
 
