@@ -20,6 +20,8 @@ Directory review fixes (directory-submissions.md, section 4.6 rows A3, A5 and A1
 - A tool above the key's plan answers `BCA_TIER_LOCKED` instead of `BCA_UPSTREAM`. The API sends HTTP 402 to a valid key on a lower plan, and the client now gives it the code the README documents (it was only used for the HTTP 403 a call without a key gets). The message is the API's upgrade sentence with the pricing link, shown as on the 403 path: verbatim, capped at 500 characters, with any `untrusted_content` tag neutralized (it used to sit inside a fence). `BcaError.status` is 402. 404 and 422 are unchanged.
 - A `BCA_RATE_LIMIT` error says which limit was hit. The message keeps the API's own reason (the per-second limit, a daily cap, the job queue cap, a vendor limit) and the signup link the API sends to a call without a key, up to 500 characters inside an `untrusted_content` fence like any other API detail. Every 429 used to read "Rate limit exceeded", so a daily cap looked the same as a one-second burst. `BcaRateLimitError.detail` holds the reason for programmatic callers.
 
+## 0.6.3
+
 - Every link the package shows people now points at blockchainacademics.com/crypto-api (signup, pricing, docs); brain. and docs. are permanent redirects since the one-domain consolidation (2026-10-29).
 - server.json: `websiteUrl`, `docs_url` on the main site, display name "BCA Crypto Brain", and category examples now list all 105 tools (97 before).
 - `tools.json` ships in the package: tool names and counts per category, generated from the registry, for sites that must never type a count by hand.
