@@ -21,9 +21,8 @@ This package is published to npm. We support the most recent minor version line.
 
 | Version  | Supported          |
 | -------- | ------------------ |
-| `0.2.x`  | :white_check_mark: |
-| `0.1.x`  | :x: (superseded)   |
-| `< 0.1`  | :x:                |
+| `0.6.x`  | :white_check_mark: |
+| `< 0.6`  | :x:                |
 
 Critical security fixes are published as patch releases to the current minor line and, where feasible, backported to the previous minor line.
 
@@ -46,22 +45,6 @@ We will not pursue legal action against researchers who:
 - Report vulnerabilities in good faith via the channel above
 - Do not access, modify, or destroy data beyond what is strictly necessary to demonstrate the issue
 - Give us a reasonable chance to remediate before public disclosure
-
-## PGP / Encrypted Reporting
-
-For highly sensitive reports, encrypt to the following key:
-
-```
------BEGIN PGP PUBLIC KEY BLOCK-----
-
-<!-- TODO: publish production PGP key for security@blockchainacademics.com
-     and paste the ASCII-armored public key here. Until then, the email
-     channel above is accepted without encryption. -->
-
------END PGP PUBLIC KEY BLOCK-----
-```
-
-Fingerprint: `TODO: populate once key is generated`
 
 ## Scope
 
