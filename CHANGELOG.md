@@ -52,27 +52,27 @@ Directory review fixes (directory-submissions.md, section 4.6 rows A3, A5 and A1
 - `get_agent_job` fences the strings of the whitepaper summary at every depth, so the `tokenomics` object and named team entries are fenced too (only the top level was).
 - Descriptions: `scan_contract` lists the fields it returns (no owner lookup), `get_audit_reports` is partial only when every audit on file is a DefiLlama link, and `get_mica_status` returns a reviewed row for a country outside the EU and EEA instead of always answering unseeded.
 
-## [0.6.2] — 2026-10-19
+## [0.6.2] - 2026-10-19
 
-### Added — live crypto jobs (1 new tool, 104 → 105)
+### Added: live crypto jobs (1 new tool, 104 → 105)
 
 `list_jobs` now returns real data: 1,300+ open roles at 50+ crypto companies, collected every 6 hours from the companies' own job boards, with apply links to the company's own page. Both job tools are available on the demo tier.
 
 - `list_jobs`: inputs now match the API (keyword, role category, remote, location, employment type, company); the old `seniority` / `chain` filters were never supported upstream and are removed. Descriptions are opt-in.
 - `get_job`: one role in full, with apply link and BCA job page URL.
 
-## [0.6.1] — 2026-10-19
+## [0.6.1] - 2026-10-19
 
-### Added — grants (2 new tools, 102 → 104)
+### Added: grants (2 new tools, 102 → 104)
 
 The live grants directory behind blockchainacademics.com/grants: 200+ crypto, web3, AI and public-funding programs, each checked against the funder's page weekly. Expired rounds are never returned.
 
 - `search_grants`: filter by keyword, ecosystem (web3, ai, web2_cloud, gov, edu), country, minimum award, application complexity and deadline. Soonest deadline first.
 - `get_grant`: one program in full, with apply link and last verified date.
 
-## [0.6.0] — 2026-10-09
+## [0.6.0] - 2026-10-09
 
-### Added — crypto Twitter intelligence (3 new tools, 99 → 102)
+### Added: crypto Twitter intelligence (3 new tools, 99 → 102)
 
 BCA's read of what crypto Twitter is saying, as analysis in our own words with X post URLs as citations (never reposted post text). Pro tier.
 
@@ -85,9 +85,9 @@ BCA's read of what crypto Twitter is saying, as analysis in our own words with X
 - `get_social_pulse` is now live (was returning `integration_pending`): CT sentiment score, label, mention trend, bull/bear points, narratives, notable posts.
 - `get_article` works without an API key (rate-limited per IP), so agents can read any article link.
 
-## [0.5.1] — 2026-06-04
+## [0.5.1] - 2026-06-04
 
-### Fixed — entry-point guard via npx symlinks
+### Fixed: entry-point guard via npx symlinks
 
 The v0.5.0 entry-point guard compared `process.argv[1]` to
 `fileURLToPath(import.meta.url)` literally. That worked for direct
@@ -102,12 +102,12 @@ Resolved both paths via `realpathSync` before comparing.
 Verified against a published `0.5.1` symlink invocation: banner emits to
 stderr, `server.connect(transport)` runs, tools list correctly.
 
-Python sibling bumped to 0.5.1 in lockstep — no functional change there
+Python sibling bumped to 0.5.1 in lockstep, no functional change there
 (`__name__ == "__main__"` resolves correctly via console_scripts).
 
-## [0.5.0] — 2026-06-04
+## [0.5.0] - 2026-06-04
 
-### Added — public demo tier (zero-config first run)
+### Added: public demo tier (zero-config first run)
 
 When `BCA_API_KEY` is unset, `BcaClient` now falls back to a baked-in
 public demo key (`bca_demo_a3e1cc71b2b32872cb32516ffc7e8ad8203acb9d`).
@@ -127,16 +127,16 @@ demo instead of a `BCA_AUTH` wall on every tool call.
   `scripts/gen-demo-key.mjs` write `src/demo_key.ts` at build time.
   Wired into `build`, `dev`, and `test` npm scripts.
 
-### Fixed — latent test hang in security_v031.test.ts
+### Fixed: latent test hang in security_v031.test.ts
 
 `test/security_v031.test.ts` imported from `src/index.js` which fired
 `main()` on module load and blocked on stdio reads forever in CI. Added
 an entry-point guard so `main()` runs only when this file is the entry
-script. (Note: 0.5.0's guard had the npx-symlink bug — see 0.5.1.)
+script. (Note: 0.5.0's guard had the npx-symlink bug: see 0.5.1.)
 
-## [0.4.2] — 2026-06-02
+## [0.4.2] - 2026-06-02
 
-### Added — MCP Registry submission prep
+### Added: MCP Registry submission prep
 
 - `package.json` now declares `mcpName: "io.github.blockchainacademics/mcp"`.
   Required by the official MCP Registry (`registry.modelcontextprotocol.io`)
@@ -151,7 +151,7 @@ script. (Note: 0.5.0's guard had the npx-symlink bug — see 0.5.1.)
 
 No source change. Lockstep with `bca-mcp@0.4.2` on PyPI.
 
-## [0.4.1] — 2026-06-02
+## [0.4.1] - 2026-06-02
 
 ### Fixed (lockstep with bca-mcp 0.4.1 on PyPI)
 
@@ -159,11 +159,11 @@ No source change. Lockstep with `bca-mcp@0.4.2` on PyPI.
   has no functional change; this version bump exists only to keep TS +
   Python in lockstep on the npm + PyPI directory listings.
 
-## [0.4.0] — 2026-06-02
+## [0.4.0] - 2026-06-02
 
 Distribution release for the Anthropic MCP directory submission.
 
-### Added — hybrid citations
+### Added: hybrid citations
 
 - **`attribution.citations[]` now ships TWO entries when a real upstream
   source exists.** `citations[0]` is the actual upstream URL (the Bankless
@@ -171,7 +171,7 @@ Distribution release for the Anthropic MCP directory submission.
   with the upstream `as_of` and `source_hash`. `citations[1]` is the BCA
   editorial deep-link. LLM consumers get true provenance first; BCA still
   rides along for secondary attribution. The contract already permitted
-  multi-entry `citations[]` from 0.3.0 — handlers now actively populate it.
+  multi-entry `citations[]` from 0.3.0: handlers now actively populate it.
 - **44 API handlers wired** to emit upstream URLs: news + articles + market
   (CoinGecko / DexScreener) + onchain (Etherscan / Solscan / BscScan /
   Snowtrace / Basescan / Arbiscan / Polygonscan / Mempool) + sentiment
@@ -185,7 +185,7 @@ Distribution release for the Anthropic MCP directory submission.
 - **Defensive `X-BCA-Cite-Upstream` middleware guard**: `javascript:` /
   `data:` / `file:` URLs silently dropped before reaching `citations[0]`.
 - BCA-proprietary tools (indicators, memos, theses, BCA-curated directories)
-  intentionally stay single-citation — BCA *is* the upstream for those.
+  intentionally stay single-citation: BCA *is* the upstream for those.
 
 ### Fixed
 
@@ -215,12 +215,12 @@ Distribution release for the Anthropic MCP directory submission.
   tz-naive datetime) can never crash the handler. Coerces via `str()`,
   uses `.isoformat()` instead of hardcoded `Z` suffix.
 
-### Verified — battle-test results
+### Verified: battle-test results
 
 - 1,820 calls fired across 91 live tools (8 mutation endpoints skipped),
   concurrency 5, in 479 seconds against prod.
 - **83 / 91 (91%) zero-error under sustained load.**
-- **0 / 91 citation-count drift across calls** — hybrid envelope is
+- **0 / 91 citation-count drift across calls**: hybrid envelope is
   deterministic.
 - 56 / 91 passed per-category p95 SLA. The 35 slower tools are
   vendor-bound (CoinGecko free-tier rate limit on 2; DefiLlama 502/503
@@ -233,11 +233,11 @@ See [ROADMAP.md](ROADMAP.md) for the 14 honestly-flagged
 `meta.status="unseeded"` tools and their target 0.5.0+ vendor
 integrations.
 
-## [0.3.2] — 2026-04-22
+## [0.3.2] - 2026-04-22
 
 ### Security
 
-- **MCP-TS-2 — X-API-Key redirect hardening.** All upstream requests now set
+- **MCP-TS-2: X-API-Key redirect hardening.** All upstream requests now set
   `redirect: "manual"` and explicitly reject 3xx responses rather than
   following them. Prevents a compromised or mis-configured upstream from
   301/302-redirecting the MCP client to a host that would receive the user's
@@ -245,41 +245,41 @@ integrations.
   bounds the *initial* host; this closes the redirect-based escape from that
   bound.
 
-## [0.3.1] — 2026-04-22
+## [0.3.1] - 2026-04-22
 
 ### Security
 
-- **H-1 — `BCA_API_BASE` allowlist.** Replaced the loose `https://` prefix
+- **H-1: `BCA_API_BASE` allowlist.** Replaced the loose `https://` prefix
   check with a strict allowlist: `https://api.blockchainacademics.com`
   (default), `https://staging-api.blockchainacademics.com`,
   `http://localhost[:port]`, `http://127.0.0.1[:port]`. An attacker who
   controlled `BCA_API_BASE` previously could redirect the user's `X-API-Key`
   to any HTTPS host; that path is closed. The `BCA_ALLOW_INSECURE_BASE=1`
-  escape hatch is removed — local dev over HTTP is handled directly by the
+  escape hatch is removed: local dev over HTTP is handled directly by the
   allowlisted loopback prefixes.
-- **H-2 — Prompt-injection fencing on tool responses.** The `data` field of
+- **H-2: Prompt-injection fencing on tool responses.** The `data` field of
   every canonical envelope is now wrapped in `<untrusted_content source="bca-api">…</untrusted_content>`
   before it is serialised into the MCP `text` content block. `attribution`
   and `meta` remain structured. Fence bytes match the Python sibling
   byte-for-byte. The per-tool fencing on `summarize_whitepaper` and
   `translate_contract` output fields is preserved as a second layer.
-- **H-3 — Webhook SSRF guard on `monitor_keyword`.** `webhook_url` is now
+- **H-3: Webhook SSRF guard on `monitor_keyword`.** `webhook_url` is now
   validated before the request is sent upstream: HTTPS only, no bare IP
   literals, and every IP that the hostname resolves to must be public
-  (rejects RFC1918, loopback 127/8, link-local 169.254/16 — including IMDS
+  (rejects RFC1918, loopback 127/8, link-local 169.254/16 including IMDS
   169.254.169.254, CGNAT 100.64/10, multicast/reserved, IPv6 ULA/link-local).
   The input-schema pattern is tightened from `^https?://` to `^https://` so
   the zod parser rejects HTTP at schema time.
 
-## [0.3.0] — 2026-04-22
+## [0.3.0] - 2026-04-22
 
-### Changed — BREAKING — canonical response envelope
+### Changed: BREAKING, canonical response envelope
 
 Blockchain Academics has locked a single JSON:API-inspired response envelope
 across all surfaces (REST, MCP, CLI, SDK). The MCP server now emits that
 canonical shape verbatim. Tool callers parsing envelope fields must migrate.
 
-#### Wire shape — before (0.2.x)
+#### Wire shape: before (0.2.x)
 
 ```json
 {
@@ -294,7 +294,7 @@ canonical shape verbatim. Tool callers parsing envelope fields must migrate.
 }
 ```
 
-#### Wire shape — after (0.3.0)
+#### Wire shape: after (0.3.0)
 
 ```json
 {
@@ -321,7 +321,7 @@ canonical shape verbatim. Tool callers parsing envelope fields must migrate.
 }
 ```
 
-#### Migration — field by field
+#### Migration: field by field
 
 - `status` moved from envelope root → `meta.status`.
 - `attribution.cite_url` / `attribution.as_of` / `attribution.source_hash`
@@ -332,7 +332,7 @@ canonical shape verbatim. Tool callers parsing envelope fields must migrate.
   `status`, `request_id` (string), and `pageInfo`. A `diagnostic` sub-object
   is present only on `unseeded` or `partial` responses.
 - `meta.status` enum tightened: `complete | unseeded | partial | stale`. The
-  old `"error"` value is removed — errors are surfaced as HTTP 4xx/5xx and
+  old `"error"` value is removed: errors are surfaced as HTTP 4xx/5xx and
   propagate through the MCP error channel (`isError: true`), never as an
   envelope status.
 - Rate-limit hints (`X-RateLimit-Remaining`, `Retry-After`) are HTTP headers
@@ -349,7 +349,7 @@ BCA surfaces report canonical.
 ### Added
 - `src/types.ts`: new exported types `Citation`, `PageInfo`, `EnvelopeMeta`,
   tightened `EnvelopeStatus` to the canonical enum (dropped `"error"`).
-- `src/client.ts`: `normalizeEnvelope<T>()` helper — single source of truth
+- `src/client.ts`: `normalizeEnvelope<T>()` helper, single source of truth
   for parsing canonical / flat / raw upstream responses.
 
 ### Removed
@@ -361,29 +361,29 @@ BCA surfaces report canonical.
   exported from `src/types.ts` for tool authors who synthesise envelopes
   locally.
 
-## [0.2.2] — 2026-04-21
+## [0.2.2] - 2026-04-21
 
-### Fixed — 10 tool input schemas surfaced via live production audit
+### Fixed: 10 tool input schemas surfaced via live production audit
 
 Live audit of 99 tools against `api.blockchainacademics.com` revealed 10
 tools where the MCP-side Zod schema disagreed with the backend Pydantic
 contract. Each fix below resolves an HTTP 422 that agents previously hit:
 
-- `generate_due_diligence` — `depth` enum: `brief|standard|deep` → `light|standard|deep`
-- `translate_contract` — renamed `source_lang` → `source_language`, `target_lang` → `target_language`
-- `monitor_keyword` — `webhook_url` now required (was optional)
-- `list_aggregators` — `kind` enum: `swap|bridge|all` → `dex|bridge|yield`, now required
-- `check_rugpull_risk` — field: `contract`+`chain` → `entity_slug`
-- `check_memecoin_risk` — field: `contract`+`chain` → `mint` (Solana token mint)
-- `scan_contract` — field: `contract`+`chain` → `address` (0x EVM, regex-validated)
-- `book_kol_campaign` — added required `contact_email`
-- `request_custom_research` — added required `contact_email`; `depth` enum aligned to `light|standard|deep`
-- `submit_listing` — added required `listing_name`
+- `generate_due_diligence`: `depth` enum: `brief|standard|deep` → `light|standard|deep`
+- `translate_contract`: renamed `source_lang` → `source_language`, `target_lang` → `target_language`
+- `monitor_keyword`: `webhook_url` now required (was optional)
+- `list_aggregators`: `kind` enum: `swap|bridge|all` → `dex|bridge|yield`, now required
+- `check_rugpull_risk`: field: `contract`+`chain` → `entity_slug`
+- `check_memecoin_risk`: field: `contract`+`chain` → `mint` (Solana token mint)
+- `scan_contract`: field: `contract`+`chain` → `address` (0x EVM, regex-validated)
+- `book_kol_campaign`: added required `contact_email`
+- `request_custom_research`: added required `contact_email`; `depth` enum aligned to `light|standard|deep`
+- `submit_listing`: added required `listing_name`
 
 Tool descriptions now document required fields + enum values inline so LLM
 callers can self-correct before an API roundtrip.
 
-## [0.2.1] — 2026-04-21
+## [0.2.1] - 2026-04-21
 
 ### Fixed
 - `get_editorial_premium` and `get_kol_influence` now default `window` to `30d`
@@ -392,7 +392,7 @@ callers can self-correct before an API roundtrip.
   Supported windows noted in each tool's description. Live-verified against
   `api.blockchainacademics.com`: schema parse → runtime call → envelope data.
 
-## [0.2.0] — 2026-04-21
+## [0.2.0] - 2026-04-21
 
 ### Verified against production prior to publish
 - All 5 agent-job skills smoke-tested against `api.blockchainacademics.com`:
@@ -403,16 +403,16 @@ callers can self-correct before an API roundtrip.
   `{status: "integration_pending", reason, eta}` with an `X-BCA-Integration-Status: pending`
   header instead of 501/NotImplementedError.
 
-## [0.2.0-draft] — 2026-04-20
+## [0.2.0-draft] - 2026-04-20
 
-### Added — 96 new tools across 13 categories (total surface: 99 tools)
+### Added: 96 new tools across 13 categories (total surface: 99 tools)
 
 Phase 3c/3d/3e expansion: wired every /v1/* endpoint the backend exposes (119
 total) as an MCP tool. Matches ~100% of backend surface. A handful of spec
 tools (e.g. get_nft_floor, trace_funds, get_mcp_recipe) are not wired because
 their backend endpoints do not yet exist.
 
-### Added — 26 new tools across 5 categories (initial batch)
+### Added: 26 new tools across 5 categories (initial batch)
 
 Content & corpus:
 - `get_article`, `list_entity_mentions`, `list_topics`, `get_as_of_snapshot`
@@ -437,15 +437,15 @@ Agent-backed async generation (Pro/Team tier):
 ### Changed
 - HTTP client supports POST via new `post()` method (required for agent-job tools).
 - Each tool category now lives in its own module under `src/tools/`.
-- Draft version — do not publish to npm until integration-tested against prod.
+- Draft version: do not publish to npm until integration-tested against prod.
 
-## [0.1.0] — 2026-04-19
+## [0.1.0] - 2026-04-19
 
 ### Added
 - Initial release with stdio transport.
-- `search_news` tool — full-text search over the BCA editorial corpus.
-- `get_entity` tool — canonical entity dossiers by slug or ticker.
-- `get_explainer` tool — canonical academy lessons by slug or topic.
+- `search_news` tool: full-text search over the BCA editorial corpus.
+- `get_entity` tool: canonical entity dossiers by slug or ticker.
+- `get_explainer` tool: canonical academy lessons by slug or topic.
 - Typed HTTPS client with `BCA_API_KEY` header injection and 20s timeout.
 - Structured error taxonomy (`BCA_AUTH`, `BCA_RATE_LIMIT`, `BCA_UPSTREAM`, `BCA_NETWORK`, `BCA_BAD_REQUEST`).
 - Attribution surfacing (`cite_url`, `as_of`, `source_hash`) on every tool response.

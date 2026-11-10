@@ -162,8 +162,10 @@ describe("README and registry copy", () => {
     assert.ok(!/43 academy lessons|what-is-a-blockchain/.test(readme));
   });
 
-  it("no em dash in README, package.json or server.json descriptions", () => {
+  it("no em dash in README, CHANGELOG, package.json or server.json descriptions", () => {
     assert.ok(!readme.includes("\u2014"), "README em dash");
+    // The changelog ships in the package too.
+    assert.ok(!read("CHANGELOG.md").includes("\u2014"), "CHANGELOG em dash");
     const pkg = JSON.parse(read("package.json"));
     assert.ok(!String(pkg.description).includes("\u2014"), "package.json description");
     const server = JSON.parse(read("server.json"));
