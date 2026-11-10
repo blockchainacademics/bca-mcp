@@ -238,7 +238,7 @@ A request that is not a valid MCP call at all (arguments that are not an object,
 |---|---|
 | `BCA_AUTH` | Invalid `BCA_API_KEY` (HTTP 401/403), or a key that cannot be sent as a header value (a line break inside it); the key itself is never repeated in the message |
 | `BCA_TIER_LOCKED` | Tool not in your current tier's allowlist (HTTP 403). Without a key this applies to 88 of the 105 tools; the message includes the signup URL. |
-| `BCA_RATE_LIMIT` | Rate limit exceeded (HTTP 429; honor `Retry-After`) |
+| `BCA_RATE_LIMIT` | Rate limit exceeded (HTTP 429; honor `Retry-After`). A read the per-second limit turned away is sent again first, up to twice. |
 | `BCA_UPSTREAM` | BCA API returned an error status or malformed JSON. For a 4xx the message carries the API's own detail (up to 500 characters) inside an `<untrusted_content>` fence; a 5xx stays generic. |
 | `BCA_NETWORK` | Network failure or 20s timeout exceeded |
 | `BCA_BAD_REQUEST` | Invalid tool arguments, caught before any request is sent. The message lists each problem as `field: problem`, e.g. `Invalid arguments for search_news: limit: Number must be less than or equal to 50`. |

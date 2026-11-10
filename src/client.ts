@@ -139,6 +139,45 @@ async function readErrorJson(res: Response): Promise<unknown> {
   }
 }
 
+// A 429 from the per-second limit is sent again: the API turns those calls
+// away before it counts them, so the retry costs nothing. Every other 429 (a
+// daily or monthly cap, the job queue, a vendor limit) is returned at once.
+// At most two retries, each after Retry-After (1 s when the header is absent)
+// plus 100 to 300 ms of jitter, so a call waits at most 4.6 s more. GET only:
+// a POST is never repeated.
+const RATE_LIMIT_MAX_RETRIES = 2;
+const RATE_LIMIT_MAX_RETRY_AFTER_S = 2;
+const PER_SECOND_DETAIL_RE = /per[- ]second|requests?\/second/i;
+
+/** Retry-After as whole seconds; undefined when absent or an HTTP date. */
+function parseRetryAfter(value: string | null): number | undefined {
+  return value !== null && /^\d+$/.test(value.trim()) ? Number(value) : undefined;
+}
+
+/**
+ * Seconds to wait before repeating a call the per-second limit turned away,
+ * or undefined when the 429 is any other limit. The per-second limit sends a
+ * Retry-After of 2 seconds or less with X-BCA-Error-Code: BCA_RATE_LIMIT (a
+ * vendor limit sends a short Retry-After too, but without the code and after
+ * the call was counted) or, with no Retry-After at all, a detail that names
+ * it ("2 requests/second").
+ */
+function perSecondRetryDelay(res: Response, detail: string | undefined): number | undefined {
+  const header = res.headers.get("retry-after");
+  if (header === null) {
+    return detail !== undefined && PER_SECOND_DETAIL_RE.test(detail) ? 1 : undefined;
+  }
+  const retryAfter = parseRetryAfter(header);
+  return retryAfter !== undefined &&
+    retryAfter <= RATE_LIMIT_MAX_RETRY_AFTER_S &&
+    res.headers.get("x-bca-error-code") === "BCA_RATE_LIMIT"
+    ? retryAfter
+    : undefined;
+}
+
+const sleep = (ms: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms));
+
 // Module-level guard so we only warn once per process when a non-default
 // BCA_API_BASE is in use. Exported for tests to reset between cases.
 let _nonDefaultBaseWarned = false;
@@ -481,27 +520,41 @@ export class BcaClient {
     }
 
     let res: Response;
-    try {
-      const init: RequestInit = {
-        method,
-        headers,
-        // MCP-TS-2: never follow redirects automatically. WHATWG fetch
-        // strips only a small allow-list of headers (Authorization,
-        // Cookie, Proxy-Authorization) on cross-origin redirects; our
-        // custom X-API-Key would be replayed to whatever Location the
-        // response points at. A compromised or misconfigured upstream
-        // could therefore exfiltrate the key to an attacker-controlled
-        // host. Setting `redirect: "manual"` surfaces the 3xx as a
-        // response status we explicitly reject below.
-        redirect: "manual",
-        signal: AbortSignal.timeout(this.timeoutMs),
-      };
-      if (method === "POST" && body) {
-        init.body = JSON.stringify(body);
+    for (let retries = 0; ; retries++) {
+      try {
+        const init: RequestInit = {
+          method,
+          headers,
+          // MCP-TS-2: never follow redirects automatically. WHATWG fetch
+          // strips only a small allow-list of headers (Authorization,
+          // Cookie, Proxy-Authorization) on cross-origin redirects; our
+          // custom X-API-Key would be replayed to whatever Location the
+          // response points at. A compromised or misconfigured upstream
+          // could therefore exfiltrate the key to an attacker-controlled
+          // host. Setting `redirect: "manual"` surfaces the 3xx as a
+          // response status we explicitly reject below.
+          redirect: "manual",
+          signal: AbortSignal.timeout(this.timeoutMs),
+        };
+        if (method === "POST" && body) {
+          init.body = JSON.stringify(body);
+        }
+        res = await this.fetchImpl(url, init);
+      } catch (err) {
+        throw new BcaNetworkError(err);
       }
-      res = await this.fetchImpl(url, init);
-    } catch (err) {
-      throw new BcaNetworkError(err);
+      if (res.status !== 429) break;
+
+      // Reading the body also frees the connection before any retry.
+      const detail = renderApiErrorDetail(await readErrorJson(res));
+      const delay =
+        method === "GET" && retries < RATE_LIMIT_MAX_RETRIES
+          ? perSecondRetryDelay(res, detail)
+          : undefined;
+      if (delay === undefined) {
+        throw new BcaRateLimitError(parseRetryAfter(res.headers.get("retry-after")));
+      }
+      await sleep(delay * 1000 + 100 + Math.random() * 200);
     }
 
     // Explicitly reject redirects (see MCP-TS-2 note above). `res.type === "opaqueredirect"`
@@ -554,10 +607,6 @@ export class BcaClient {
         );
       }
       throw new BcaAuthError(upstreamMsg);
-    }
-    if (res.status === 429) {
-      const ra = res.headers.get("retry-after");
-      throw new BcaRateLimitError(ra ? Number(ra) : undefined);
     }
     // 5xx stays generic: server internals never reach the host model.
     if (res.status >= 500) throw new BcaUpstreamError(res.status);
