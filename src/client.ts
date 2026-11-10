@@ -608,12 +608,25 @@ export class BcaClient {
       }
       throw new BcaAuthError(upstreamMsg);
     }
+    if (res.status === 402) {
+      // A valid key on a plan below the tool's. Same code as the no-key 403
+      // above, and the API's upgrade sentence is shown the same way: verbatim
+      // (it carries the pricing link), capped, any fence tag neutralized.
+      const detail = renderApiErrorDetail(await readErrorJson(res));
+      throw new BcaError(
+        "BCA_TIER_LOCKED",
+        detail === undefined
+          ? "This tool requires a higher tier. Upgrade at https://blockchainacademics.com/crypto-api/pricing"
+          : (neutralizeFenceTokens(truncateChars(detail, MAX_DETAIL_CHARS)) as string),
+        res.status,
+      );
+    }
     // 5xx stays generic: server internals never reach the host model.
     if (res.status >= 500) throw new BcaUpstreamError(res.status);
     if (!res.ok) {
-      // Other 4xx (404 not found, 402 tier, 422 validation): carry the API's
-      // own detail so the caller can fix the request. BcaUpstreamError fences
-      // it as untrusted content.
+      // Other 4xx (404 not found, 422 validation): carry the API's own detail
+      // so the caller can fix the request. BcaUpstreamError fences it as
+      // untrusted content.
       const detail = renderApiErrorDetail(await readErrorJson(res));
       throw new BcaUpstreamError(
         res.status,

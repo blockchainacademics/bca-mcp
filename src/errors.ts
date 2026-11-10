@@ -9,7 +9,8 @@ export type BcaErrorCode =
   | "BCA_BAD_REQUEST"
   // Added 2026-06-02 with the demo tier. Backend returns 403 + this code when
   // a demo-key caller hits a tool outside the demo allowlist. The upstream
-  // message includes the signup URL; client surfaces it verbatim.
+  // message includes the signup URL; client surfaces it verbatim. A 402 (a
+  // valid key on a plan below the tool's) gets the same code.
   | "BCA_TIER_LOCKED";
 
 export class BcaError extends Error {

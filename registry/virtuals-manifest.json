@@ -354,7 +354,7 @@
     "envelope": "{ \"error\": { \"code\": \"BCA_*\", \"message\": \"...\" } }",
     "codes": {
       "BCA_AUTH": "Missing or invalid BCA_API_KEY (HTTP 401/403), or a key that is not a valid header value",
-      "BCA_TIER_LOCKED": "Tool not in the key's tier (HTTP 403); the message links to the signup",
+      "BCA_TIER_LOCKED": "Tool not in the key's tier (HTTP 403 without a key, HTTP 402 with a key on a lower plan); the message links to the signup or the pricing page",
       "BCA_RATE_LIMIT": "Rate limit exceeded (HTTP 429: honor Retry-After)",
       "BCA_UPSTREAM": "BCA API returned an error status or malformed JSON; a 4xx carries the API's own detail",
       "BCA_NETWORK": "Network failure or 20s timeout exceeded",
