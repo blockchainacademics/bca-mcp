@@ -24,8 +24,7 @@ Crypto MCP server for AI agents: cited news, prices, onchain data, sentiment and
 | History time-series | 4 | `get_history_prices`, `get_history_sentiment`, `get_history_correlation`, `get_history_coverage` |
 | Compute / AI crypto | 2 | `get_compute_pricing`, `get_ai_crypto_metrics` |
 | Corpus meta | 7 | `list_entities`, `get_topic`, `search_academy`, `get_trending`, `get_unified_feed`, `list_sources`, `get_recent_stories` |
-| Memos + theses + social | 6 | `list_memos`, `get_memo`, `list_theses`, `get_thesis`, `get_social_signals`, `get_social_signals_detail` |
-| Currencies | 2 | `list_currencies`, `get_currency_feed` |
+| Memos / theses / social / currencies | 8 | `list_memos`, `get_memo`, `list_theses`, `get_thesis`, `get_social_signals`, `get_social_signals_detail`, `list_currencies`, `get_currency_feed` |
 
 Every tool response carries `attribution.citations[]` (each entry a `cite_url`, an `as_of` time and a `source_hash`) and a `meta.status` that says how complete the answer is (see [Response status](#response-status)).
 
@@ -72,7 +71,7 @@ Get a free key at [blockchainacademics.com/crypto-api/signup](https://blockchain
     "blockchainacademics": {
       "command": "npx",
       "args": ["-y", "@blockchainacademics/mcp"],
-      "env": { "BCA_API_KEY": "bca_live_xxxxxxxxxxxxxxxx" }
+      "env": { "BCA_API_KEY": "bca_xxxxxxxxxxxxxxxx" }
     }
   }
 }

@@ -250,7 +250,7 @@ export async function callBcaTool(name: string, args: unknown) {
   "plugins": ["@elizaos/plugin-bca"],
   "settings": {
     "secrets": {
-      "BCA_API_KEY": "bca_live_xxxxxxxxxxxxxxxx"
+      "BCA_API_KEY": "bca_xxxxxxxxxxxxxxxx"
     },
     "voice": { "model": "en_US-male-medium" }
   },
@@ -312,7 +312,7 @@ pnpm add @elizaos/plugin-bca
 # https://blockchainacademics.com/crypto-api/signup
 
 # 3. Set the env var
-echo "BCA_API_KEY=bca_live_xxxxxxxxxxxxxxxx" >> .env
+echo "BCA_API_KEY=bca_xxxxxxxxxxxxxxxx" >> .env
 
 # 4. Reference in your character.json
 # "plugins": ["@elizaos/plugin-bca"]

@@ -139,7 +139,7 @@ tools and paid plans open the rest; add the key in `claude_desktop_config.json`:
     "blockchainacademics": {
       "command": "npx",
       "args": ["-y", "@blockchainacademics/mcp"],
-      "env": { "BCA_API_KEY": "bca_live_xxxxxxxxxxxxxxxx" }
+      "env": { "BCA_API_KEY": "bca_xxxxxxxxxxxxxxxx" }
     }
   }
 }
@@ -284,7 +284,7 @@ Responding to review feedback within 24h.
 **Before you hit record:**
 1. Close Claude Desktop.
 2. Open `~/Library/Application Support/Claude/claude_desktop_config.json` in a visible editor (VS Code / Cursor / nvim).
-3. Copy a valid `BCA_API_KEY` (format `bca_live_...`) to clipboard.
+3. Copy a valid `BCA_API_KEY` (format `bca_...`) to clipboard.
 4. Start Loom (or QuickTime) at 1080p, **window mode** (not full screen, for a smaller file).
 5. Recording target length: 60 seconds. Do not go over 75.
 
@@ -305,7 +305,7 @@ Responding to review feedback within 24h.
     "blockchainacademics": {
       "command": "npx",
       "args": ["-y", "@blockchainacademics/mcp"],
-      "env": { "BCA_API_KEY": "bca_live_xxxxxxxxxxxxxxxx" }
+      "env": { "BCA_API_KEY": "bca_xxxxxxxxxxxxxxxx" }
     }
   }
 }

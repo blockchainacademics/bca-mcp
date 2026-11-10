@@ -68,7 +68,7 @@ Entity dossier by slug or alias (`cz` resolves to changpeng-zhao): kind, display
 
 ```http
 GET https://api.blockchainacademics.com/v1/market/price?ids=solana&vs=usd
-X-API-Key: bca_live_xxxxxxxxxxxxxxxxxxxxx
+X-API-Key: bca_xxxxxxxxxxxxxxxxxxxxx
 ```
 
 ## Capabilities

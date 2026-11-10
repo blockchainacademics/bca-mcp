@@ -162,6 +162,36 @@ describe("README and registry copy", () => {
     assert.ok(!/43 academy lessons|what-is-a-blockchain/.test(readme));
   });
 
+  it("the README category table has server.json's categories and counts", () => {
+    const meta = JSON.parse(read("server.json"))._meta["io.modelcontextprotocol.registry/publisher-provided"];
+    const rows = readme
+      .split("## Tool categories")[1]!
+      .split("\n## ")[0]!
+      .split("\n")
+      .filter((line) => /^\| .+ \| \d+ \|/.test(line));
+    const sorted = (counts: number[]) => [...counts].sort((a, b) => a - b);
+    assert.equal(rows.length, meta.tool_categories.length);
+    assert.deepEqual(
+      sorted(rows.map((row) => Number(row.split("|")[2]))),
+      sorted(meta.tool_categories.map((c: { count: number }) => c.count)),
+    );
+  });
+
+  it("sample configs show a key as bca_..., the form the API issues", () => {
+    const paths = [
+      "README.md",
+      "examples/claude-desktop.json",
+      "SUBMISSION_ENTRY.json",
+      "ANTHROPIC_SUBMISSION.md",
+      "SUBMISSION_CHECKLIST.md",
+      "docs/submissions/anthropic_mcp_directory.md",
+      "docs/submissions/eliza_registry.md",
+      "docs/submissions/openai_gpt_store.md",
+      "registry/eliza-plugin.md",
+    ];
+    for (const path of paths) assert.ok(!read(path).includes("bca_live_"), `${path}: bca_live_ placeholder`);
+  });
+
   it("no em dash in README, CHANGELOG, package.json or server.json descriptions", () => {
     assert.ok(!readme.includes("\u2014"), "README em dash");
     // The changelog ships in the package too.

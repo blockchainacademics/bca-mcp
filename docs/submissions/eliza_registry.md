@@ -26,7 +26,7 @@ pnpm add @blockchainacademics/eliza-plugin
 ## Environment
 
 ```
-BCA_API_KEY=bca_live_xxxxxxxxxxxxxxxxxxxxx
+BCA_API_KEY=bca_xxxxxxxxxxxxxxxxxxxxx
 ```
 
 Optional: without a key the MCP server runs on its public demo key (17 tools, shared daily cap). Free key (2,000 calls a month) at https://blockchainacademics.com/crypto-api/signup; paid plans at https://blockchainacademics.com/crypto-api/pricing.
@@ -58,7 +58,7 @@ export const agent = new AgentRuntime({
   "plugins": ["@blockchainacademics/eliza-plugin"],
   "settings": {
     "secrets": {
-      "BCA_API_KEY": "bca_live_xxxxxxxxxxxxxxxxxxxxx"
+      "BCA_API_KEY": "bca_xxxxxxxxxxxxxxxxxxxxx"
     }
   },
   "clients": ["telegram", "twitter", "discord"],

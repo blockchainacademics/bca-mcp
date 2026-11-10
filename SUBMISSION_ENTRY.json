@@ -28,7 +28,7 @@
         "command": "npx",
         "args": ["-y", "@blockchainacademics/mcp"],
         "env": {
-          "BCA_API_KEY": "bca_live_xxxxxxxxxxxxxxxx"
+          "BCA_API_KEY": "bca_xxxxxxxxxxxxxxxx"
         }
       },
       "one_liner": "npx -y @blockchainacademics/mcp"

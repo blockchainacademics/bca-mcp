@@ -61,7 +61,7 @@ Optional. Without `BCA_API_KEY`, 17 tools work on a public demo key under a shar
       "command": "npx",
       "args": ["-y", "@blockchainacademics/mcp"],
       "env": {
-        "BCA_API_KEY": "bca_live_xxxxxxxxxxxxxxxxxxxxx"
+        "BCA_API_KEY": "bca_xxxxxxxxxxxxxxxxxxxxx"
       }
     }
   }
@@ -76,7 +76,7 @@ Optional. Without `BCA_API_KEY`, 17 tools work on a public demo key under a shar
       "command": "uvx",
       "args": ["bca-mcp"],
       "env": {
-        "BCA_API_KEY": "bca_live_xxxxxxxxxxxxxxxxxxxxx"
+        "BCA_API_KEY": "bca_xxxxxxxxxxxxxxxxxxxxx"
       }
     }
   }

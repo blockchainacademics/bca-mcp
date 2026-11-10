@@ -112,7 +112,7 @@ Happy to respond to review feedback within 24h.
 **Setup before recording:**
 1. Have Claude Desktop closed.
 2. Have `claude_desktop_config.json` open in a visible editor.
-3. Have a valid `BCA_API_KEY` (format: `bca_live_...`) copied to clipboard.
+3. Have a valid `BCA_API_KEY` (format: `bca_...`) copied to clipboard.
 4. QuickTime or Loom screen recorder primed at 1080p, window mode (not full screen, which keeps the file small).
 
 **Storyboard (5 beats, ~12s each):**
@@ -128,7 +128,7 @@ On screen: paste this snippet into `claude_desktop_config.json`:
     "blockchainacademics": {
       "command": "npx",
       "args": ["-y", "@blockchainacademics/mcp"],
-      "env": { "BCA_API_KEY": "bca_live_xxxxxxxxxxxxxxxx" }
+      "env": { "BCA_API_KEY": "bca_xxxxxxxxxxxxxxxx" }
     }
   }
 }
@@ -174,7 +174,7 @@ Tick each before opening the PR.
 - [ ] `server.json` `_meta.tool.version` = `0.6.3`
 - [ ] `server.json` `_meta.tool_count` = `105`
 - [ ] Sum of `_meta.tool_categories[].count` = 105: 7+4+4+6+6+6+16+6+4+5+5+4+4+4+2+3+4+7+8 = **105** across 19 categories (`npm run build` refuses to write `tools.json` when a tool is missing from the categories or the total differs)
-- [ ] README tool-category table totals to 105 across 20 rows (README splits "Memos + theses + social" and "Currencies" into rows of 6 and 2; `server.json` merges them into one category of 8). **Not a blocker.**
+- [ ] README tool-category table totals to 105 across 19 rows, the same categories and counts as `server.json`
 - [ ] LICENSE present and MIT
 - [ ] Install command works clean on a fresh machine: `npx -y @blockchainacademics/mcp` (**run once from a non-dev shell to confirm**)
 - [ ] `npm view @blockchainacademics/mcp version` returns `0.6.3` (**run to confirm registry propagation**)
@@ -262,5 +262,5 @@ gh pr create \
 
 ## 8. Known nits (non-blocking)
 
-1. **Category grouping**: the README table has 20 rows and `server.json._meta.tool_categories` has 19 (README splits "Memos + theses + social" and "Currencies"; server.json merges them). Both total 105; reviewer won't block, but alignment is cleaner.
+1. **Category grouping**: resolved. The README table and `server.json._meta.tool_categories` list the same 19 categories, 105 tools in all.
 2. Resolved since the 0.4.0 audit: the README header no longer carries a version, both free-tier mentions say 2,000 calls a month, and the client reads `BCA_API_BASE` (the name `server.json` declares) with `BCA_API_BASE_URL` still accepted.
