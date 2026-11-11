@@ -21,6 +21,14 @@ jobs:
         with:
           node-version: 22
           registry-url: https://registry.npmjs.org
+      # The tag must name the version that would be published, so a stray or
+      # mistyped tag (v0.6.4-rc1, say) fails here instead of publishing.
+      - run: |
+          version="v$(node -p "require('./package.json').version")"
+          if [ "$GITHUB_REF_NAME" != "$version" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match package.json version $version"
+            exit 1
+          fi
       # Trusted publishing (OIDC) needs npm 11.5.1 or newer; Node 22 ships
       # npm 10, which would fall back to a token and fail with ENEEDAUTH.
       - run: npm install -g npm@11.21.1
