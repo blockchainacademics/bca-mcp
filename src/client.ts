@@ -13,7 +13,7 @@ import type {
 } from "./types.js";
 import { VERSION } from "./version.js";
 import { BCA_DEMO_KEY_FALLBACK } from "./demo_key.js";
-import { neutralizeFenceTokens } from "./untrusted.js";
+import { fenceUntrusted, neutralizeFenceTokens } from "./untrusted.js";
 
 const DEFAULT_BASE = "https://api.blockchainacademics.com";
 const USER_AGENT = `@blockchainacademics/mcp/${VERSION} (+https://github.com/blockchainacademics/bca-mcp)`;
@@ -613,14 +613,15 @@ export class BcaClient {
     }
     if (res.status === 402) {
       // A valid key on a plan below the tool's. Same code as the no-key 403
-      // above, and the API's upgrade sentence is shown the same way: verbatim
-      // (it carries the pricing link), capped, any fence tag neutralized.
+      // above. The API's upgrade sentence (it carries the pricing link) is
+      // upstream text, so it is capped and fenced like any other 4xx detail.
       const detail = renderApiErrorDetail(await readErrorJson(res));
       throw new BcaError(
         "BCA_TIER_LOCKED",
         detail === undefined
           ? "This tool requires a higher tier. Upgrade at https://blockchainacademics.com/crypto-api/pricing"
-          : (neutralizeFenceTokens(truncateChars(detail, MAX_DETAIL_CHARS)) as string),
+          : "This tool requires a higher tier: " +
+            fenceUntrusted("bca-api", truncateChars(detail, MAX_DETAIL_CHARS)),
         res.status,
       );
     }
