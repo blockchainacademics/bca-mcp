@@ -7,6 +7,7 @@
  */
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 
 import { callTool, fenceClose, fenceEnvelopeData, fenceOpen } from "../src/index.js";
 import { BcaClient, setClient } from "../src/client.js";
@@ -98,6 +99,28 @@ describe("the payload is cleaned before tags are neutralized", () => {
     fence(data);
     assert.equal(data.body, "a\u200bb");
   });
+});
+
+describe("the shared fence cases (test/fixtures/fence_parity.json)", () => {
+  // The same file runs in the Python sibling, so the fence bytes of the two
+  // packages are shown equal for the same id (review finding 6). Tab, line
+  // feed and carriage return stay on purpose: JSON writes them as \t, \n and
+  // \r, so they cannot form a tag, and article bodies and contract code keep
+  // their lines.
+  const shared = JSON.parse(readFileSync(new URL("./fixtures/fence_parity.json", import.meta.url), "utf8")) as {
+    id: string;
+    cases: Array<{ name: string; data: unknown; fenced: string }>;
+  };
+  it("hold the cases the review asked for", () => {
+    assert.equal(shared.id, ID);
+    assert.ok(shared.cases.some((c) => c.fenced.includes("line 1\\nline 2\\tcell\\r\\nend")));
+    assert.ok(shared.cases.length >= 7);
+  });
+  for (const c of shared.cases) {
+    it(`${c.name}: the fenced text equals the shared one, byte for byte`, () => {
+      assert.equal(fence(c.data), c.fenced);
+    });
+  }
 });
 
 describe("an id made new for each answer", () => {
