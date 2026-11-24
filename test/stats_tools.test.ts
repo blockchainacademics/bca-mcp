@@ -375,6 +375,51 @@ describe("bounds and refusals before any request", () => {
     );
   });
 
+  it("an address outside the vaults tab is refused before any request, written any way", async () => {
+    // Before, {tab: "wallets", id: "0x..."} sent GET /v1/stats/wallets/0x...,
+    // with the full address in the path (review finding 2).
+    const sentence =
+      "An address is not an exchange id. A vault address goes to the vaults tab. " +
+      "A wallet address goes to lookup_stats_wallet, which matches it on this machine.";
+    const spellings = [
+      ADDRESS,
+      "0X" + "ab".repeat(20),
+      "ab".repeat(20),
+      "0x " + "abab ".repeat(10).trim(),
+      "0х" + "ab".repeat(20),
+      "0x." + "ab".repeat(20),
+    ];
+    for (const tab of ["exchanges", "wallets", "wallet", "vault"]) {
+      for (const id of spellings) {
+        assert.equal(
+          await refusedLocally("get_stats_record", { tab, id }),
+          `Invalid arguments for get_stats_record: id: ${sentence}`,
+          `${tab} ${id}`,
+        );
+      }
+    }
+    for (const ids of [
+      ["kraken", ADDRESS],
+      ["kraken", "0x " + "abab ".repeat(10).trim()],
+      ["kraken", "ab".repeat(20)],
+      `kraken, 0X${"ab".repeat(20)}`,
+      // Two halves of one address, which the query would join with a comma.
+      ["0x" + "ab".repeat(10), "ab".repeat(10)],
+    ]) {
+      for (const tab of ["exchanges", "wallets"]) {
+        assert.equal(
+          await refusedLocally("compare_stats_records", { tab, ids }),
+          `Invalid arguments for compare_stats_records: ids: ${sentence}`,
+          `${tab} ${JSON.stringify(ids)}`,
+        );
+      }
+    }
+    // In the vaults tab the address is the id, and it is sent.
+    const seen = serve(() => json(envelope("record_vault_top")));
+    await answer("get_stats_record", { tab: "vaults", id: ADDRESS });
+    assert.equal(seen[0]!.url.pathname, `/v1/stats/vaults/${ADDRESS}`);
+  });
+
   it("compare_stats_records: 1 id, 6 ids, a repeat, ids of the other tab, a control character", async () => {
     const count = "Invalid arguments for compare_stats_records: ids: Between 2 and 5 ids, with no repeats.";
     assert.match(await refusedLocally("compare_stats_records", { tab: "exchanges", ids: ["kraken"] }), /ids: Array must contain at least 2/);
@@ -392,7 +437,7 @@ describe("bounds and refusals before any request", () => {
     assert.equal(await refusedLocally("compare_stats_records", { tab: "exchanges", ids: "crypto-com,Crypto.com" }), count);
     assert.equal(
       await refusedLocally("compare_stats_records", { tab: "exchanges", ids: ["kraken", ADDRESS] }),
-      "Invalid arguments for compare_stats_records: ids: A vault address belongs to the vaults tab.",
+      "Invalid arguments for compare_stats_records: ids: An address is not an exchange id. A vault address goes to the vaults tab. A wallet address goes to lookup_stats_wallet, which matches it on this machine.",
     );
     assert.equal(
       await refusedLocally("compare_stats_records", { tab: "vaults", ids: ["kraken", ADDRESS] }),

@@ -85,7 +85,10 @@ const IDS_COUNT = "Between 2 and 5 ids, with no repeats.";
 // The package's own validation texts for ids.
 const EXCHANGE_ID_RULE = "An exchange id is letters and digits, with spaces, dots, hyphens or underscores between them.";
 const VAULT_ID_RULE = "A vault id is 0x and 40 hex characters.";
-const VAULT_ID_IN_EXCHANGES = "A vault address belongs to the vaults tab.";
+// An address outside the vaults tab, in any spelling (review finding 2).
+const ADDRESS_OUTSIDE_VAULTS =
+  "An address is not an exchange id. A vault address goes to the vaults tab. " +
+  "A wallet address goes to lookup_stats_wallet, which matches it on this machine.";
 
 // --- patterns ----------------------------------------------------------------------
 
@@ -623,6 +626,9 @@ export async function runRankStats(input: RankStatsInput, ctx: StatsCallContext)
 
 export async function runGetStatsRecord(input: GetStatsRecordInput, ctx: StatsCallContext): Promise<StatsAnswer> {
   const vaults = input.tab === "vaults";
+  // The vaults tab is the one place an address goes. In any other tab it
+  // would sit in the path, /v1/stats/<tab>/<address>, so it is refused here.
+  if (!vaults && holdsAddress(input.id)) refuse("get_stats_record", "id", ADDRESS_OUTSIDE_VAULTS);
   const id = vaults ? vaultIdFrom(input.id) : exchangeIdFrom(input.id);
   if (id === undefined) refuse("get_stats_record", "id", vaults ? VAULT_ID_RULE : EXCHANGE_ID_RULE);
   const checked = await getStats(
@@ -644,14 +650,14 @@ export function compareIds(tab: string, ids: string | readonly string[]): string
     items = ids;
   }
   const vaults = tab === "vaults";
+  // Outside the vaults tab, an address in any spelling is refused. The ids
+  // are checked together, because the query joins them with commas.
+  if (!vaults && holdsAddress(items.join(","))) refuse("compare_stats_records", "ids", ADDRESS_OUTSIDE_VAULTS);
   const folded = items.map((one) => (vaults ? vaultIdFrom(one) : exchangeIdFrom(one)));
   if (folded.some((one) => one === undefined)) {
     refuse("compare_stats_records", "ids", vaults ? VAULT_ID_RULE : EXCHANGE_ID_RULE);
   }
   const out = folded as string[];
-  if (!vaults && out.some((one) => LOWER_ADDRESS_RE.test(one))) {
-    refuse("compare_stats_records", "ids", VAULT_ID_IN_EXCHANGES);
-  }
   if (out.length < 2 || out.length > 5 || new Set(out).size !== out.length) {
     refuse("compare_stats_records", "ids", IDS_COUNT);
   }
