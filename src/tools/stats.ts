@@ -104,6 +104,46 @@ const HEX64_RE = /^[0-9a-f]{64}$/;
 // The hidden characters of the design's cleaners (appendix C).
 const HIDDEN_RE =
   /[\u0000-\u001f\u007f-\u009f\u00ad\u061c\u115f\u1160\u17b4\u17b5\u180b-\u180f\u200b-\u200f\u2028-\u202e\u2060-\u206f\u3164\ufe00-\ufe0f\ufeff\uffa0\ufff0-\ufffb]/g;
+// The 32 look-alike Cyrillic and Greek letters of the design's fold
+// (appendix C, CONFUSABLE in the reference script), turned into Latin ones.
+const CONFUSABLE: ReadonlyMap<string, string> = new Map([
+  ["\u0430", "a"], ["\u0432", "b"], ["\u0435", "e"], ["\u043a", "k"], ["\u043c", "m"], ["\u043d", "h"],
+  ["\u043e", "o"], ["\u0440", "p"], ["\u0441", "c"], ["\u0442", "t"], ["\u0443", "y"], ["\u0445", "x"],
+  ["\u0456", "i"], ["\u0458", "j"], ["\u0455", "s"], ["\u0501", "d"], ["\u051b", "q"], ["\u051d", "w"],
+  ["\u04cf", "l"], ["\u03b1", "a"], ["\u03b2", "b"], ["\u03b5", "e"], ["\u03b7", "n"], ["\u03b9", "i"],
+  ["\u03ba", "k"], ["\u03bd", "v"], ["\u03bf", "o"], ["\u03c1", "p"], ["\u03c4", "t"], ["\u03c5", "u"],
+  ["\u03c7", "x"], ["\u03c9", "w"],
+]);
+const LETTER_OR_DIGIT_RE = /^[\p{L}\p{N}]$/u;
+const FORTY_HEX_RE = /[0-9a-f]{40}/;
+
+/**
+ * A text folded as the API folds a search query before it matches it (the
+ * design's fold, appendix C): marks split off and dropped, small letters,
+ * look-alike Cyrillic and Greek letters made Latin, and every character that
+ * is not a letter or a digit taken out. Lower case stands in for Python's
+ * casefold, with the sharp s folded to "ss", as in exchangeIdFrom.
+ */
+export function foldText(text: string): string {
+  const plain = text.normalize("NFKD").replace(/\p{Mn}/gu, "").toLowerCase().replace(/ß/g, "ss");
+  let out = "";
+  for (const ch of plain) {
+    const latin = CONFUSABLE.get(ch) ?? ch;
+    if (LETTER_OR_DIGIT_RE.test(latin)) out += latin;
+  }
+  return out;
+}
+
+/**
+ * True when a text holds a full address in any spelling: 40 hex characters in
+ * a row once it is folded. "0X" and 40 hex, an address inside other words or
+ * split by spaces, one written with a Cyrillic x or Cyrillic letters, and 40
+ * hex characters with no 0x all count, because the API's fold joins each of
+ * them back into the address (review finding 1).
+ */
+export function holdsAddress(text: string): boolean {
+  return FORTY_HEX_RE.test(foldText(text));
+}
 
 /** A real calendar day, YYYY-MM-DD, years 1 to 9999. */
 export function isRealDay(text: string): boolean {
@@ -537,8 +577,8 @@ export async function runSearchStats(input: SearchStatsInput, ctx: StatsCallCont
   if (length > SEARCH_QUERY_MAX) {
     refuse("search_stats", "query", `String must contain at most ${SEARCH_QUERY_MAX} character(s)`);
   }
-  // Checked on the form the API cleans the query to, so no address reaches it.
-  if (ADDRESS_RE.test(cleanSigned(query, 64))) throw new BcaBadRequestError(SEARCH_ADDRESS_REFUSED);
+  // A full address in any spelling is refused here, so none reaches the API.
+  if (holdsAddress(query)) throw new BcaBadRequestError(SEARCH_ADDRESS_REFUSED);
   const checked = await getStats(
     "search_stats",
     "/v1/stats/search",

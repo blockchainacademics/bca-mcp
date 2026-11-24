@@ -289,10 +289,30 @@ describe("bounds and refusals before any request", () => {
   });
 
   it("search_stats refuses a full address with the fixed sentence, written any way", async () => {
-    for (const q of [ADDRESS, ADDRESS.toUpperCase().replace("0X", "0x"), ` ${ADDRESS} `, "\uff10\uff58" + "ab".repeat(20)]) {
+    const spellings = [
+      ADDRESS,
+      ADDRESS.toUpperCase().replace("0X", "0x"),
+      ` ${ADDRESS} `,
+      "\uff10\uff58" + "ab".repeat(20),
+      // Each of these reached the API in q= before (review finding 1). The
+      // API folds them back into the address, and its log would keep them.
+      "0X" + "ab".repeat(20),
+      `wallet ${ADDRESS}`,
+      "0x " + "abab ".repeat(10).trim(),
+      "0\u0445" + "ab".repeat(20),
+      "ab".repeat(20),
+      "0x" + "\u0430b".repeat(20),
+      "0x" + "ab\u200b".repeat(20),
+      "0x" + "AB".repeat(20) + " vault",
+    ];
+    for (const q of spellings) {
       const message = await refusedLocally("search_stats", { query: q });
-      assert.equal(message, SEARCH_ADDRESS_REFUSED);
+      assert.equal(message, SEARCH_ADDRESS_REFUSED, JSON.stringify(q));
     }
+    // 39 hex characters in a row are not a full address, so they are sent.
+    const short = serve(() => json(envelope("search_nothing")));
+    await answer("search_stats", { query: "0x" + "ab".repeat(19) + "a" });
+    assert.equal(query(short[0]!)["q"], "0x" + "ab".repeat(19) + "a");
     assert.equal(
       SEARCH_ADDRESS_REFUSED,
       "search_stats takes a name. A vault address goes to get_stats_record. A wallet address goes to lookup_stats_wallet, which matches it on this machine.",
