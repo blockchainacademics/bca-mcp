@@ -55,13 +55,21 @@ export function cleanFenceText(text: string): string {
   return text.normalize("NFKC").replace(FENCE_HIDDEN_RE, "");
 }
 
-/** A copy of a payload with every string in it cleaned. Keys and every other value stay. */
+/**
+ * A copy of a payload with every string in it cleaned, the keys of its
+ * objects included: a key is part of the fenced text too (review finding 3).
+ * Every other value stays. Two keys that clean to the same text keep the
+ * place of the earlier one and the value of the later one, as a Python dict
+ * built the same way does.
+ */
 export function cleanFenceValue(value: unknown): unknown {
   if (typeof value === "string") return cleanFenceText(value);
   if (Array.isArray(value)) return value.map(cleanFenceValue);
   if (value !== null && typeof value === "object") {
     // fromEntries defines own keys, so a "__proto__" key stays a plain key.
-    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, cleanFenceValue(item)]));
+    return Object.fromEntries(
+      Object.entries(value).map(([key, item]) => [cleanFenceText(key), cleanFenceValue(item)]),
+    );
   }
   return value;
 }
