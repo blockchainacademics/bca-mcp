@@ -258,8 +258,12 @@ describe("bounds and refusals before any request", () => {
       ["rank_stats", { tab: "exchanges", measure: "checks_passed", kind: "spot" }],
       ["get_stats_record", { tab: "exchanges", id: "x".repeat(65) }],
       ["get_stats_record", { tab: "exchanges", id: "" }],
-      ["lookup_stats_wallet", { address: ADDRESS, offset: 5_001 }],
-      ["lookup_stats_wallet", { address: ADDRESS, as_of: "24-11-2026" }],
+      ...(STATS_WALLET_LOOKUP
+        ? ([
+            ["lookup_stats_wallet", { address: ADDRESS, offset: 5_001 }],
+            ["lookup_stats_wallet", { address: ADDRESS, as_of: "24-11-2026" }],
+          ] as Array<[string, Record<string, unknown>]>)
+        : []),
       ["get_stats_method", { topic: "chains" }],
       ["list_stats_changes", { limit: 101 }],
       ["list_stats_changes", { since: "2026-13-01" }],
