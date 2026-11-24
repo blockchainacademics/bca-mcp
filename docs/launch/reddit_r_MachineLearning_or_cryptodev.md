@@ -27,7 +27,7 @@ Blockchain Academics MCP: crypto tools for AI agents where every answer cites it
 
 **Body:**
 
-Blockchain Academics MCP is an MIT licensed MCP server that lets an AI agent look up crypto news, prices, wallets and transactions, sentiment, grants and jobs: 105 tools in 19 categories. Disclosure: I'm the founder of Blockchain Academics, which makes it and runs the API behind it.
+Blockchain Academics MCP is an MIT licensed MCP server that lets an AI agent look up crypto news, prices, wallets and transactions, sentiment, grants and jobs, and checks on 8 centralised exchanges and Hyperliquid vaults: 113 tools in 20 categories. Disclosure: I'm the founder of Blockchain Academics, which makes it and runs the API behind it.
 
 An agent's crypto answers are only as good as its sources, so every answer comes with them:
 
@@ -40,10 +40,10 @@ What's behind it:
 - about 150 entity dossiers ("cz" resolves to Changpeng Zhao)
 - sentiment rolled up every hour, indicators recomputed every 4 hours, daily price history since April
 
-You can try it without signing up. 17 tools work with no key in Claude Desktop, Cursor or any MCP client:
+You can try it without signing up. 25 tools work with no key in Claude Desktop, Cursor or any MCP client:
 
     npx -y @blockchainacademics/mcp
 
-Python 3.11+: `uvx bca-mcp`. A free key opens 52 tools, and paid plans open the rest. Docs and the full tool list: https://blockchainacademics.com/crypto-api/docs
+Python 3.11+: `uvx bca-mcp`. A free key opens 60 tools, and paid plans open the rest. Docs and the full tool list: https://blockchainacademics.com/crypto-api/docs
 
 A question for anyone using AI for crypto research: where do agents get crypto facts wrong for you? Stale prices, invented sources, the wrong token behind a ticker? Your answers decide what we fix next.

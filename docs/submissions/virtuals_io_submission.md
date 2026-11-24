@@ -4,15 +4,15 @@
 Blockchain Academics Intelligence Plugin
 
 ## Package
-- npm: `@blockchainacademics/mcp` v0.6.3
-- PyPI: `bca-mcp` v0.6.3
+- npm: `@blockchainacademics/mcp` v0.7.0
+- PyPI: `bca-mcp` v0.7.0
 - Repo: https://github.com/blockchainacademics/bca-mcp
 
 ## Category
 DeFi Intelligence / Research / News / On-Chain Analytics
 
 ## Summary
-105-tool MCP server that gives Virtuals agents the crypto data stack: prices, on-chain data, news, sentiment and crypto Twitter, proprietary indicators, fundamentals, and async research jobs. Every answer carries `attribution.citations[]` and an honest `meta.status` (complete, partial, stale or unseeded). Drop-in for any MCP-compatible agent framework.
+113-tool MCP server that gives Virtuals agents the crypto data stack: prices, on-chain data, news, sentiment and crypto Twitter, proprietary indicators, fundamentals, async research jobs, and the Stats files on exchanges and vaults. Every answer carries `attribution.citations[]` and an honest `meta.status` (complete, partial, stale or unseeded). Drop-in for any MCP-compatible agent framework.
 
 ## Agent Use Cases
 
@@ -72,13 +72,13 @@ const transport = new StdioClientTransport({
 const bca = new Client({ name: "virtuals-agent", version: "0.0.1" }, { capabilities: {} });
 await bca.connect(transport);
 
-// All 105 tools, with their JSON Schemas; register them with your agent
+// All 113 tools, with their JSON Schemas; register them with your agent
 // framework and route each call to bca.callTool({ name, arguments }).
 const { tools } = await bca.listTools();
 ```
 
 ## Auth
-Single env var: `BCA_API_KEY`, optional. Without it, 17 tools work on the public demo key under a shared daily cap. Free key (2,000 calls a month) at https://blockchainacademics.com/crypto-api/signup; paid plans at https://blockchainacademics.com/crypto-api/pricing.
+Single env var: `BCA_API_KEY`, optional. Without it, 25 tools work on the public demo key under a shared daily cap. Free key (2,000 calls a month) at https://blockchainacademics.com/crypto-api/signup; paid plans at https://blockchainacademics.com/crypto-api/pricing.
 
 ## Rate Limits
 Per key, enforced by the API (requests per second and calls per UTC day):

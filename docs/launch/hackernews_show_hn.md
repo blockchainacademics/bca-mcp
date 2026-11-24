@@ -12,9 +12,9 @@ https://github.com/blockchainacademics/bca-mcp
 
 **Text:**
 
-bca-mcp is an MCP server that gives AI agents 105 crypto tools in 19 categories: news search, entity dossiers, prices, wallets and transactions, sentiment, indicators, history, grants and jobs. Every answer carries its sources and a status that says how complete it is, so an agent can cite what it says and can tell when data is partial, stale or missing.
+bca-mcp is an MCP server that gives AI agents 113 crypto tools in 20 categories: news search, entity dossiers, prices, wallets and transactions, sentiment, indicators, history, grants and jobs, and checks on 8 centralised exchanges with results of Hyperliquid vaults. Every answer carries its sources and a status that says how complete it is, so an agent can cite what it says and can tell when data is partial, stale or missing.
 
-You can try it without signing up. 17 tools work with no key of your own (the package ships a shared demo key with a daily cap):
+You can try it without signing up. 25 tools work with no key of your own (the package ships a shared demo key with a daily cap):
 
   npx -y @blockchainacademics/mcp
 
@@ -22,7 +22,7 @@ or, with Python 3.11+:
 
   uvx bca-mcp
 
-Add it to Claude Desktop, Cursor or any MCP client and ask about a coin, a project or a person. A free key (2,000 calls a month, no card) opens 52 tools, and the paid plans open the rest.
+Add it to Claude Desktop, Cursor or any MCP client and ask about a coin, a project or a person. A free key (2,000 calls a month, no card) opens 60 tools, and the paid plans open the rest.
 
 What the data is:
 
@@ -48,7 +48,7 @@ Details:
 
 - MIT licensed, in TypeScript and Python: https://github.com/blockchainacademics/bca-mcp and https://github.com/blockchainacademics/bca-mcp-python
 
-- 0.6.3 is on npm (with provenance), PyPI and the official MCP registry as io.github.blockchainacademics/mcp
+- 0.7.0 is on npm (with provenance), PyPI and the official MCP registry as io.github.blockchainacademics/mcp
 
 - The same key works over REST, with an OpenAPI spec: https://blockchainacademics.com/crypto-api/docs/reference/rest-api
 
@@ -68,6 +68,6 @@ I'm Wael, founder of Blockchain Academics, and I'll be in the thread. What I'd m
 
 **Posting notes (Show HN rules: https://news.ycombinator.com/showhn.html):**
 - The title starts with "Show HN", names the project first, and has no superlatives, capitals or exclamation marks. The tool count stays in the text, because HN crops gratuitous numbers from titles.
-- The URL is the repo, not a signup or landing page, and people can try it with no signup (the 17 tools that need no key).
+- The URL is the repo, not a signup or landing page, and people can try it with no signup (the 25 tools that need no key).
 - Paste the text as it is: HN keeps the indented lines as code and needs the blank lines between list items. If HN does not show the text with the link, post it as the first comment.
 - Stay in the thread to answer questions, and don't ask anyone to upvote or comment.

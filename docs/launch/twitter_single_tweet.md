@@ -4,7 +4,7 @@
 
 Blockchain Academics MCP is live.
 
-105 crypto tools for AI agents. 17 work with no key.
+113 crypto tools for AI agents. 25 work with no key.
 
 Every answer carries its sources and an honest status.
 

@@ -1,6 +1,6 @@
 # @blockchainacademics/mcp
 
-Crypto MCP server for AI agents: cited news, prices, onchain data, sentiment and indicators. **105 tools** spanning 3,800+ editorial articles, about 150 entity dossiers, 38 academy lessons in 8 courses, aggregated market and onchain data, proprietary indicators and async agent-backed generation, all exposed as MCP tools your agent can call.
+Crypto MCP server for AI agents: cited news, prices, onchain data, sentiment and indicators. **113 tools** spanning 3,800+ editorial articles, about 150 entity dossiers, 38 academy lessons in 8 courses, aggregated market and onchain data, proprietary indicators, async agent-backed generation and the open Stats files on centralised exchanges and Hyperliquid vaults, all exposed as MCP tools your agent can call.
 
 ## Tool categories
 
@@ -25,6 +25,7 @@ Crypto MCP server for AI agents: cited news, prices, onchain data, sentiment and
 | Compute / AI crypto | 2 | `get_compute_pricing`, `get_ai_crypto_metrics` |
 | Corpus meta | 7 | `list_entities`, `get_topic`, `search_academy`, `get_trending`, `get_unified_feed`, `list_sources`, `get_recent_stories` |
 | Memos / theses / social / currencies | 8 | `list_memos`, `get_memo`, `list_theses`, `get_thesis`, `get_social_signals`, `get_social_signals_detail`, `list_currencies`, `get_currency_feed` |
+| Stats | 8 | `search_stats`, `list_stats_measures`, `rank_stats`, `get_stats_record`, `compare_stats_records`, `lookup_stats_wallet`, `get_stats_method`, `list_stats_changes` |
 
 Every tool response carries `attribution.citations[]` (each entry a `cite_url`, an `as_of` time and a `source_hash`) and a `meta.status` that says how complete the answer is (see [Response status](#response-status)).
 
@@ -55,11 +56,11 @@ The package ships with a public demo key baked in. No signup needed to try it. A
 }
 ```
 
-Restart Claude Desktop. 17 tools work without a key, with real data and real citations:
+Restart Claude Desktop. 25 tools work without a key, with real data and real citations:
 
-`get_price`, `get_trending`, `get_fear_greed`, `get_market_overview`, `search_news`, `get_article`, `get_sentiment`, `get_entity`, `get_explainer`, `get_recent_stories`, `get_topic`, `search_grants`, `get_grant`, `list_jobs`, `get_job`, `search_academy`, `get_as_of_snapshot`
+`get_price`, `get_trending`, `get_fear_greed`, `get_market_overview`, `search_news`, `get_article`, `get_sentiment`, `get_entity`, `get_explainer`, `get_recent_stories`, `get_topic`, `search_grants`, `get_grant`, `list_jobs`, `get_job`, `search_academy`, `get_as_of_snapshot`, and the 8 Stats tools: `search_stats`, `list_stats_measures`, `rank_stats`, `get_stats_record`, `compare_stats_records`, `lookup_stats_wallet`, `get_stats_method`, `list_stats_changes`
 
-`get_entity` works by slug without a key; its ticker form needs one. Every other tool answers with a clean upgrade message (`BCA_TIER_LOCKED`) that links to the free signup. Demo calls share a daily cap: 100 calls a day across all demo users, and 20 a day per IP.
+`get_entity` works by slug without a key; its ticker form needs one. Every other tool answers with a clean upgrade message (`BCA_TIER_LOCKED`) that links to the free signup. Demo calls share a daily cap: 100 calls a day across all demo users, and 20 a day per network. The 8 Stats tools have an allowance of their own: 3,000 calls a day across all demo users, and 60 a day per network. A network is one IPv4 address, or one IPv6 /64.
 
 ### Claude Desktop (with an API key)
 
@@ -77,7 +78,7 @@ Get a free key at [blockchainacademics.com/crypto-api/signup](https://blockchain
 }
 ```
 
-Restart Claude Desktop. All 105 tools appear in the tool picker: a free key opens 52 of them, and paid plans open the rest (see [API Key](#api-key)).
+Restart Claude Desktop. All 113 tools appear in the tool picker: a free key opens 60 of them, and paid plans open the rest (see [API Key](#api-key)).
 
 ### Programmatic (LangChain, Eliza, custom agents)
 
@@ -129,7 +130,7 @@ See [`examples/research-agent.ts`](./examples/research-agent.ts) for a full tool
 }
 ```
 
-Leave `BCA_API_KEY` empty to use the 17 tools that need no key, or paste your own key.
+Leave `BCA_API_KEY` empty to use the 25 tools that need no key, or paste your own key.
 
 ## Tools
 
@@ -168,6 +169,14 @@ Fetch BCA Academy material (38 lessons in 8 courses). Provide exactly one of:
 |---|---|---|
 | `slug` | string | Course slug (e.g. `"defi-fundamentals"`, `"understanding-bitcoin"`) for the course and its lesson index, or lesson slug (e.g. `"decentralized-exchanges"`) for the lesson with its full text |
 | `topic` | string | Topic keyword that resolves to matching academy material, e.g. `"defi"` |
+
+### Stats tools
+
+The 8 Stats tools read the open files of Blockchain Academics Stats through the API: the 8 centralised exchanges it lists, the Hyperliquid vaults it covers, and a wallet lookup. Their answers differ from the other tools in three ways:
+
+- The answer is one block of compact JSON, and the same object again as `structuredContent`.
+- Text someone outside chose or wrote, such as a vault name or a quote from a source, comes back between `<<outside:ID>>` and `<</outside:ID>>` markers, with an ID made new for each answer. `meta.outside_text` names the ID.
+- An exchange a person has not checked yet says `being_checked`, and a fact that is being checked has no value. `meta.status` is `unseeded` while nothing in the answer is confirmed, ranked or measured; the rows in `data` still say what is pending.
 
 ## Response status
 
@@ -211,15 +220,16 @@ Every response includes a structured `attribution` block with a `citations` arra
 
 ## API Key
 
-**Not required to try it.** When `BCA_API_KEY` is unset, the server falls back to a baked-in public demo key: the 17 tools listed under [Install](#install) work, and every other tool answers with a clean upgrade message.
+**Not required to try it.** When `BCA_API_KEY` is unset, the server falls back to a baked-in public demo key: the 25 tools listed under [Install](#install) work, and every other tool answers with a clean upgrade message.
 
-For more, get a free key at [blockchainacademics.com/crypto-api/signup](https://blockchainacademics.com/crypto-api/signup?ref=mcp-npm-apikey) (2,000 calls/month): it opens the 52 free-tier tools. Paid tiers unlock the rest, such as agent-backed research generation, crypto Twitter intelligence and the proprietary indicators; each tool's description names its tier when it is not free.
+For more, get a free key at [blockchainacademics.com/crypto-api/signup](https://blockchainacademics.com/crypto-api/signup?ref=mcp-npm-apikey) (2,000 calls/month): it opens the 60 free-tier tools. Paid tiers unlock the rest, such as agent-backed research generation, crypto Twitter intelligence and the proprietary indicators; each tool's description names its tier when it is not free.
 
 Set `BCA_API_KEY` in your MCP client env. Optionally override `BCA_API_BASE` (default `https://api.blockchainacademics.com`). `BCA_API_BASE_URL` is also accepted for backward compatibility.
 
 ## Privacy
 
 - Each tool call sends its arguments (for example a search phrase, a coin name, or a wallet or contract address you ask about) and your key, if you set one, over HTTPS to api.blockchainacademics.com, our own API, or to the staging or local base you set in `BCA_API_BASE`. The server sends nothing to any other host; `monitor_keyword` only looks up the webhook's host name in DNS to refuse private addresses.
+- The wallet lookup, `lookup_stats_wallet`, works another way. The address is matched on this machine and two characters of it are sent to the API. Asking about the vaults one by one afterwards sends each vault's address to the API.
 - The server stores nothing on your computer. The API counts calls per key per day and does not log request bodies or query parameters that could contain personal data.
 - Full policy, retention and your rights: [blockchainacademics.com/privacy](https://blockchainacademics.com/privacy), section 12 (Crypto API and MCP Server). Privacy requests: [privacy@blockchainacademics.com](mailto:privacy@blockchainacademics.com).
 
@@ -236,11 +246,13 @@ A request that is not a valid MCP call at all (arguments that are not an object,
 | Code | Meaning |
 |---|---|
 | `BCA_AUTH` | Invalid `BCA_API_KEY` (HTTP 401/403), or a key that cannot be sent as a header value (a line break inside it); the key itself is never repeated in the message |
-| `BCA_TIER_LOCKED` | Tool not in your current tier's allowlist (HTTP 403 without a key, HTTP 402 with a key on a lower plan). Without a key this applies to 88 of the 105 tools; the message includes the signup URL, or the pricing URL for a key on a lower plan. |
+| `BCA_TIER_LOCKED` | Tool not in your current tier's allowlist (HTTP 403 without a key, HTTP 402 with a key on a lower plan). Without a key this applies to 88 of the 113 tools; the message includes the signup URL, or the pricing URL for a key on a lower plan. |
 | `BCA_RATE_LIMIT` | Rate limit exceeded (HTTP 429; honor `Retry-After`). A read the per-second limit turned away is sent again first, up to twice. The message carries the API's own reason, which names the limit that was hit (up to 500 characters, inside an `<untrusted_content>` fence). |
 | `BCA_UPSTREAM` | BCA API returned an error status or malformed JSON. For a 4xx the message carries the API's own detail (up to 500 characters) inside an `<untrusted_content>` fence; a 5xx stays generic. |
 | `BCA_NETWORK` | Network failure or 20s timeout exceeded |
 | `BCA_BAD_REQUEST` | Invalid tool arguments, caught before any request is sent. The message lists each problem as `field: problem`, e.g. `Invalid arguments for search_news: limit: Number must be less than or equal to 50`. |
+
+The Stats tools never pass the API's error text on. Each of their errors is one fixed sentence, and those that need it name the call's request id, which the package sends as `X-Request-ID`. A Stats record that is not published answers `BCA_BAD_REQUEST`, the same for a hidden id and an unknown one.
 
 ## Development
 

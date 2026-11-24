@@ -7,13 +7,13 @@
 https://github.com/blockchainacademics/bca-eliza-plugin
 
 ## Version
-0.6.3 (tracks `@blockchainacademics/mcp`)
+0.7.0 (tracks `@blockchainacademics/mcp`)
 
 ## Category
 Crypto / DeFi / Intelligence
 
 ## Description
-Drop-in ElizaOS plugin exposing 105 Blockchain Academics tools (prices, on-chain data, news, sentiment and crypto Twitter, proprietary indicators, fundamentals, and agent-backed due diligence reports) to any Eliza character. Every answer carries citations and an honest status (complete, partial, stale or unseeded).
+Drop-in ElizaOS plugin exposing 113 Blockchain Academics tools (prices, on-chain data, news, sentiment and crypto Twitter, proprietary indicators, fundamentals, agent-backed due diligence reports, and the Stats files on exchanges and vaults) to any Eliza character. Every answer carries citations and an honest status (complete, partial, stale or unseeded).
 
 ## Install
 
@@ -29,7 +29,7 @@ pnpm add @blockchainacademics/eliza-plugin
 BCA_API_KEY=bca_xxxxxxxxxxxxxxxxxxxxx
 ```
 
-Optional: without a key the MCP server runs on its public demo key (17 tools, shared daily cap). Free key (2,000 calls a month) at https://blockchainacademics.com/crypto-api/signup; paid plans at https://blockchainacademics.com/crypto-api/pricing.
+Optional: without a key the MCP server runs on its public demo key (25 tools, shared daily cap). Free key (2,000 calls a month) at https://blockchainacademics.com/crypto-api/signup; paid plans at https://blockchainacademics.com/crypto-api/pricing.
 
 ## Register in `agent/src/index.ts`
 
@@ -100,7 +100,7 @@ export const agent = new AgentRuntime({
 | `BCA_GET_NARRATIVE` | `track_narrative` | Narrative strength over 7d, 30d or 90d |
 | `BCA_GET_ENTITY` | `get_entity` | Canonical entity record |
 
-(Full list: 105 actions, one per tool, across the 19 tool categories.)
+(Full list: 113 actions, one per tool, across the 20 tool categories.)
 
 ## Providers
 - `bcaNewsProvider`: injects the top 3 recent BCA stories into each message context

@@ -1,24 +1,24 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.blockchainacademics/mcp",
-  "description": "Cited crypto news, prices, onchain data, sentiment and indicators: 105 tools. Not financial advice.",
+  "description": "Cited crypto news, prices, onchain data, sentiment and indicators: 113 tools. Not financial advice.",
   "repository": {
     "url": "https://github.com/blockchainacademics/bca-mcp",
     "source": "github"
   },
-  "version": "0.6.4",
+  "version": "0.7.0",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "@blockchainacademics/mcp",
-      "version": "0.6.4",
+      "version": "0.7.0",
       "transport": {
         "type": "stdio"
       },
       "environmentVariables": [
         {
           "name": "BCA_API_KEY",
-          "description": "Optional. When unset, the server uses a public demo key: 17 tools work under a shared daily cap. A free key (2,000 calls a month) opens 52 tools and paid plans open the rest: https://blockchainacademics.com/crypto-api/signup.",
+          "description": "Optional. When unset, the server uses a public demo key: 25 tools work under a shared daily cap. A free key (2,000 calls a month) opens 60 tools and paid plans open the rest: https://blockchainacademics.com/crypto-api/signup.",
           "isRequired": false,
           "isSecret": true,
           "format": "string"
@@ -34,7 +34,7 @@
     {
       "registryType": "pypi",
       "identifier": "bca-mcp",
-      "version": "0.6.4",
+      "version": "0.7.0",
       "runtimeHint": "uvx",
       "transport": {
         "type": "stdio"
@@ -42,7 +42,7 @@
       "environmentVariables": [
         {
           "name": "BCA_API_KEY",
-          "description": "Optional. When unset, the server uses a public demo key: 17 tools work under a shared daily cap. A free key (2,000 calls a month) opens 52 tools and paid plans open the rest: https://blockchainacademics.com/crypto-api/signup.",
+          "description": "Optional. When unset, the server uses a public demo key: 25 tools work under a shared daily cap. A free key (2,000 calls a month) opens 60 tools and paid plans open the rest: https://blockchainacademics.com/crypto-api/signup.",
           "isRequired": false,
           "isSecret": true,
           "format": "string"
@@ -60,9 +60,9 @@
     "io.modelcontextprotocol.registry/publisher-provided": {
       "tool": {
         "name": "BCA Crypto Brain",
-        "version": "0.6.4"
+        "version": "0.7.0"
       },
-      "tool_count": 105,
+      "tool_count": 113,
       "tool_categories": [
         {
           "name": "Content & corpus",
@@ -281,6 +281,20 @@
             "get_social_signals_detail",
             "list_currencies",
             "get_currency_feed"
+          ]
+        },
+        {
+          "name": "Stats",
+          "count": 8,
+          "examples": [
+            "search_stats",
+            "list_stats_measures",
+            "rank_stats",
+            "get_stats_record",
+            "compare_stats_records",
+            "lookup_stats_wallet",
+            "get_stats_method",
+            "list_stats_changes"
           ]
         }
       ],

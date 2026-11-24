@@ -1,11 +1,11 @@
 # Blockchain Academics MCP: Anthropic MCP Directory Submission
 
 ## One-Line Pitch
-Production-grade MCP server delivering 105 crypto intelligence tools (live prices, on-chain data, news, sentiment and crypto Twitter, proprietary indicators, fundamentals, and agent-generated research) to Claude and any MCP-compatible agent, with a citation and an honest status on every answer.
+Production-grade MCP server delivering 113 crypto intelligence tools (live prices, on-chain data, news, sentiment and crypto Twitter, proprietary indicators, fundamentals, agent-generated research, and the Stats files on exchanges and vaults) to Claude and any MCP-compatible agent, with a citation and an honest status on every answer.
 
 ## Package Info
-- **TypeScript/Node:** `@blockchainacademics/mcp` v0.6.3 (npm)
-- **Python:** `bca-mcp` v0.6.3 (PyPI)
+- **TypeScript/Node:** `@blockchainacademics/mcp` v0.7.0 (npm)
+- **Python:** `bca-mcp` v0.7.0 (PyPI)
 - **License:** MIT
 - **Maintainer:** Blockchain Academics (blockchainacademics.com)
 - **Repos:**
@@ -27,9 +27,9 @@ uvx bca-mcp
 ```
 
 ## Authentication
-Optional. Without `BCA_API_KEY`, 17 tools work on a public demo key under a shared daily cap. A free key (2,000 calls a month) opens 52 tools, and paid plans open the rest: https://blockchainacademics.com/crypto-api/pricing.
+Optional. Without `BCA_API_KEY`, 25 tools work on a public demo key under a shared daily cap. A free key (2,000 calls a month) opens 60 tools, and paid plans open the rest: https://blockchainacademics.com/crypto-api/pricing.
 
-## Tool Count by Category (105 total, 19 categories)
+## Tool Count by Category (113 total, 20 categories)
 | Category | Tools | Examples |
 |---|---|---|
 | Content & corpus | 7 | `search_news`, `get_article`, `get_entity`, `get_explainer` |
@@ -51,6 +51,7 @@ Optional. Without `BCA_API_KEY`, 17 tools work on a public demo key under a shar
 | History time-series | 4 | `get_history_prices`, `get_history_sentiment`, `get_history_correlation` |
 | Corpus meta | 7 | `list_entities`, `search_academy`, `get_trending`, `get_recent_stories` |
 | Memos / theses / social / currencies | 8 | `list_memos`, `list_theses`, `get_social_signals`, `list_currencies` |
+| Stats | 8 | `search_stats`, `rank_stats`, `get_stats_record`, `lookup_stats_wallet` |
 
 ## Claude Desktop `config.json` Snippet
 
@@ -92,4 +93,4 @@ Optional. Without `BCA_API_KEY`, 17 tools work on a public demo key under a shar
 - stdio (Claude Desktop, Claude Code, Cursor and any MCP host that launches a local server). There is no hosted HTTP endpoint yet.
 
 ## Why List It
-First MCP server covering the full crypto intelligence stack in a single install: news, entities and academy content, market and on-chain data, sentiment, indicators, fundamentals and research jobs, which previously took several separate API integrations. One key, one server, 105 tools, and every answer says how complete it is (`meta.status`) and where it came from (`attribution.citations[]`).
+One MCP server covering the full crypto intelligence stack in a single install: news, entities and academy content, market and on-chain data, sentiment, indicators, fundamentals and research jobs, which previously took several separate API integrations. One key, one server, 113 tools, and every answer says how complete it is (`meta.status`) and where it came from (`attribution.citations[]`).
