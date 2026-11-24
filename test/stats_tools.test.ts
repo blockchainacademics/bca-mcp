@@ -714,6 +714,63 @@ describe("lookup_stats_wallet: matched on this machine", { skip: !STATS_WALLET_L
     assert.equal(next.data.records[0].vault, env.data.wallets[address][parsed.data.count].vault);
   });
 
+  it("a wallet of 50 records or fewer, cut for size, still says a next page follows", async () => {
+    // The cut must set meta.pageInfo again: before it, a wallet that fits
+    // one page by count has no next page (review finding 10).
+    const env = shardEnvelope();
+    const address = many();
+    env.data.wallets[address] = env.data.wallets[address].slice(0, 45);
+    for (const record of env.data.wallets[address]) {
+      env.data.vaults[record.vault] ??= structuredClone(Object.values(env.data.vaults)[0]);
+      env.data.vaults[record.vault].name_by_leader = "Fixture " + "é".repeat(56);
+      record.why = record.why + " " + "w".repeat(1500);
+      record.vault_listed = true;
+    }
+    serve(() => json(env));
+    const parsed = await answer("lookup_stats_wallet", { address });
+    assert.equal(parsed.data.total, 45);
+    assert.ok(parsed.data.count > 0 && parsed.data.count < 45, `count ${parsed.data.count}`);
+    assert.equal(parsed.data.next_offset, parsed.data.count);
+    assert.deepEqual(parsed.meta.pageInfo, {
+      hasNextPage: true,
+      hasPreviousPage: false,
+      startCursor: null,
+      endCursor: null,
+    });
+  });
+
+  /** The shard answer with made-up vault rows added until its body passes `bytes`. */
+  function paddedShard(bytes: number): any {
+    const env = shardEnvelope();
+    const row = Object.values(env.data.vaults)[0];
+    let n = 0;
+    while (new TextEncoder().encode(JSON.stringify(env)).byteLength <= bytes) {
+      for (let i = 0; i < 250; i++, n++) env.data.vaults["0x" + n.toString(16).padStart(40, "0")] = structuredClone(row);
+    }
+    return env;
+  }
+
+  it("a shard answer over 512 KiB is read, up to its own cap of 1.5 MiB", async () => {
+    // The other Stats calls read at most 512 KiB; the shard answer may be
+    // larger, because the model never sees it whole (design 1.6 and 3.1).
+    // No test read one that large before (review finding 10).
+    __setStatsIdsForTests({ marker: MARKER, call: CALL_ID });
+    serve(() => json(shardEnvelope()));
+    const plain = await answer("lookup_stats_wallet", { address: leader() });
+    const big = paddedShard(600_000);
+    const size = new TextEncoder().encode(JSON.stringify(big)).byteLength;
+    assert.ok(size > 524_288 && size < 1_572_864, `size ${size}`);
+    serve(() => json(big));
+    const parsed = await answer("lookup_stats_wallet", { address: leader() });
+    assert.deepEqual(parsed.data, plain.data, "the rows added for other vaults change nothing");
+    // A shard answer over 1.5 MiB is not read.
+    serve(() => json(paddedShard(1_572_864)));
+    assert.deepEqual(await failure("lookup_stats_wallet", { address: leader() }), {
+      code: "BCA_UPSTREAM",
+      message: `The API answer did not have the Stats shape. Request id: ${CALL_ID}.`,
+    });
+  });
+
   it("a shard of another prefix, or a record that breaks its shape, is not the Stats shape", async () => {
     __setStatsIdsForTests({ call: CALL_ID });
     const shape = { code: "BCA_UPSTREAM", message: `The API answer did not have the Stats shape. Request id: ${CALL_ID}.` };

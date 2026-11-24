@@ -486,6 +486,18 @@ describe("the Stats shape (design 1.0)", () => {
     assert.equal(STATS_TOO_LARGE, "The answer is larger than the 64 KB cap. Ask for fewer rows.");
   });
 
+  it("the cap counts bytes, not UTF-16 units", async () => {
+    // Text past 65,536 bytes but under 65,536 UTF-16 units: no test had one
+    // before, so a cap counted in units passed (review finding 10).
+    const env = structuredClone(envelopeOf(byCall("changes_empty")));
+    for (const covers of ["é".repeat(40_000), "\u{1F680}".repeat(20_000)]) {
+      env.data.covers = covers;
+      assert.ok(covers.length < TEXT_BLOCK_CAP && new TextEncoder().encode(covers).byteLength > TEXT_BLOCK_CAP);
+      answering(env);
+      assert.deepEqual(await failure("list_stats_changes", {}), { code: "BCA_UPSTREAM", message: STATS_TOO_LARGE });
+    }
+  });
+
   it("an answer just under the cap is handed on", async () => {
     __setStatsIdsForTests({ marker: MARKER, call: CALL_ID });
     const env = structuredClone(envelopeOf(byCall("changes_empty")));
