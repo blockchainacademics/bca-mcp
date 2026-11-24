@@ -21,7 +21,6 @@ import { DEMO_BANNER } from "./demo_banner.js";
 import { cleanFenceValue, neutralizeFenceTokens, newFenceId } from "./untrusted.js";
 import { zodToJsonSchema, type JsonSchema } from "./schema.js";
 import { toolAnnotations, type ToolAnnotations } from "./annotations.js";
-import type { ResponseEnvelope } from "./types.js";
 
 // H-2 (v0.3.1): prompt-injection fencing. Upstream BCA data (news titles,
 // article bodies, entity descriptions) can contain LLM-targeted payloads
