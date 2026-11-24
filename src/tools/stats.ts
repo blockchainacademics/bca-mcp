@@ -720,6 +720,26 @@ function lookupRecordOk(r: Record<string, unknown>): boolean {
   );
 }
 
+// The 12 keys of a lookup record in the file, in the file's order, and the
+// vault_listed the API adds (design 1.6 and 3.1, rule 12). A record in the
+// answer is built from these by name, so a key the shard carries beyond them
+// never reaches the model (review finding 11).
+const LOOKUP_RECORD_KEYS: readonly string[] = [
+  "vault",
+  "vault_state",
+  "leader",
+  "status",
+  "withdrawals",
+  "cost",
+  "received",
+  "result",
+  "cut",
+  "listed_result",
+  "uses",
+  "why",
+  "vault_listed",
+];
+
 function ownValue(obj: Record<string, unknown>, key: string): unknown {
   return Object.prototype.hasOwnProperty.call(obj, key) ? obj[key] : undefined;
 }
@@ -751,7 +771,7 @@ export function walletAnswer(
     const row = ownValue(vaultRows, record["vault"] as string);
     if (row !== undefined && !isPlainObject(row)) throw new StatsShapeError();
     every.push({
-      ...record,
+      ...Object.fromEntries(LOOKUP_RECORD_KEYS.map((key) => [key, record[key]])),
       figure_the_file_uses: record["uses"] === "ledger" ? record["result"] : record["listed_result"],
       leader_listed_zero_after_close:
         record["leader"] === true && record["vault_state"] === "closed" && record["listed_result"] === 0,
