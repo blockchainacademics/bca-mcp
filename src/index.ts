@@ -8,6 +8,7 @@ import {
 import { z } from "zod";
 
 import {
+  BcaAuthError,
   BcaBadRequestError,
   BcaError,
   BcaNetworkError,
@@ -520,6 +521,12 @@ export function statsErrorPayload(
     if (status >= 200 && status < 300) return { code: "BCA_UPSTREAM", message: statsShape(requestId) };
     // 5xx, and a redirect the client refused.
     return { code: "BCA_UPSTREAM", message: statsFailed(requestId) };
+  }
+  // A 403 whose detail is one of the API's fixed sentences ("Forbidden", for
+  // an Origin the API does not know) is a refused request, not a key problem:
+  // that sentence, as for any other 4xx (design 1.0, review finding 8).
+  if (err instanceof BcaAuthError && err.status === 403 && STATS_API_SENTENCES.includes(err.message)) {
+    return { code: "BCA_BAD_REQUEST", message: err.message };
   }
   if (err instanceof BcaError) {
     // No key, a locked plan, a rate limit, a key that is not a header value:

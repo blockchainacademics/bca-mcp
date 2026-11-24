@@ -644,7 +644,7 @@ export class BcaClient {
           res.status,
         );
       }
-      throw new BcaAuthError(upstreamMsg);
+      throw new BcaAuthError(upstreamMsg, res.status);
     }
     if (res.status === 402) {
       // A valid key on a plan below the tool's. Same code as the no-key 403

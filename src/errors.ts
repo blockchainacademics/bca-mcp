@@ -25,8 +25,9 @@ export class BcaError extends Error {
 }
 
 export class BcaAuthError extends BcaError {
-  constructor(message = "Invalid or missing BCA_API_KEY") {
-    super("BCA_AUTH", message, 401);
+  /** `status` is the HTTP status the API sent: 401, or 403. */
+  constructor(message = "Invalid or missing BCA_API_KEY", status = 401) {
+    super("BCA_AUTH", message, status);
     this.name = "BcaAuthError";
   }
 }

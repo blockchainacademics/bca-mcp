@@ -523,6 +523,17 @@ describe("the Stats error table", () => {
     assert.deepEqual(await failure("list_stats_measures", {}), shape);
   });
 
+  it("a 403 whose detail is the API's fixed Forbidden is a refused request, not a key problem", async () => {
+    // Before, every 403 read as BCA_AUTH (review finding 8).
+    serve(() => json({ detail: "Forbidden" }, 403));
+    assert.deepEqual(await failure("list_stats_measures", {}), { code: "BCA_BAD_REQUEST", message: "Forbidden" });
+    // Any other 403, and a 401 of any text, stay as for every tool.
+    serve(() => json({ detail: "Invalid API key" }, 403));
+    assert.deepEqual(await failure("list_stats_measures", {}), { code: "BCA_AUTH", message: "Invalid API key" });
+    serve(() => json({ detail: "Forbidden" }, 401));
+    assert.deepEqual(await failure("list_stats_measures", {}), { code: "BCA_AUTH", message: "Forbidden" });
+  });
+
   it("no key, a locked plan or a rate limit: the API's own sentence, as for every tool", async () => {
     const locked = "This tool requires a free account. Sign up: https://blockchainacademics.com/crypto-api/signup";
     serve(() => json({ detail: locked }, 403, { "x-bca-error-code": "BCA_TIER_LOCKED" }));
