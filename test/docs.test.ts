@@ -11,7 +11,7 @@ import { readFileSync } from "node:fs";
 
 import { TOOLS } from "../src/index.js";
 import { DEMO_BANNER } from "../src/demo_banner.js";
-import { STATS_TOOL_SPECS, STATS_WORKS_WITHOUT_KEY } from "../src/tools/stats.js";
+import { STATS_DEMO_ALLOWANCE, STATS_TOOL_SPECS, STATS_WORKS_WITHOUT_KEY } from "../src/tools/stats.js";
 
 const root = new URL("../", import.meta.url);
 const read = (path: string) => readFileSync(new URL(path, root), "utf8");
@@ -193,6 +193,38 @@ describe("README and registry copy", () => {
       assert.ok(
         !new RegExp(`for all (${COUNT.tools}|tools)|opens all ${COUNT.tools}|full ${COUNT.tools} tools`, "i").test(text),
         `${where} says a free key opens every tool`,
+      );
+    }
+  });
+
+  it("the copy gives the Stats demo allowance of STATS_DEMO_ALLOWANCE", () => {
+    // The API holds the allowance (the owner's line 1). Four copy lines repeat
+    // its two numbers, and no test read them before (review finding 14).
+    const all = STATS_DEMO_ALLOWANCE.allPerDay.toLocaleString("en-US");
+    const network = String(STATS_DEMO_ALLOWANCE.perNetworkPerDay);
+    const said = /Stats tools have [^.]*?([\d,]+) calls a day[^.]*?\b(\d+) a day per network/g;
+    const copy: Array<[string, number]> = [
+      ["README.md", 1],
+      ["SUBMISSION_ENTRY.json", 1],
+      ["registry/virtuals-manifest.json", 2],
+    ];
+    for (const [path, lines] of copy) {
+      const found = [...read(path).matchAll(said)];
+      assert.equal(found.length, STATS_WORKS_WITHOUT_KEY ? lines : 0, `${path}: the Stats demo allowance`);
+      for (const m of found) assert.deepEqual([m[1], m[2]], [all, network], path);
+    }
+  });
+
+  it("the README and CHANGELOG say which Stats errors keep the API's own message", () => {
+    // They said the Stats tools never pass the API's error text on, but a
+    // missing key, a locked plan and a rate limit do (review finding 7).
+    for (const path of ["README.md", "CHANGELOG.md"]) {
+      const text = read(path);
+      assert.ok(!/never pass(es)? the API's error text on/.test(text), path);
+      assert.match(
+        text,
+        /a missing or wrong key, a locked plan and a rate limit keep the API's own message, as for every tool\./i,
+        path,
       );
     }
   });

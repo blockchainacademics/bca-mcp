@@ -252,7 +252,7 @@ A request that is not a valid MCP call at all (arguments that are not an object,
 | `BCA_NETWORK` | Network failure or 20s timeout exceeded |
 | `BCA_BAD_REQUEST` | Invalid tool arguments, caught before any request is sent. The message lists each problem as `field: problem`, e.g. `Invalid arguments for search_news: limit: Number must be less than or equal to 50`. |
 
-The Stats tools never pass the API's error text on. Each of their errors is one fixed sentence, and those that need it name the call's request id, which the package sends as `X-Request-ID`. A Stats record that is not published answers `BCA_BAD_REQUEST`, the same for a hidden id and an unknown one.
+For the Stats tools, a missing or wrong key, a locked plan and a rate limit keep the API's own message, as for every tool. Every other Stats error is one fixed sentence, or one of the API's own fixed 4xx sentences word for word. Those that need it name the call's request id, which the package sends as `X-Request-ID`. A Stats record that is not published answers `BCA_BAD_REQUEST`, the same for a hidden id and an unknown one.
 
 ## Development
 

@@ -459,9 +459,11 @@ export function errorPayload(
 
 // --- Stats errors (design 1.0) ---------------------------------------------------
 //
-// A Stats tool never passes raw error text to the model. These are the API's
-// fixed 4xx sentences (the detail texts of the design's table), passed on
-// word for word; the Python sibling lists the same sentences.
+// Apart from a missing or wrong key, a locked plan and a rate limit, which
+// keep the API's own message as for every tool, a Stats tool passes no raw
+// error text to the model. These are the API's fixed 4xx sentences (the
+// detail texts of the design's table), passed on word for word; the Python
+// sibling lists the same sentences.
 export const STATS_API_SENTENCES: readonly string[] = [
   "Unknown parameter.",
   "That measure does not belong to that tab.",
@@ -654,7 +656,7 @@ async function main(): Promise<void> {
 
 // Entry-point guard: only run main() when this file IS the entry script
 // (e.g. `npx -y @blockchainacademics/mcp` -> dist/index.js). When imported
-// by tests for FENCE_OPEN / fenceEnvelopeData / TOOLS, do nothing: running
+// by tests for fenceOpen / fenceEnvelopeData / TOOLS, do nothing: running
 // main() would block on stdio reads and hang the test worker forever.
 // Pattern adapted from the Python sibling's `if __name__ == "__main__"`.
 //

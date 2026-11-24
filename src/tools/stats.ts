@@ -34,10 +34,14 @@ import {
 // shows every count of the copy that must follow.
 //
 // Line 1: the Stats tools work on the built-in demo key, under their own
-// daily allowance in the API (60 calls a day per network, 3,000 a day in
-// all). false: a free key is required, and each description drops its last
-// sentence, "Works without an API key."
+// daily allowance in the API. false: a free key is required, and each
+// description drops its last sentence, "Works without an API key."
 export const STATS_WORKS_WITHOUT_KEY = true;
+// The two numbers of that allowance, as the copy gives them. The API holds
+// the allowance itself (app/api/demo_key.py, task A3). test/docs.test.ts
+// checks every copy line against these, so other numbers in the owner's
+// answer to line 1 change here, and the test names each line to follow.
+export const STATS_DEMO_ALLOWANCE = { perNetworkPerDay: 60, allPerDay: 3_000 } as const;
 // Line 2: keep the wallet lookup, which sends two characters of the address.
 // false: lookup_stats_wallet is not registered.
 export const STATS_WALLET_LOOKUP = true;
