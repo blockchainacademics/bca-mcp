@@ -178,6 +178,16 @@ export const validationMessage: z.core.$ZodErrorMap = (issue) => {
       return undefined;
     case "not_multiple_of":
       return `Number must be a multiple of ${issue.divisor}`;
+    case "invalid_union": {
+      // A value of the right type for one option (compare_stats_records.ids
+      // takes a list or one text): that option's problem, not "Invalid input".
+      const fitting = (issue.errors ?? []).filter(
+        (option) => option.length > 0 && option.every((inner) => inner.code !== "invalid_type"),
+      );
+      const first = fitting.length === 1 ? fitting[0]![0] : undefined;
+      if (first === undefined) return undefined;
+      return validationMessage(first as unknown as Parameters<typeof validationMessage>[0]) ?? first.message;
+    }
   }
   return undefined;
 };

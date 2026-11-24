@@ -401,6 +401,17 @@ export interface BcaClientOptions {
   fetchImpl?: typeof fetch; // test injection
 }
 
+/** Options for one GET (the Stats tools set both). */
+export interface RequestOptions {
+  /** The largest body this call reads, in bytes. The default is 10 MiB. */
+  maxBodyBytes?: number;
+  /** Sent as X-Request-ID, so an error can name the id the API logged. */
+  requestId?: string;
+}
+
+// A request id the package makes itself: 16 hex characters for a Stats call.
+const REQUEST_ID_HEADER_RE = /^[A-Za-z0-9_-]{1,64}$/;
+
 export class BcaClient {
   private readonly baseUrl: string;
   // Always set: fallback chain in constructor guarantees a string. Empty
@@ -462,23 +473,38 @@ export class BcaClient {
   async request<T>(
     path: string,
     params?: Record<string, string | number | boolean | undefined>,
+    options?: RequestOptions,
   ): Promise<ResponseEnvelope<T>> {
-    return this.call<T>("GET", path, params);
+    return normalizeEnvelope<T>(await this.call("GET", path, params, undefined, options));
+  }
+
+  /**
+   * A GET whose parsed body comes back as the API sent it, before
+   * normalizeEnvelope fills a missing status with "complete" or wraps a body
+   * that is not the envelope. The Stats tools check the envelope themselves.
+   */
+  async requestRaw(
+    path: string,
+    params?: Record<string, string | number | boolean | undefined>,
+    options?: RequestOptions,
+  ): Promise<unknown> {
+    return this.call("GET", path, params, undefined, options);
   }
 
   async post<T>(
     path: string,
     body?: Record<string, unknown>,
   ): Promise<ResponseEnvelope<T>> {
-    return this.call<T>("POST", path, undefined, body);
+    return normalizeEnvelope<T>(await this.call("POST", path, undefined, body));
   }
 
-  private async call<T>(
+  private async call(
     method: "GET" | "POST",
     path: string,
     params?: Record<string, string | number | boolean | undefined>,
     body?: Record<string, unknown>,
-  ): Promise<ResponseEnvelope<T>> {
+    options: RequestOptions = {},
+  ): Promise<unknown> {
     // No explicit no-key throw: the fallback chain in the constructor
     // guarantees this.apiKey is set (user key or baked-in demo). If both
     // are somehow absent (unbuilt dev tree with empty demo_key.ts), the
@@ -514,10 +540,19 @@ export class BcaClient {
         Accept: "application/json",
         "User-Agent": USER_AGENT,
         ...(method === "POST" ? { "Content-Type": "application/json" } : {}),
+        ...(options.requestId !== undefined && REQUEST_ID_HEADER_RE.test(options.requestId)
+          ? { "X-Request-ID": options.requestId }
+          : {}),
       });
     } catch {
       throw new BcaAuthError(INVALID_KEY_HEADER_MESSAGE);
     }
+    const maxBodyBytes =
+      options.maxBodyBytes !== undefined &&
+      Number.isInteger(options.maxBodyBytes) &&
+      options.maxBodyBytes > 0
+        ? options.maxBodyBytes
+        : MAX_BODY_BYTES;
 
     let res: Response;
     for (let retries = 0; ; retries++) {
@@ -645,7 +680,7 @@ export class BcaClient {
     // (chunked) or forged, and we also want to abort transfer mid-flight.
     let bodyText: string;
     try {
-      bodyText = await readCappedText(res, MAX_BODY_BYTES);
+      bodyText = await readCappedText(res, maxBodyBytes);
     } catch (err) {
       if (err instanceof BcaError) throw err;
       throw new BcaUpstreamError(
@@ -666,10 +701,11 @@ export class BcaClient {
 
     // Canonical envelope (JSON:API-inspired, locked 2026-04-22):
     //   { data, attribution: { citations: [...] }, meta: { status, request_id, pageInfo } }
-    // We still accept the legacy flat shape for backward compat during the
-    // rolling REST deploy; the shim logs a one-time warning so drift is
-    // visible. All call sites see the canonical shape.
-    return normalizeEnvelope<T>(json);
+    // request() and post() still accept the legacy flat shape for backward
+    // compat during the rolling REST deploy; the shim in normalizeEnvelope
+    // logs a one-time warning so drift is visible. requestRaw() returns the
+    // body as it came.
+    return json;
   }
 }
 
