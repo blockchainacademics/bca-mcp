@@ -50,6 +50,23 @@ describe("the npm release workflow", () => {
     assert.ok(publish.some((line) => line.includes("sha256sum --check")));
   });
 
+  it("the one action in the publish job is actions/setup-node, pinned by commit, and the comments say so", () => {
+    // A comment said no action from outside runs in the job that holds the
+    // identity, but setup-node does (review finding 12).
+    const uses = job("publish").filter((line) => /^\s*-?\s*uses:/.test(line));
+    assert.equal(uses.length, 1, uses.join("\n"));
+    assert.match(uses[0]!, /uses: actions\/setup-node@[0-9a-f]{40}\b/);
+    // The comments read as one text, their line breaks taken out.
+    const comments = text
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line.startsWith("#"))
+      .map((line) => line.replace(/^#\s?/, ""))
+      .join(" ");
+    assert.ok(!/no action from outside runs/.test(comments));
+    assert.ok(comments.includes("actions/setup-node, pinned by commit, is the one action in this job"));
+  });
+
   it("every action is pinned by commit", () => {
     const uses = lines.filter((line) => /^\s*-?\s*uses:/.test(line));
     assert.ok(uses.length >= 4);

@@ -11,7 +11,8 @@ name: Publish
 # and packs, and holds no publishing identity. "publish" holds the identity:
 # it waits for the approval of the npm-publish environment, downloads the
 # packed file of "build", checks its hash and publishes that file. It
-# installs, builds and tests nothing.
+# installs no npm package and builds and tests nothing. Its one action is
+# actions/setup-node, pinned by commit.
 #
 # The approval is the owner's (line 4 of the Stats design's owner lines):
 # GitHub > Settings > Environments > npm-publish, with the owner as its
@@ -84,8 +85,9 @@ jobs:
       id-token: write
     steps:
       # Trusted publishing needs npm 11.5.1 or newer. Node 24 brings npm 11
-      # with it, so nothing is installed; the next step stops the job if the
-      # npm it brings is older.
+      # with it, so no npm is installed on top of it; the next step stops the
+      # job if the npm it brings is older. setup-node may download Node 24
+      # itself when the runner does not hold it.
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
@@ -98,7 +100,8 @@ jobs:
             exit 1
           fi
       # The packed file of the build job, through the API with this run's own
-      # token, so no action from outside runs in the job that holds the identity.
+      # token, so the download needs no action: actions/setup-node, pinned by
+      # commit, is the one action in this job, and nothing is installed from npm.
       - name: Download the packed file
         env:
           GH_TOKEN: ${{ github.token }}
