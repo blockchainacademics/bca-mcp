@@ -304,6 +304,8 @@ describe("bounds and refusals before any request", () => {
       "0x" + "\u0430b".repeat(20),
       "0x" + "ab\u200b".repeat(20),
       "0x" + "AB".repeat(20) + " vault",
+      // Fullwidth letters: NFKD makes them plain, as the API's fold does.
+      "\uff10\uff58" + "\uff41\uff42".repeat(20),
     ];
     for (const q of spellings) {
       const message = await refusedLocally("search_stats", { query: q });
