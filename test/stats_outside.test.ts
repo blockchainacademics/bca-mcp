@@ -13,6 +13,7 @@ import { readFileSync, readdirSync } from "node:fs";
 
 import { callTool, STATS_API_SENTENCES, STATS_NOT_FOUND, STATS_TOO_LARGE } from "../src/index.js";
 import { BcaClient, setClient } from "../src/client.js";
+import { STATS_WALLET_LOOKUP } from "../src/tools/stats.js";
 import {
   OUTSIDE_NOTE,
   OUTSIDE_TEXT_KEYS,
@@ -42,7 +43,9 @@ interface Recorded {
 const recorded: Recorded[] = readdirSync(new URL("answers/", fixtures))
   .filter((name) => name.endsWith(".json"))
   .sort()
-  .map((name) => readJson(`answers/${name}`));
+  .map((name) => readJson(`answers/${name}`) as Recorded)
+  // With the owner's line 2 answered no, the wallet tool is not registered.
+  .filter((r) => STATS_WALLET_LOOKUP || r.tool !== "lookup_stats_wallet");
 const envelopeOf = (r: Recorded): any => r.envelope ?? readJson(r.envelope_file!);
 const byCall = (call: string): Recorded => recorded.find((r) => r.call === call)!;
 
@@ -122,6 +125,7 @@ describe("recorded answers (contract layer 3)", () => {
       "get_stats_method",
       "list_stats_changes",
     ]) {
+      if (name === "lookup_stats_wallet" && !STATS_WALLET_LOOKUP) continue;
       assert.ok(tools.has(name), name);
     }
   });
@@ -391,6 +395,7 @@ describe("the Stats shape (design 1.0)", () => {
   it("an answer that lacks a key its tool needs is refused with the fixed sentence", async () => {
     __setStatsIdsForTests({ marker: MARKER, call: CALL_ID });
     for (const [tool, keys] of Object.entries(REQUIRED)) {
+      if (tool === "lookup_stats_wallet" && !STATS_WALLET_LOOKUP) continue;
       const r = byCall(sample[tool]!);
       for (const key of [...COMMON, ...keys]) {
         const env = structuredClone(envelopeOf(r));

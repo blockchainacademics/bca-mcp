@@ -11,7 +11,15 @@ import { readFileSync } from "node:fs";
 import { callTool, listTools, STATS_NOT_FOUND } from "../src/index.js";
 import { BcaClient, setClient } from "../src/client.js";
 import { __setStatsIdsForTests } from "../src/outside.js";
-import { SEARCH_ADDRESS_REFUSED, STATS_DESCRIPTIONS, compareIds, exchangeIdFrom } from "../src/tools/stats.js";
+import {
+  SEARCH_ADDRESS_REFUSED,
+  STATS_TOOL_SPECS,
+  STATS_WALLET_LOOKUP,
+  STATS_WORKS_WITHOUT_KEY,
+  compareIds,
+  exchangeIdFrom,
+  statsDescription,
+} from "../src/tools/stats.js";
 
 const MARKER = "0123456789abcdef";
 const CALL_ID = "fedcba9876543210";
@@ -86,14 +94,16 @@ const ADDRESS = "0x" + "ab".repeat(20);
 describe("the eight tools: names, routes and query names", () => {
   it("are registered at the end of tools/list, with readOnlyHint and the fixed descriptions", () => {
     const tools = listTools();
+    const names = STATS_TOOL_SPECS.map((s) => s.definition.name);
+    assert.equal(names.length, STATS_WALLET_LOOKUP ? 8 : 7);
     assert.deepEqual(
-      tools.slice(-8).map((t) => t.name),
-      Object.keys(STATS_DESCRIPTIONS),
+      tools.slice(-names.length).map((t) => t.name),
+      names,
     );
-    for (const t of tools.slice(-8)) {
-      assert.equal(t.description, STATS_DESCRIPTIONS[t.name as keyof typeof STATS_DESCRIPTIONS]);
+    for (const t of tools.slice(-names.length)) {
+      assert.equal(t.description, statsDescription(t.name as (typeof names)[number]));
       assert.equal(t.annotations.readOnlyHint, true, t.name);
-      assert.match(t.description, /Works without an API key\.$/);
+      assert.equal(/Works without an API key\.$/.test(t.description), STATS_WORKS_WITHOUT_KEY, t.name);
     }
   });
 
@@ -177,7 +187,7 @@ describe("the eight tools: names, routes and query names", () => {
 
 describe("bounds and refusals before any request", () => {
   it("an argument a tool does not take", async () => {
-    for (const tool of Object.keys(STATS_DESCRIPTIONS)) {
+    for (const tool of STATS_TOOL_SPECS.map((s) => s.definition.name)) {
       const message = await refusedLocally(tool, { not_an_argument: 1 });
       assert.match(message, /not_an_argument: Unrecognized key/);
     }
@@ -473,7 +483,7 @@ describe("the Stats error table", () => {
   });
 });
 
-describe("lookup_stats_wallet: matched on this machine", () => {
+describe("lookup_stats_wallet: matched on this machine", { skip: !STATS_WALLET_LOOKUP }, () => {
   const shardEnvelope = () => envelope("lookup_leader");
   const shard = () => shardEnvelope().data;
   const wallets = () => Object.keys(shard().wallets);

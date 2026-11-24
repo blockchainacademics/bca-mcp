@@ -14,7 +14,7 @@ import { listTools } from "../src/index.js";
 import { WRITE_TOOLS } from "../src/annotations.js";
 import { isAllowedBase } from "../src/client.js";
 import { STATS_DATA_PREFIX, STATS_SITE_PREFIX } from "../src/stats_constants.js";
-import { STATS_DESCRIPTIONS } from "../src/tools/stats.js";
+import { KEYLESS_SENTENCE, STATS_DESCRIPTIONS, STATS_WORKS_WITHOUT_KEY } from "../src/tools/stats.js";
 import type { JsonSchema } from "../src/schema.js";
 
 const src = (path: string) => readFileSync(new URL(`../src/${path}`, import.meta.url), "utf8");
@@ -85,7 +85,7 @@ describe("the eight schemas", () => {
         for (const [key, value] of Object.entries(obj)) walk(value, `${where}.${key}`);
       }
     };
-    assert.equal(statsTools().length, 8);
+    assert.ok(statsTools().length >= 7);
     for (const t of statsTools()) walk(t.inputSchema, t.name);
   });
 
@@ -141,8 +141,10 @@ describe("the fixed texts (appendices D and E)", () => {
     for (const t of statsTools()) {
       const props = t.inputSchema["properties"] as Record<string, JsonSchema>;
       const args = Object.fromEntries(Object.entries(props).map(([name, p]) => [name, p["description"]]));
+      // With the owner's line 1 answered no, the last sentence is left out on purpose.
+      const description = t.description + (STATS_WORKS_WITHOUT_KEY ? "" : KEYLESS_SENTENCE);
       const digest = createHash("sha256")
-        .update(canonical({ description: t.description, arguments: args }))
+        .update(canonical({ description, arguments: args }))
         .digest("hex");
       assert.equal(digest, PINNED[t.name], `${t.name}: keep it word for word appendices D and E`);
     }
@@ -152,7 +154,7 @@ describe("the fixed texts (appendices D and E)", () => {
     for (const t of statsTools()) {
       assert.ok(!/\b(Starter|Pro|Team) tier\b/.test(t.description), t.name);
       assert.ok(!t.description.includes("\u2014"), t.name);
-      assert.match(t.description, /Works without an API key\./);
+      assert.equal(t.description.endsWith(KEYLESS_SENTENCE), STATS_WORKS_WITHOUT_KEY, t.name);
     }
   });
 });

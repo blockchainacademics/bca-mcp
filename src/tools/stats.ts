@@ -27,6 +27,21 @@ import {
   type StatsPageInfo,
 } from "../outside.js";
 
+// --- the owner's open lines (design-final.md, "For the owner") -------------------
+//
+// Built with the design's recommended answers. Each line the package sees is
+// one switch; test/docs.test.ts counts the tools from these two, so a change
+// shows every count of the copy that must follow.
+//
+// Line 1: the Stats tools work on the built-in demo key, under their own
+// daily allowance in the API (60 calls a day per network, 3,000 a day in
+// all). false: a free key is required, and each description drops its last
+// sentence, "Works without an API key."
+export const STATS_WORKS_WITHOUT_KEY = true;
+// Line 2: keep the wallet lookup, which sends two characters of the address.
+// false: lookup_stats_wallet is not registered.
+export const STATS_WALLET_LOOKUP = true;
+
 // --- fixed numbers -------------------------------------------------------------
 
 export const STATS_SCHEMA = "bca.stats/1";
@@ -806,13 +821,23 @@ export interface StatsToolSpec {
   readonly runner: (input: any, ctx: StatsCallContext) => Promise<StatsAnswer>;
 }
 
+export const KEYLESS_SENTENCE = " Works without an API key.";
+
+/** A tool's description as tools/list shows it: appendix D, with the owner's line 1 applied. */
+export function statsDescription(name: StatsToolName): string {
+  const text = STATS_DESCRIPTIONS[name];
+  return STATS_WORKS_WITHOUT_KEY || !text.endsWith(KEYLESS_SENTENCE)
+    ? text
+    : text.slice(0, -KEYLESS_SENTENCE.length);
+}
+
 const spec = (
   name: StatsToolName,
   schema: z.ZodType,
   runner: (input: any, ctx: StatsCallContext) => Promise<StatsAnswer>,
-): StatsToolSpec => ({ schema, definition: { name, description: STATS_DESCRIPTIONS[name] }, runner });
+): StatsToolSpec => ({ schema, definition: { name, description: statsDescription(name) }, runner });
 
-/** The eight, in the order tools/list shows them. */
+/** The Stats tools, in the order tools/list shows them (eight, with the owner's line 2 applied). */
 export const STATS_TOOL_SPECS: readonly StatsToolSpec[] = [
   spec("search_stats", searchStatsInputSchema, runSearchStats),
   spec("list_stats_measures", listStatsMeasuresInputSchema, runListStatsMeasures),
@@ -822,4 +847,4 @@ export const STATS_TOOL_SPECS: readonly StatsToolSpec[] = [
   spec("lookup_stats_wallet", lookupStatsWalletInputSchema, runLookupStatsWallet),
   spec("get_stats_method", getStatsMethodInputSchema, runGetStatsMethod),
   spec("list_stats_changes", listStatsChangesInputSchema, runListStatsChanges),
-];
+].filter((s) => STATS_WALLET_LOOKUP || s.definition.name !== "lookup_stats_wallet");
