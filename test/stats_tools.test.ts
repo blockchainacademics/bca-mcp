@@ -239,6 +239,10 @@ describe("bounds and refusals before any request", () => {
     const sent = serve(() => json(envelope("rank_real_cost_buy_1000")));
     await answer("rank_stats", { tab: "exchanges", measure: "a_new_measure", kind: "leveraged" });
     assert.equal(query(sent[0]!)["kind"], "leveraged");
+    // A measure named like an object property is a measure the package does not know.
+    const named = serve(() => json(envelope("rank_real_cost_buy_1000")));
+    await answer("rank_stats", { tab: "exchanges", measure: "constructor" });
+    assert.equal(query(named[0]!)["measure"], "constructor");
   });
 
   it("limits, offsets and days", async () => {
@@ -322,6 +326,10 @@ describe("bounds and refusals before any request", () => {
       await refusedLocally("search_stats", { query: "n".repeat(65) }),
       "Invalid arguments for search_stats: query: String must contain at most 64 character(s)",
     );
+    // The bound counts code points, as zod and the API do: 64 emoji are 64 characters.
+    const wide = serve(() => json(envelope("search_nothing")));
+    await answer("search_stats", { query: "\u{1F680}".repeat(64) });
+    assert.equal(Array.from(query(wide[0]!)["q"]!).length, 64);
   });
 
   it("get_stats_record: ids trimmed and lower-cased; Crypto.com sent as crypto-com; a bad id refused", async () => {

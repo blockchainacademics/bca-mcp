@@ -152,18 +152,18 @@ export function vaultIdFrom(text: string): string | undefined {
 
 // The eight measures and their tabs (design appendix F). A measure the API
 // opens later is not here: it is sent, and the API's answer comes back.
-const KNOWN_MEASURES: Readonly<
-  Record<string, { tab: string; kinds: readonly string[] | null; open: boolean }>
-> = {
-  checks_passed: { tab: "exchanges", kinds: ["centralised", "swap", "leveraged"], open: true },
-  reserve_report_detail: { tab: "exchanges", kinds: ["centralised"], open: true },
-  real_cost_buy_1000: { tab: "exchanges", kinds: ["centralised"], open: true },
-  real_cost_swap_1000: { tab: "exchanges", kinds: ["swap"], open: true },
-  real_cost_position_1000: { tab: "exchanges", kinds: ["leveraged"], open: true },
-  money_put_in: { tab: "vaults", kinds: null, open: true },
-  left_took_home: { tab: "vaults", kinds: null, open: true },
-  yield_delivered: { tab: "yields", kinds: null, open: false },
-};
+// A Map, so a measure named like an object property ("constructor") is unknown.
+const KNOWN_MEASURES: ReadonlyMap<string, { tab: string; kinds: readonly string[] | null; open: boolean }> =
+  new Map([
+    ["checks_passed", { tab: "exchanges", kinds: ["centralised", "swap", "leveraged"], open: true }],
+    ["reserve_report_detail", { tab: "exchanges", kinds: ["centralised"], open: true }],
+    ["real_cost_buy_1000", { tab: "exchanges", kinds: ["centralised"], open: true }],
+    ["real_cost_swap_1000", { tab: "exchanges", kinds: ["swap"], open: true }],
+    ["real_cost_position_1000", { tab: "exchanges", kinds: ["leveraged"], open: true }],
+    ["money_put_in", { tab: "vaults", kinds: null, open: true }],
+    ["left_took_home", { tab: "vaults", kinds: null, open: true }],
+    ["yield_delivered", { tab: "yields", kinds: null, open: false }],
+  ]);
 
 // --- descriptions (appendix D) ---------------------------------------------------
 
@@ -531,8 +531,10 @@ function refuse(tool: StatsToolName, field: string, message: string): never {
 export async function runSearchStats(input: SearchStatsInput, ctx: StatsCallContext): Promise<StatsAnswer> {
   // A name copied back from an earlier answer still works: the markers come out before the checks.
   const query = stripMarkers(input.query).trim();
-  if (query.length < 2) refuse("search_stats", "query", "String must contain at least 2 character(s)");
-  if (query.length > SEARCH_QUERY_MAX) {
+  // Counted in code points, as zod and the API count a string's length.
+  const length = Array.from(query).length;
+  if (length < 2) refuse("search_stats", "query", "String must contain at least 2 character(s)");
+  if (length > SEARCH_QUERY_MAX) {
     refuse("search_stats", "query", `String must contain at most ${SEARCH_QUERY_MAX} character(s)`);
   }
   // Checked on the form the API cleans the query to, so no address reaches it.
@@ -552,7 +554,7 @@ export async function runListStatsMeasures(_input: unknown, ctx: StatsCallContex
 }
 
 export async function runRankStats(input: RankStatsInput, ctx: StatsCallContext): Promise<StatsAnswer> {
-  const known = KNOWN_MEASURES[input.measure];
+  const known = KNOWN_MEASURES.get(input.measure);
   if (known !== undefined && (known.tab !== input.tab || !known.open)) {
     refuse("rank_stats", "measure", MEASURE_NOT_IN_TAB);
   }
