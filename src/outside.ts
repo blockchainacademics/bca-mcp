@@ -37,9 +37,16 @@ export const TEXT_BLOCK_CAP = 65_536;
 const KEY_NAME_RE = /^[a-z][a-z0-9_]{0,63}$/;
 
 // Anything shaped like a marker, with any id: <<outside:...>> or
-// <</outside:...>>. Both cases of each letter are listed, in place of an i
-// flag, so the Python sibling's pattern matches exactly the same strings.
-const MARKER_SHAPE_RE = /<<\/?[Oo][Uu][Tt][Ss][Ii][Dd][Ee]:[^<>]*>>/g;
+// <</outside:...>>, with spaces around its parts. The letters and the spaces
+// are written out, in place of an i flag and \s, so the Python sibling's
+// pattern matches exactly the same strings: the long s (U+017F) for s, the
+// dotted and dotless i (U+0130, U+0131) for i, and the spaces Python's \s
+// takes (U+001C to U+001F and U+0085 among them, U+FEFF not).
+const MARKER_SPACE = "[\\t\\n\\v\\f\\r\\u001c-\\u001f \\u0085\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000]*";
+const MARKER_SHAPE_RE = new RegExp(
+  `<<${MARKER_SPACE}(?:\\/${MARKER_SPACE})?[Oo][Uu][Tt][Ss\\u017f][Ii\\u0130\\u0131][Dd][Ee]${MARKER_SPACE}:[^<>]*>>`,
+  "g",
+);
 
 // The characters RFC 3986 allows in a link, and no others: no space, quote,
 // angle bracket or backslash.
@@ -49,6 +56,10 @@ const SOURCE_HASH_RE = /^sha256:[0-9a-f]{16,64}$/;
 const REQUEST_ID_RE = /^[A-Za-z0-9_.:-]{1,64}$/;
 const CURSOR_RE = /^[A-Za-z0-9_.:=-]{1,200}$/;
 const CONTROL_RE = /[\u0000-\u001f\u007f-\u009f]/;
+// A diagnostic as_of: a day, or a day and a time (the Python sibling's _DAY_OR_TIME).
+const DAY_OR_TIME_RE =
+  /^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}(:[0-9]{2}(\.[0-9]{1,6})?)?(Z|[+-][0-9]{2}:[0-9]{2})?)?$/;
+const AGE_SECONDS_MAX = 10 ** 10;
 const TIERS: ReadonlySet<string> = new Set(["demo", "free", "starter", "pro", "team", "enterprise"]);
 
 const MAX_CITATIONS = 4;
@@ -156,6 +167,11 @@ export function statsLinkOk(url: unknown): url is string {
   );
 }
 
+/** A file on the data address, the only place a Stats answer's sources may point. */
+export function dataLinkOk(url: unknown): url is string {
+  return statsLinkOk(url) && url.startsWith(STATS_DATA_PREFIX);
+}
+
 export interface StatsCitation {
   cite_url: string | null;
   as_of: string | null;
@@ -177,9 +193,10 @@ export function cleanCitations(raw: readonly unknown[]): StatsCitation[] {
     }));
 }
 
-/** A string of at most `max` characters (code points) with no control character. */
+/** A string of 1 to `max` characters (code points) with no control character. */
 function shortText(value: unknown, max: number): value is string {
-  return typeof value === "string" && Array.from(value).length <= max && !CONTROL_RE.test(value);
+  if (typeof value !== "string" || value === "") return false;
+  return Array.from(value).length <= max && !CONTROL_RE.test(value);
 }
 
 /** meta.diagnostic: reason, eta, missing, as_of and age_seconds, each checked; nothing else. */
@@ -191,9 +208,11 @@ function cleanDiagnostic(raw: unknown): Record<string, unknown> | undefined {
   if (Array.isArray(raw["missing"])) {
     out["missing"] = raw["missing"].filter((item) => shortText(item, 200)).slice(0, 100);
   }
-  if (shortText(raw["as_of"], 40)) out["as_of"] = raw["as_of"];
+  if (shortText(raw["as_of"], 40) && DAY_OR_TIME_RE.test(raw["as_of"])) out["as_of"] = raw["as_of"];
   const age = raw["age_seconds"];
-  if (typeof age === "number" && Number.isFinite(age) && age >= 0) out["age_seconds"] = age;
+  if (Number.isInteger(age) && (age as number) >= 0 && (age as number) <= AGE_SECONDS_MAX) {
+    out["age_seconds"] = age;
+  }
   return Object.keys(out).length > 0 ? out : undefined;
 }
 

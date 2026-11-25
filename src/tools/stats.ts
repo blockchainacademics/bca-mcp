@@ -17,6 +17,7 @@ import {
   OUTSIDE_TEXT_KEYS,
   cleanCitations,
   cleanStatsMeta,
+  dataLinkOk,
   fitsTextBlock,
   isPlainObject,
   newMarkerId,
@@ -110,7 +111,7 @@ const HEX2_RE = /^[0-9a-f]{2}$/;
 const HEX64_RE = /^[0-9a-f]{64}$/;
 // The hidden characters of the design's cleaners (appendix C).
 const HIDDEN_RE =
-  /[\u0000-\u001f\u007f-\u009f\u00ad\u061c\u115f\u1160\u17b4\u17b5\u180b-\u180f\u200b-\u200f\u2028-\u202e\u2060-\u206f\u3164\ufe00-\ufe0f\ufeff\uffa0\ufff0-\ufffb]/g;
+  /[\u0000-\u001f\u007f-\u009f\u00ad\u061c\u115f\u1160\u17b4\u17b5\u180b-\u180f\u200b-\u200f\u2028-\u202e\u2060-\u206f\u3164\ufe00-\ufe0f\ufeff\uffa0\ufff0-\ufffb\u{e0000}-\u{e007f}]/gu;
 // The 32 look-alike Cyrillic and Greek letters of the design's fold
 // (appendix C, CONFUSABLE in the reference script), turned into Latin ones.
 const CONFUSABLE: ReadonlyMap<string, string> = new Map([
@@ -209,7 +210,9 @@ const KNOWN_MEASURES: ReadonlyMap<string, { tab: string; kinds: readonly string[
     ["real_cost_position_1000", { tab: "exchanges", kinds: ["leveraged"], open: true }],
     ["money_put_in", { tab: "vaults", kinds: null, open: true }],
     ["left_took_home", { tab: "vaults", kinds: null, open: true }],
-    ["yield_delivered", { tab: "yields", kinds: null, open: false }],
+    // Known, and sent: the API answers that it is not open yet. Refusing it
+    // here would need a package release the day the Yields tab opens (design 7).
+    ["yield_delivered", { tab: "yields", kinds: null, open: true }],
   ]);
 
 // --- descriptions (appendix D) ---------------------------------------------------
@@ -490,13 +493,30 @@ function passes(check: Check, value: unknown): boolean {
   }
 }
 
-/** The block every Stats answer starts with. */
+// A key made of digits alone: JavaScript moves such a key to the front of an
+// object, so the two packages would hand on the keys in another order.
+const DIGITS_KEY_RE = /^[0-9]+$/;
+
+/** No key made of digits alone and no number that is not finite, at any depth (64 at most). */
+function walkIsPlain(node: unknown, depth = 0): boolean {
+  if (depth > 64) return false;
+  if (Array.isArray(node)) return node.every((item) => walkIsPlain(item, depth + 1));
+  if (isPlainObject(node)) {
+    return Object.entries(node).every(([key, value]) => !DIGITS_KEY_RE.test(key) && walkIsPlain(value, depth + 1));
+  }
+  if (typeof node === "number") return Number.isFinite(node);
+  return true;
+}
+
+/** The block every Stats answer starts with. A status key in data is refused: the status is meta's. */
 function commonBlockOk(data: Record<string, unknown>): boolean {
   return (
     data["schema"] === STATS_SCHEMA &&
+    !Object.prototype.hasOwnProperty.call(data, "status") &&
     typeof data["as_of"] === "string" &&
     isRealDay(data["as_of"]) &&
     Array.isArray(data["sources"]) &&
+    data["sources"].every((s) => isPlainObject(s) && dataLinkOk(s["file"])) &&
     outsideKeys(data["outside_text_keys"]) !== undefined &&
     isCount(data["rows_dropped"]) &&
     isTextList(data["notes"])
@@ -536,6 +556,7 @@ export function checkStatsEnvelope(tool: StatsToolName, raw: unknown): CheckedEn
   for (const [key, check] of Object.entries(REQUIRED[tool])) {
     if (!passes(check, data[key])) throw new StatsShapeError();
   }
+  if (!walkIsPlain(data)) throw new StatsShapeError();
   return { ...checked, data };
 }
 
@@ -710,7 +731,7 @@ function lookupRecordOk(r: Record<string, unknown>): boolean {
   return (
     typeof r["vault"] === "string" &&
     LOWER_ADDRESS_RE.test(r["vault"]) &&
-    typeof r["vault_state"] === "string" &&
+    (r["vault_state"] === "open" || r["vault_state"] === "closed") &&
     typeof r["leader"] === "boolean" &&
     typeof r["status"] === "string" &&
     isCount(r["withdrawals"]) &&
@@ -860,6 +881,15 @@ function fitWalletAnswer(answer: StatsAnswer): StatsAnswer {
     records.pop();
     data["count"] = records.length;
     data["next_offset"] = (data["offset"] as number) + records.length;
+    // The meanings cover the statuses still on the page (design 1.6).
+    const meanings = data["status_meanings"];
+    if (isPlainObject(meanings)) {
+      data["status_meanings"] = Object.fromEntries(
+        Object.entries(meanings).filter(([status]) =>
+          records.some((r) => isPlainObject(r) && r["status"] === status),
+        ),
+      );
+    }
     answer.meta["pageInfo"] = walletPageInfo(data);
   }
   return answer;

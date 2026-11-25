@@ -208,14 +208,18 @@ describe("bounds and refusals before any request", () => {
     assert.match(await refusedLocally("get_stats_record", { tab: "vaults ", id: ADDRESS }), /tab: /);
   });
 
-  it("a known measure of the other tab, yield_delivered, and a kind that does not apply", async () => {
+  it("a known measure of the other tab, yield_delivered outside its tab, and a kind that does not apply", async () => {
     const message = (field: string, sentence: string) => `Invalid arguments for rank_stats: ${field}: ${sentence}`;
     const tab = "That measure does not belong to that tab.";
     const kind = "That kind does not apply to that measure.";
     assert.equal(await refusedLocally("rank_stats", { tab: "vaults", measure: "checks_passed" }), message("measure", tab));
     assert.equal(await refusedLocally("rank_stats", { tab: "exchanges", measure: "money_put_in" }), message("measure", tab));
     assert.equal(await refusedLocally("rank_stats", { tab: "vaults", measure: "yield_delivered" }), message("measure", tab));
-    assert.equal(await refusedLocally("rank_stats", { tab: "yields", measure: "yield_delivered" }), message("measure", tab));
+    // In its own tab yield_delivered is sent: the API says it is not open yet, so the
+    // package needs no release the day the Yields tab opens (design section 7).
+    const seen = serve(() => json({ detail: "That measure does not belong to that tab." }, 400));
+    await failure("rank_stats", { tab: "yields", measure: "yield_delivered" });
+    assert.equal(query(seen[0]!)["measure"], "yield_delivered");
     assert.equal(
       await refusedLocally("rank_stats", { tab: "exchanges", measure: "real_cost_buy_1000", kind: "swap" }),
       message("kind", kind),
@@ -478,6 +482,20 @@ describe("the Stats error table", () => {
       STATS_NOT_FOUND,
       "No published Stats record for that id. Not every vault on the venue has a record: the venue's own vaults and vaults with no details on file have none.",
     );
+  });
+
+  it("a 404 to a tool that does not ask for a record is a failed call, never an answer about the data", async () => {
+    __setStatsIdsForTests({ call: CALL_ID });
+    const failed = { code: "BCA_UPSTREAM", message: `The Stats API call failed. Request id: ${CALL_ID}.` };
+    serve(() => json({ detail: "Not Found" }, 404));
+    assert.deepEqual(await failure("search_stats", { query: "growi" }), failed);
+    assert.deepEqual(await failure("list_stats_measures", {}), failed);
+    assert.deepEqual(await failure("rank_stats", { tab: "vaults", measure: "money_put_in" }), failed);
+    assert.deepEqual(await failure("get_stats_method", { topic: "vaults" }), failed);
+    assert.deepEqual(await failure("list_stats_changes", {}), failed);
+    if (STATS_WALLET_LOOKUP) {
+      assert.deepEqual(await failure("lookup_stats_wallet", { address: ADDRESS }), failed);
+    }
   });
 
   it("another 4xx: the API's fixed sentence word for word, any other text replaced", async () => {
@@ -803,5 +821,61 @@ describe("lookup_stats_wallet: matched on this machine", { skip: !STATS_WALLET_L
     const parsed = await answer("lookup_stats_wallet", { address: leader() });
     assert.equal(parsed.data, null);
     assert.deepEqual(parsed.meta.diagnostic, { reason: "the lookup files could not be read" });
+  });
+});
+
+
+describe("the shape rules the Python sibling holds too", () => {
+  it("a status key in data, a key made of digits alone and a source off the data address are refused", async () => {
+    __setStatsIdsForTests({ call: CALL_ID });
+    const shape = { code: "BCA_UPSTREAM", message: `The API answer did not have the Stats shape. Request id: ${CALL_ID}.` };
+    const cases: Array<(env: any) => void> = [
+      (env) => {
+        env.data.status = "complete";
+      },
+      (env) => {
+        env.data.counts = { "7": 1 };
+      },
+      (env) => {
+        env.data.sources[0].file = "https://example.com/exchanges/v1/list.json";
+      },
+      (env) => {
+        env.data.sources[0].file = "https://blockchainacademics.com/stats";
+      },
+      (env) => {
+        env.data.sources[0] = "https://data.blockchainacademics.com/exchanges/v1/list.json";
+      },
+    ];
+    for (const change of cases) {
+      const env = envelope("measures");
+      change(env);
+      serve(() => json(env));
+      assert.deepEqual(await failure("list_stats_measures", {}), shape);
+    }
+    serve(() => json(envelope("measures")));
+    await answer("list_stats_measures", {});
+  });
+
+  it("a lookup record whose vault_state is not open or closed is refused", async () => {
+    if (!STATS_WALLET_LOOKUP) return;
+    __setStatsIdsForTests({ call: CALL_ID });
+    const r = readJson("answers/lookup_leader.json");
+    const env = envelope("lookup_leader");
+    const who = String(r.args.address).trim().toLowerCase();
+    env.data.wallets[who][0].vault_state = "opening soon";
+    serve(() => json(env));
+    assert.equal((await failure("lookup_stats_wallet", r.args)).code, "BCA_UPSTREAM");
+  });
+
+  it("tag characters are hidden characters, and the older fence pattern runs in linear time", async () => {
+    const { exchangeIdFrom: slug } = await import("../src/tools/stats.js");
+    const tagged = "Kra" + [...'ignore'].map((c) => String.fromCodePoint(0xe0000 + c.charCodeAt(0))).join("") + "ken";
+    assert.equal(slug(tagged), "kraken");
+    const { neutralizeFenceTokens, cleanFenceText } = await import("../src/untrusted.js");
+    assert.equal(cleanFenceText("a\u{e0041}\u{e007f}b"), "ab");
+    const start = Date.now();
+    neutralizeFenceTokens("<" + " ".repeat(50_000) + "x");
+    neutralizeFenceTokens("< /" + " ".repeat(50_000) + "x");
+    assert.ok(Date.now() - start < 1000);
   });
 });

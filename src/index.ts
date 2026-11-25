@@ -479,6 +479,14 @@ export const STATS_API_SENTENCES: readonly string[] = [
 
 /** The one sentence for a 404, the same for a hidden id and an unknown one. */
 export const STATS_NOT_FOUND = STATS_API_SENTENCES[STATS_API_SENTENCES.length - 1]!;
+
+/**
+ * The tools whose 404 means "no record for that id": they ask for a record by
+ * its id. For the other Stats tools a 404 means the route is not there (an
+ * API rolled back, a wrong base address), so it reads as a failed call, never
+ * as an answer about the data.
+ */
+export const STATS_RECORD_TOOLS: ReadonlySet<string> = new Set(["get_stats_record", "compare_stats_records"]);
 export const STATS_TOO_LARGE = "The answer is larger than the 64 KB cap. Ask for fewer rows.";
 
 const statsRefused = (id: string) => `The API refused this Stats request. Request id: ${id}.`;
@@ -511,7 +519,11 @@ export function statsErrorPayload(
   if (err instanceof BcaNetworkError) return { code: "BCA_NETWORK", message: statsUnreachable(requestId) };
   if (err instanceof BcaUpstreamError) {
     const status = err.status ?? 0;
-    if (status === 404) return { code: "BCA_BAD_REQUEST", message: STATS_NOT_FOUND };
+    if (status === 404) {
+      return STATS_RECORD_TOOLS.has(toolName)
+        ? { code: "BCA_BAD_REQUEST", message: STATS_NOT_FOUND }
+        : { code: "BCA_UPSTREAM", message: statsFailed(requestId) };
+    }
     if (status >= 400 && status < 500) {
       const detail = err.detail;
       return {

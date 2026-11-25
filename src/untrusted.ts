@@ -35,7 +35,9 @@ import { randomBytes } from "node:crypto";
 // closing slash; the leading/trailing `\s*` and the `\s*` around the slash
 // tolerate obfuscation whitespace; `[^>]*` swallows any attributes on the
 // opening form up to the terminating `>`. Global + case-insensitive.
-const FENCE_TAG_RE = /<\s*\/?\s*untrusted_content\b[^>]*>/gi;
+// `(?:\/\s*)?` in place of `\/?\s*`: the same matches, in linear time (two runs of
+// spaces next to each other made the old form backtrack with the square of their length).
+const FENCE_TAG_RE = /<\s*(?:\/\s*)?untrusted_content\b[^>]*>/gi;
 
 // The hidden characters of the Stats design's cleaners (appendix C): control
 // characters, the soft hyphen, zero width characters, direction marks,
@@ -43,7 +45,7 @@ const FENCE_TAG_RE = /<\s*\/?\s*untrusted_content\b[^>]*>/gi;
 // others. Tab, line feed and carriage return stay: article bodies and
 // contract code keep their lines, and JSON writes them as \t, \n and \r.
 const FENCE_HIDDEN_RE =
-  /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f\u00ad\u061c\u115f\u1160\u17b4\u17b5\u180b-\u180f\u200b-\u200f\u2028-\u202e\u2060-\u206f\u3164\ufe00-\ufe0f\ufeff\uffa0\ufff0-\ufffb]/g;
+  /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f\u00ad\u061c\u115f\u1160\u17b4\u17b5\u180b-\u180f\u200b-\u200f\u2028-\u202e\u2060-\u206f\u3164\ufe00-\ufe0f\ufeff\uffa0\ufff0-\ufffb\u{e0000}-\u{e007f}]/gu;
 
 /**
  * One text cleaned before the whole-data fence neutralizes tags (AGENTS-08
