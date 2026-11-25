@@ -146,7 +146,8 @@ describe("recorded answers (contract layer 3)", () => {
 
   it("the text block is compact JSON, keys in the order the API sent them", async () => {
     __setStatsIdsForTests({ marker: MARKER, call: CALL_ID });
-    const r = byCall("rank_money_put_in");
+    // An answer whose data holds a letter outside ASCII (a vault name with the infinity sign).
+    const r = recorded.find((x) => JSON.stringify(envelopeOf(x)).includes("\u267e"))!;
     answering(envelopeOf(r));
     const res = await callTool(r.tool, r.args);
     const text = res.content[0]!.text;
