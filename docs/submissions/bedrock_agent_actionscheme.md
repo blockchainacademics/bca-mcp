@@ -28,7 +28,7 @@ Every answer is wrapped in the BCA envelope:
   "openapi": "3.0.0",
   "info": {
     "title": "Blockchain Academics Intelligence",
-    "version": "0.6.3",
+    "version": "0.7.0",
     "description": "Crypto intelligence actions for Bedrock agents."
   },
   "servers": [
@@ -242,7 +242,7 @@ You are a crypto intelligence agent. For any token, person, protocol, or narrati
 ## Deployment Notes
 - Store `BCA_API_KEY` in AWS Secrets Manager as `bca/api-key`.
 - Attach Lambda layer that injects `X-API-Key` from Secrets Manager into outbound calls (or use Bedrock's built-in API schema auth).
-- The full OpenAPI at `https://api.blockchainacademics.com/openapi.json` covers every route behind the 105 MCP tools; import it directly for broader coverage (sentiment, indicators, on-chain, agent jobs, etc.).
+- The full OpenAPI at `https://api.blockchainacademics.com/openapi.json` covers every route behind the 113 MCP tools; import it directly for broader coverage (sentiment, indicators, on-chain, agent jobs, etc.).
 
 ## Support
 - Docs: https://blockchainacademics.com/crypto-api/docs

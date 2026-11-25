@@ -1,4 +1,4 @@
-# Anthropic MCP Directory Submission: `@blockchainacademics/mcp` v0.6.3
+# Anthropic MCP Directory Submission: `@blockchainacademics/mcp` v0.7.0
 
 **Target repo:** `github.com/modelcontextprotocol/servers`
 **Package:** https://www.npmjs.com/package/@blockchainacademics/mcp
@@ -27,7 +27,7 @@ Insert alphabetically under `B` (sorts as "Blockchain Academics") in the
 Community Servers section:
 
 ```markdown
-- **[Blockchain Academics](https://github.com/blockchainacademics/bca-mcp)** - Canonical crypto MCP: 105 tools across news, entities, academy lessons, market data, on-chain, sentiment, proprietary indicators, and agent-backed research generation. Every response carries `attribution.citations[]` (cite_url, as_of, source_hash) and an honest `meta.status`. 17 tools work without a key: `npx -y @blockchainacademics/mcp`
+- **[Blockchain Academics](https://github.com/blockchainacademics/bca-mcp)** - Canonical crypto MCP: 113 tools across news, entities, academy lessons, market data, on-chain, sentiment, proprietary indicators, agent-backed research generation, and the Stats files on exchanges and vaults. Every response carries `attribution.citations[]` (cite_url, as_of, source_hash) and an honest `meta.status`. 25 tools work without a key: `npx -y @blockchainacademics/mcp`
 ```
 
 ### 1b. README entry: table-row fallback
@@ -35,7 +35,7 @@ Community Servers section:
 If the section is a table with columns `| Server | Package | Description |`:
 
 ```markdown
-| [Blockchain Academics](https://github.com/blockchainacademics/bca-mcp) | `@blockchainacademics/mcp` | Canonical crypto MCP: 105 tools spanning news, entities, academy, market data, on-chain, sentiment, proprietary indicators, and agent-backed generation. Cited, timestamped, hashed responses. |
+| [Blockchain Academics](https://github.com/blockchainacademics/bca-mcp) | `@blockchainacademics/mcp` | Canonical crypto MCP: 113 tools spanning news, entities, academy, market data, on-chain, sentiment, proprietary indicators, agent-backed generation, and the Stats files on exchanges and vaults. Cited, timestamped, hashed responses. |
 ```
 
 ---
@@ -43,7 +43,7 @@ If the section is a table with columns `| Server | Package | Description |`:
 ## 2. PR title
 
 ```
-Add @blockchainacademics/mcp: crypto news, entities, indicators (105 tools)
+Add @blockchainacademics/mcp: crypto news, entities, indicators (113 tools)
 ```
 
 ---
@@ -56,12 +56,14 @@ Add @blockchainacademics/mcp: crypto news, entities, indicators (105 tools)
 Adds **Blockchain Academics** to the Community Servers list: a production MCP
 server for AI agents that need ground-truth crypto data.
 
-- **105 tools across 19 categories**: news, entities, academy lessons (38
+- **113 tools across 20 categories**: news, entities, academy lessons (38
   lessons in 8 courses), market data (CoinGecko, DexScreener), on-chain
   (Etherscan, Helius, DefiLlama), sentiment and crypto Twitter, proprietary
   indicators (coverage index, narrative strength, editorial premium, KOL
-  influence, risk score), and async agent-backed generation (due diligence,
-  tokenomics, whitepaper summarization).
+  influence, risk score), async agent-backed generation (due diligence,
+  tokenomics, whitepaper summarization), and the Stats files (centralised
+  exchanges, Hyperliquid vaults and a wallet lookup that keeps the address
+  on the user's machine).
 - **Attribution on every response**: each tool call returns
   `attribution.citations[]`, whose first entry is the primary source (the
   upstream page when there is one), each with `cite_url`, `as_of` and
@@ -71,8 +73,8 @@ server for AI agents that need ground-truth crypto data.
   stale or unseeded) with a structured `meta.diagnostic`. Tools whose data
   source is not connected yet answer `unseeded` with a reason rather than
   failing or returning empty data as if it were complete.
-- **Zero-config demo**: without a key, 17 tools work under a shared daily
-  cap; a free key (2,000 calls a month) opens 52, and paid plans open the
+- **Zero-config demo**: without a key, 25 tools work under a shared daily
+  cap; a free key (2,000 calls a month) opens 60, and paid plans open the
   rest.
 
 ## Links
@@ -118,7 +120,7 @@ Happy to respond to review feedback within 24h.
 **Storyboard (5 beats, ~12s each):**
 
 ### Beat 1 (0:00 to 0:10): The config
-> "This is `@blockchainacademics/mcp`: 105 crypto tools for Claude. Here's the config."
+> "This is `@blockchainacademics/mcp`: 113 crypto tools for Claude. Here's the config."
 
 On screen: paste this snippet into `claude_desktop_config.json`:
 
@@ -139,7 +141,7 @@ Save file.
 ### Beat 2 (0:10 to 0:20): Restart
 > "Restart Claude Desktop."
 
-Cmd+Q Claude, reopen. Show the hammer/tools icon populating: 105 tools under `blockchainacademics`.
+Cmd+Q Claude, reopen. Show the hammer/tools icon populating: 113 tools under `blockchainacademics`.
 
 ### Beat 3 (0:20 to 0:35): Ask a question
 > "Let's ask it about a recent Bitcoin ETF story."
@@ -169,15 +171,15 @@ Scroll to Claude's answer. Hover over one of the inline citations to show the `c
 Tick each before opening the PR.
 
 ### Package integrity
-- [ ] `package.json` version = `0.6.3`
-- [ ] `server.json` version = `0.6.3` and `packages[0].version` = `0.6.3`
-- [ ] `server.json` `_meta.tool.version` = `0.6.3`
-- [ ] `server.json` `_meta.tool_count` = `105`
-- [ ] Sum of `_meta.tool_categories[].count` = 105: 7+4+4+6+6+6+16+6+4+5+5+4+4+4+2+3+4+7+8 = **105** across 19 categories (`npm run build` refuses to write `tools.json` when a tool is missing from the categories or the total differs)
-- [ ] README tool-category table totals to 105 across 19 rows, the same categories and counts as `server.json`
+- [ ] `package.json` version = `0.7.0`
+- [ ] `server.json` version = `0.7.0` and `packages[0].version` = `0.7.0`
+- [ ] `server.json` `_meta.tool.version` = `0.7.0`
+- [ ] `server.json` `_meta.tool_count` = `113`
+- [ ] Sum of `_meta.tool_categories[].count` = 113: 7+4+4+6+6+6+16+6+4+5+5+4+4+4+2+3+4+7+8+8 = **113** across 20 categories (`npm run build` refuses to write `tools.json` when a tool is missing from the categories or the total differs)
+- [ ] README tool-category table totals to 113 across 20 rows, the same categories and counts as `server.json`
 - [ ] LICENSE present and MIT
 - [ ] Install command works clean on a fresh machine: `npx -y @blockchainacademics/mcp` (**run once from a non-dev shell to confirm**)
-- [ ] `npm view @blockchainacademics/mcp version` returns `0.6.3` (**run to confirm registry propagation**)
+- [ ] `npm view @blockchainacademics/mcp version` returns `0.7.0` (**run to confirm registry propagation**)
 
 ### Security
 - [ ] npm publish token **rotated** after any recent CI/debug use (**MANUAL, Wael must do**)
@@ -225,7 +227,7 @@ git diff README.md   # sanity-check the exact line
 
 # 6. Commit
 git add README.md
-git commit -m "Add @blockchainacademics/mcp: crypto news, entities, indicators (105 tools)"
+git commit -m "Add @blockchainacademics/mcp: crypto news, entities, indicators (113 tools)"
 
 # 7. Push to fork
 git push -u origin add-blockchainacademics-mcp
@@ -235,7 +237,7 @@ gh pr create \
   --repo modelcontextprotocol/servers \
   --base main \
   --head "$(gh api user -q .login):add-blockchainacademics-mcp" \
-  --title "Add @blockchainacademics/mcp: crypto news, entities, indicators (105 tools)" \
+  --title "Add @blockchainacademics/mcp: crypto news, entities, indicators (113 tools)" \
   --body-file /tmp/bca-mcp-pr-body.md
 # (first, write §3 body to /tmp/bca-mcp-pr-body.md with Loom URL filled in)
 
@@ -262,5 +264,5 @@ gh pr create \
 
 ## 8. Known nits (non-blocking)
 
-1. **Category grouping**: resolved. The README table and `server.json._meta.tool_categories` list the same 19 categories, 105 tools in all.
+1. **Category grouping**: resolved. The README table and `server.json._meta.tool_categories` list the same 20 categories, 113 tools in all.
 2. Resolved since the 0.4.0 audit: the README header no longer carries a version, both free-tier mentions say 2,000 calls a month, and the client reads `BCA_API_BASE` (the name `server.json` declares) with `BCA_API_BASE_URL` still accepted.

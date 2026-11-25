@@ -1,6 +1,6 @@
 # @elizaos/plugin-bca: Specification
 
-Spec for the Eliza (elizaOS) plugin that wraps the `@blockchainacademics/mcp` MCP server so Eliza characters can call all 105 BCA tools natively.
+Spec for the Eliza (elizaOS) plugin that wraps the `@blockchainacademics/mcp` MCP server so Eliza characters can call all 113 BCA tools natively.
 
 > Authoritative upstream: <https://github.com/elizaOS/eliza> and <https://elizaos.github.io>. This spec follows the current elizaOS plugin convention: confirm exact action / provider / evaluator API surface against the latest `@elizaos/core` release before publishing.
 
@@ -12,8 +12,8 @@ Spec for the Eliza (elizaOS) plugin that wraps the `@blockchainacademics/mcp` MC
 |---|---|
 | Package name | `@elizaos/plugin-bca` |
 | Display name | Blockchain Academics |
-| Version | `0.1.0` (tracks `@blockchainacademics/mcp@0.6.3`) |
-| Description | Wraps the Blockchain Academics MCP (105 tools: news, entities, academy, market, on-chain, sentiment, proprietary indicators, async agent-backed research) so Eliza characters can query ground-truth crypto data with full attribution. |
+| Version | `0.1.0` (tracks `@blockchainacademics/mcp@0.7.0`) |
+| Description | Wraps the Blockchain Academics MCP (113 tools: news, entities, academy, market, on-chain, sentiment, proprietary indicators, async agent-backed research, Stats) so Eliza characters can query ground-truth crypto data with full attribution. |
 | License | MIT |
 | Repository | `https://github.com/blockchainacademics/elizaos-plugin-bca` |
 | Maintainer | Blockchain Academics `<dev@blockchainacademics.com>` |
@@ -57,7 +57,7 @@ Spec for the Eliza (elizaOS) plugin that wraps the `@blockchainacademics/mcp` MC
 {
   "name": "@elizaos/plugin-bca",
   "version": "0.1.0",
-  "description": "Blockchain Academics plugin for Eliza: 105 crypto research tools with attribution.",
+  "description": "Blockchain Academics plugin for Eliza: 113 crypto research tools with attribution.",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -80,7 +80,7 @@ Spec for the Eliza (elizaOS) plugin that wraps the `@blockchainacademics/mcp` MC
     "@elizaos/core": ">=0.1.9"
   },
   "dependencies": {
-    "@blockchainacademics/mcp": "^0.6.3",
+    "@blockchainacademics/mcp": "^0.7.0",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "zod": "^3.25.0"
   },
@@ -127,7 +127,7 @@ import { citationEvaluator } from "./evaluators/citationEvaluator.js";
 export const bcaPlugin: Plugin = {
   name: "bca",
   description:
-    "Blockchain Academics: 105 crypto research tools (news, entities, academy, market, on-chain, sentiment, proprietary indicators, agent-backed research) with attribution.citations[] (cite_url, as_of, source_hash) on every response.",
+    "Blockchain Academics: 113 crypto research tools (news, entities, academy, market, on-chain, sentiment, proprietary indicators, agent-backed research, Stats) with attribution.citations[] (cite_url, as_of, source_hash) on every response.",
   actions: [
     searchNewsAction,
     getEntityAction,
@@ -308,7 +308,7 @@ export async function callBcaTool(name: string, args: unknown) {
 pnpm add @elizaos/plugin-bca
 
 # 2. Get a BCA API key (free tier: 2,000 calls/month). Without one the MCP
-#    server runs on its public demo key: 17 tools under a shared daily cap.
+#    server runs on its public demo key: 25 tools under a shared daily cap.
 # https://blockchainacademics.com/crypto-api/signup
 
 # 3. Set the env var

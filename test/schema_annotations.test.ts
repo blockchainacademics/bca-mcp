@@ -10,6 +10,7 @@ import { z } from "zod";
 import { TOOLS, listTools } from "../src/index.js";
 import { zodToJsonSchema, type JsonSchema } from "../src/schema.js";
 import { WRITE_TOOLS, toolAnnotations, toolTitle } from "../src/annotations.js";
+import { STATS_TOOL_SPECS } from "../src/tools/stats.js";
 
 const byName = new Map(listTools().map((t) => [t.name, t]));
 const tool = (name: string) => {
@@ -34,10 +35,12 @@ function descriptions(node: unknown, out: string[] = []): string[] {
 }
 
 describe("tools/list schemas (F05, F37)", () => {
-  it("lists 105 uniquely named tools", () => {
+  it("lists 113 uniquely named tools: the 105 of 0.6 and the Stats tools", () => {
     const names = listTools().map((t) => t.name);
-    assert.equal(names.length, 105);
-    assert.equal(new Set(names).size, 105);
+    const count = 105 + STATS_TOOL_SPECS.length;
+    assert.equal(count, 113);
+    assert.equal(names.length, count);
+    assert.equal(new Set(names).size, count);
   });
 
   it("every tool has an object root and advertises every field it accepts", () => {

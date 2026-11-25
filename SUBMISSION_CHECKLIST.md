@@ -1,6 +1,6 @@
 # Anthropic MCP Directory: Submission Checklist
 
-**Package:** `@blockchainacademics/mcp` v0.6.3
+**Package:** `@blockchainacademics/mcp` v0.7.0
 **npm:** https://www.npmjs.com/package/@blockchainacademics/mcp
 **Source:** https://github.com/blockchainacademics/bca-mcp
 **Target:** https://github.com/modelcontextprotocol/servers
@@ -14,15 +14,15 @@ Once the Loom is recorded, submission is ~5 minutes of copy-paste.
 ## 0. Pre-flight checklist (must be 100% green before PR)
 
 ### Package integrity
-- [ ] `package.json` `version` = `0.6.3`
-- [ ] `server.json` `version` = `0.6.3` and `packages[0].version` = `0.6.3`
-- [ ] `server.json` `_meta....tool.version` = `0.6.3`
-- [ ] `_meta....tool_count` = `105` and `sum(tool_categories[].count) = 105` (19 categories)
-- [ ] `npm view @blockchainacademics/mcp version` returns `0.6.3` (registry propagated)
-- [ ] `npx -y @blockchainacademics/mcp` boots clean on a non-dev shell (fresh machine); without a key it prints the demo banner (17 tools work without a key)
+- [ ] `package.json` `version` = `0.7.0`
+- [ ] `server.json` `version` = `0.7.0` and `packages[0].version` = `0.7.0`
+- [ ] `server.json` `_meta....tool.version` = `0.7.0`
+- [ ] `_meta....tool_count` = `113` and `sum(tool_categories[].count) = 113` (20 categories)
+- [ ] `npm view @blockchainacademics/mcp version` returns `0.7.0` (registry propagated)
+- [ ] `npx -y @blockchainacademics/mcp` boots clean on a non-dev shell (fresh machine); without a key it prints the demo banner (25 tools work without a key)
 - [ ] `LICENSE` present at repo root (MIT)
-- [ ] `CHANGELOG.md` has a `0.6.3` entry
-- [ ] GitHub tag `v0.6.3` pushed: `git tag -a v0.6.3 -m "v0.6.3" && git push origin v0.6.3`
+- [ ] `CHANGELOG.md` has a `0.7.0` entry
+- [ ] GitHub tag `v0.7.0` pushed: `git tag -a v0.7.0 -m "v0.7.0" && git push origin v0.7.0`, then the owner approves the publish job (environment `npm-publish`)
 
 ### Security
 - [ ] npm publish token **rotated** after any recent CI/debug use (manual: Wael)
@@ -32,7 +32,7 @@ Once the Loom is recorded, submission is ~5 minutes of copy-paste.
 
 ### Known drift (from the audit)
 - [x] README header carries no version any more
-- [ ] Align README category grouping (20 rows) with `server.json._meta.tool_categories` (19 categories); both total 105
+- [x] Align README category grouping with `server.json._meta.tool_categories`: 20 categories in both, 113 tools in all (`test/docs.test.ts` checks it)
 - [x] Free-tier call count: `server.json` and README §API Key both say 2,000 a month
 - [x] `BCA_API_BASE` vs `BCA_API_BASE_URL`: the client reads `BCA_API_BASE` (the name `server.json` declares) and still accepts `BCA_API_BASE_URL`
 
@@ -74,7 +74,7 @@ git diff README.md   # eyeball exact line
 
 # 7. Commit
 git add README.md    # add the manifest file too if that's the upstream format
-git commit -m "Add @blockchainacademics/mcp: crypto news, entities, indicators (105 tools)"
+git commit -m "Add @blockchainacademics/mcp: crypto news, entities, indicators (113 tools)"
 
 # 8. Push to fork
 git push -u origin add-blockchainacademics-mcp
@@ -87,7 +87,7 @@ gh pr create \
   --repo modelcontextprotocol/servers \
   --base main \
   --head "$(gh api user -q .login):add-blockchainacademics-mcp" \
-  --title "Add @blockchainacademics/mcp: crypto news, entities, indicators (105 tools)" \
+  --title "Add @blockchainacademics/mcp: crypto news, entities, indicators (113 tools)" \
   --body-file /tmp/bca-mcp-pr-body.md
 
 # 11. Copy the PR URL from stdout. Done.
@@ -98,7 +98,7 @@ gh pr create \
 ## 2. PR title (exact, <70 chars)
 
 ```
-Add @blockchainacademics/mcp: crypto news, entities, indicators (105 tools)
+Add @blockchainacademics/mcp: crypto news, entities, indicators (113 tools)
 ```
 
 ---
@@ -109,9 +109,9 @@ Add @blockchainacademics/mcp: crypto news, entities, indicators (105 tools)
 ## Summary
 
 Adds **Blockchain Academics**, a production MCP server that gives AI agents
-ground-truth crypto data. 105 tools across news, entities, academy, market,
-on-chain, sentiment, proprietary indicators, and async agent-backed research
-jobs. Wraps `api.blockchainacademics.com`; every response carries
+ground-truth crypto data. 113 tools across news, entities, academy, market,
+on-chain, sentiment, proprietary indicators, async agent-backed research
+jobs, and the Stats files on exchanges and vaults. Wraps `api.blockchainacademics.com`; every response carries
 `attribution.citations[]` (`cite_url`, `as_of`, `source_hash`, primary source
 first) and an honest `meta.status` (complete, partial, stale or unseeded), so
 downstream agents can attribute, verify, and tell a full answer from a thin
@@ -130,7 +130,7 @@ one.
 npx -y @blockchainacademics/mcp
 ```
 
-Without a key, 17 tools work under a shared daily cap. A free key opens 52
+Without a key, 25 tools work under a shared daily cap. A free key opens 60
 tools and paid plans open the rest; add the key in `claude_desktop_config.json`:
 
 ```json

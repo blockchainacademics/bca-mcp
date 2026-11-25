@@ -5,9 +5,9 @@
     "id": "blockchainacademics-mcp",
     "name": "Blockchain Academics MCP",
     "slug": "blockchainacademics-mcp",
-    "tagline": "The canonical crypto MCP for AI agents: 105 tools, editorial ground truth, full attribution.",
-    "description": "The canonical crypto MCP server for AI agents. 105 tools spanning 3,800+ editorial articles, 150+ entity dossiers, 38 academy lessons in 8 courses, aggregated market + on-chain data, crypto Twitter intelligence, proprietary indicators (coverage index, narrative strength, sentiment velocity, editorial premium, KOL influence, risk score), and async agent-backed research generation. Every tool response carries an attribution envelope, attribution.citations[], each entry with cite_url, as_of and source_hash; citations[0] is the primary source (the upstream page when there is one). Every response also carries meta.status (complete, partial, stale or unseeded), so an agent can tell a full answer from a thin one. Designed to eliminate LLM hallucination on crypto topics by plugging an AI agent directly into the BCA corpus with citations, timestamps, and source hashes on every response.",
-    "version": "0.6.3",
+    "tagline": "The canonical crypto MCP for AI agents: 113 tools, editorial ground truth, full attribution.",
+    "description": "The canonical crypto MCP server for AI agents. 113 tools spanning 3,800+ editorial articles, 150+ entity dossiers, 38 academy lessons in 8 courses, aggregated market + on-chain data, crypto Twitter intelligence, proprietary indicators (coverage index, narrative strength, sentiment velocity, editorial premium, KOL influence, risk score), async agent-backed research generation, and the Stats files on 8 centralised exchanges and Hyperliquid vaults. Every tool response carries an attribution envelope, attribution.citations[], each entry with cite_url, as_of and source_hash; citations[0] is the primary source (the upstream page when there is one). Every response also carries meta.status (complete, partial, stale or unseeded), so an agent can tell a full answer from a thin one. Designed to eliminate LLM hallucination on crypto topics by plugging an AI agent directly into the BCA corpus with citations, timestamps, and source hashes on every response.",
+    "version": "0.7.0",
     "category": "data-provider",
     "subcategories": [
       "crypto",
@@ -45,7 +45,7 @@
       "status": "live",
       "registry_type": "npm",
       "package": "@blockchainacademics/mcp",
-      "version": "0.6.3",
+      "version": "0.7.0",
       "command": "npx",
       "args": ["-y", "@blockchainacademics/mcp"],
       "notes": "Canonical transport. Works in Claude Desktop, Cursor, LangChain, Eliza, and any MCP-compatible agent host."
@@ -66,7 +66,7 @@
     "env_variable": "BCA_API_KEY",
     "issuer": "https://blockchainacademics.com/crypto-api/signup",
     "free_tier_calls_per_month": 2000,
-    "notes": "Optional. Without BCA_API_KEY the package uses a public demo key: 17 tools work under a shared cap of 100 calls a day plus 20 a day per IP. A free key (2,000 calls a month, attribution required) opens every free tool; paid tiers open the rest."
+    "notes": "Optional. Without BCA_API_KEY the package uses a public demo key: 25 tools work. The 17 older tools share a cap of 100 calls a day plus 20 a day per network; the 8 Stats tools have their own, 3,000 calls a day plus 60 a day per network. A free key (2,000 calls a month, attribution required) opens every free tool; paid tiers open the rest."
   },
   "pricing": {
     "model": "freemium-tiered",
@@ -78,7 +78,7 @@
         "price_per_month": 0,
         "calls_per_month": 2000,
         "features": [
-          "52 of the 105 tools: news search and articles, entities and mentions, academy, prices and market overview, sentiment and fear and greed, history series, trending and feeds, directories, grants and jobs, chain overviews, security checks, and the service requests",
+          "60 of the 113 tools: news search and articles, entities and mentions, academy, prices and market overview, sentiment and fear and greed, history series, trending and feeds, directories, grants and jobs, chain overviews, security checks, the service requests, and the Stats tools",
           "Mandatory attribution via cite_url",
           "Community support"
         ]
@@ -143,7 +143,7 @@
     "github": "https://github.com/blockchainacademics"
   },
   "tool_catalog": {
-    "count": 105,
+    "count": 113,
     "attribution_envelope": {
       "fields": ["cite_url", "as_of", "source_hash"],
       "mandatory": true,
@@ -338,11 +338,25 @@
           "list_currencies",
           "get_currency_feed"
         ]
+      },
+      {
+        "name": "Stats",
+        "count": 8,
+        "tools": [
+          "search_stats",
+          "list_stats_measures",
+          "rank_stats",
+          "get_stats_record",
+          "compare_stats_records",
+          "lookup_stats_wallet",
+          "get_stats_method",
+          "list_stats_changes"
+        ]
       }
     ]
   },
   "rate_limits": {
-    "notes": "Enforced by the API per key: requests per second and calls per UTC day (TIER_LIMITS). The demo key shares one daily bucket across all demo users, plus 20 calls a day per IP.",
+    "notes": "Enforced by the API per key: requests per second and calls per UTC day (TIER_LIMITS). The demo key shares one daily bucket across all demo users, plus 20 calls a day per network; the Stats tools have a bucket of their own, 3,000 calls a day plus 60 a day per network. A network is one IPv4 address or one IPv6 /64.",
     "demo": { "per_second": 1, "per_day": 100 },
     "free": { "per_second": 2, "per_day": 87 },
     "starter": { "per_second": 5, "per_day": 1083 },

@@ -7,9 +7,9 @@ Each post is at most 280 characters as X counts them (a link counts as 23), with
 **1/**
 Blockchain Academics MCP is live.
 
-105 crypto tools for AI agents, in 19 categories.
+113 crypto tools for AI agents, in 20 categories.
 
-17 of them work with no key and no signup.
+25 of them work with no key and no signup.
 
 Every answer carries its sources and an honest status.
 
@@ -23,6 +23,8 @@ About 150 entity dossiers
 Prices, wallets, transactions and sentiment
 
 Indicators, history, grants, jobs, regulation and security
+
+Checks on 8 exchanges, and Hyperliquid vault results
 
 **3/**
 Every answer carries attribution.citations[].
@@ -70,14 +72,14 @@ uvx bca-mcp
 
 Works in Claude Desktop, Cursor and any MCP client.
 
-0.6.3 is live on npm, PyPI and the official MCP registry.
+0.7.0 is live on npm, PyPI and the official MCP registry.
 
 **7/**
-Want more than the 17?
+Want more than the 25?
 
-A free key opens 52 tools: 2,000 calls a month, no card.
+A free key opens 60 tools: 2,000 calls a month, no card.
 
-Starter opens 76, Pro 103 and Team all 105.
+Starter opens 84, Pro 111 and Team all 113.
 
 https://blockchainacademics.com/crypto-api/signup
 

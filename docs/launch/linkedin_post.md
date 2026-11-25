@@ -2,9 +2,9 @@
 
 ---
 
-Today we're launching Blockchain Academics MCP: 105 crypto tools that AI agents can call, in 19 categories.
+Today we're launching Blockchain Academics MCP: 113 crypto tools that AI agents can call, in 20 categories.
 
-17 of them work with no key and no signup.
+25 of them work with no key and no signup.
 
 An agent that reasons about crypto is only as good as its sources, so every answer carries them. Each citation has a link, a timestamp and a hash, and the first one is the primary source: the original article, the upstream data page, or our own page for data we compute.
 
@@ -18,9 +18,9 @@ About 150 entity dossiers and 38 academy lessons in 8 courses, next to news, mar
 
 Sentiment rolled up every hour, indicators recomputed every 4 hours, and daily price history since April.
 
-Version 0.6.3 is live on npm, PyPI and the official MCP registry, MIT licensed. The same key works over REST.
+Version 0.7.0 is live on npm, PyPI and the official MCP registry, MIT licensed. The same key works over REST.
 
-A free key opens 52 tools, with 2,000 calls a month and no card. Starter, Pro and Team open the rest.
+A free key opens 60 tools, with 2,000 calls a month and no card. Starter, Pro and Team open the rest.
 
 Docs: https://blockchainacademics.com/crypto-api/docs
 

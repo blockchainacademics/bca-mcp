@@ -29,11 +29,61 @@
  * same payload.
  */
 
+import { randomBytes } from "node:crypto";
+
 // Matches an opening OR closing untrusted_content tag. `\/?` covers the
 // closing slash; the leading/trailing `\s*` and the `\s*` around the slash
 // tolerate obfuscation whitespace; `[^>]*` swallows any attributes on the
 // opening form up to the terminating `>`. Global + case-insensitive.
-const FENCE_TAG_RE = /<\s*\/?\s*untrusted_content\b[^>]*>/gi;
+// `(?:\/\s*)?` in place of `\/?\s*`: the same matches, in linear time (two runs of
+// spaces next to each other made the old form backtrack with the square of their length).
+const FENCE_TAG_RE = /<\s*(?:\/\s*)?untrusted_content\b[^>]*>/gi;
+
+// The hidden characters of the Stats design's cleaners (appendix C): control
+// characters, the soft hyphen, zero width characters, direction marks,
+// invisible operators, variation selectors and the byte order mark, among
+// others. Tab, line feed and carriage return stay: article bodies and
+// contract code keep their lines, and JSON writes them as \t, \n and \r.
+const FENCE_HIDDEN_RE =
+  /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f\u00ad\u061c\u115f\u1160\u17b4\u17b5\u180b-\u180f\u200b-\u200f\u2028-\u202e\u2060-\u206f\u3164\ufe00-\ufe0f\ufeff\uffa0\ufff0-\ufffb\u{e0000}-\u{e007f}]/gu;
+
+/**
+ * One text cleaned before the whole-data fence neutralizes tags (AGENTS-08
+ * fix 1): NFKC, so fullwidth brackets become plain ones, then the hidden
+ * characters out, so a zero width space cannot split a tag name. A look-alike
+ * tag then becomes a real one, which neutralizeFenceTokens catches.
+ */
+export function cleanFenceText(text: string): string {
+  return text.normalize("NFKC").replace(FENCE_HIDDEN_RE, "");
+}
+
+/**
+ * A copy of a payload with every string in it cleaned, the keys of its
+ * objects included: a key is part of the fenced text too (review finding 3).
+ * Every other value stays. Two keys that clean to the same text keep the
+ * place of the earlier one and the value of the later one, as a Python dict
+ * built the same way does.
+ */
+export function cleanFenceValue(value: unknown): unknown {
+  if (typeof value === "string") return cleanFenceText(value);
+  if (Array.isArray(value)) return value.map(cleanFenceValue);
+  if (value !== null && typeof value === "object") {
+    // fromEntries defines own keys, so a "__proto__" key stays a plain key.
+    return Object.fromEntries(
+      Object.entries(value).map(([key, item]) => [cleanFenceText(key), cleanFenceValue(item)]),
+    );
+  }
+  return value;
+}
+
+/**
+ * The id of one whole-data fence: 16 hex characters from the system's random
+ * source, made new for each answer (AGENTS-08 fix 2). Upstream text cannot
+ * know it, so a tag it plants cannot close the fence.
+ */
+export function newFenceId(): string {
+  return randomBytes(8).toString("hex");
+}
 
 /**
  * Defang every embedded `<untrusted_content …>` / `</untrusted_content>`

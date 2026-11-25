@@ -1,7 +1,9 @@
 /**
  * Docs stay in step with the code (probe units F36 and F51): the README
- * lists the 17 demo tools the API allowlists, the counts match, and no
- * user-facing copy carries an em dash.
+ * lists the 25 demo tools the API allowlists, the counts match, and no
+ * user-facing copy carries an em dash. The counts follow the owner's two
+ * switches in src/tools/stats.ts, so a flipped switch names each count of
+ * the copy that must follow it.
  */
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
@@ -9,13 +11,15 @@ import { readFileSync } from "node:fs";
 
 import { TOOLS } from "../src/index.js";
 import { DEMO_BANNER } from "../src/demo_banner.js";
+import { STATS_DEMO_ALLOWANCE, STATS_TOOL_SPECS, STATS_WORKS_WITHOUT_KEY } from "../src/tools/stats.js";
 
 const root = new URL("../", import.meta.url);
 const read = (path: string) => readFileSync(new URL(path, root), "utf8");
 
 // Mirror of the API's app/api/v1/_demo_allowlist.py (2026-11-02: the 16 of
-// 2026-10-31 plus get_article).
-const DEMO_TOOLS = [
+// 2026-10-31 plus get_article), and the Stats tools with their own demo
+// allowance (0.7.0, the owner's line 1).
+const OLDER_DEMO_TOOLS = [
   "get_price",
   "get_trending",
   "get_fear_greed",
@@ -34,6 +38,16 @@ const DEMO_TOOLS = [
   "search_academy",
   "get_as_of_snapshot",
 ];
+const STATS_TOOLS = STATS_TOOL_SPECS.map((s) => s.definition.name);
+const DEMO_TOOLS = [...OLDER_DEMO_TOOLS, ...(STATS_WORKS_WITHOUT_KEY ? STATS_TOOLS : [])];
+// What the copy counts: tools, tools without a key, tools on a free key and
+// tools that need a key of the user's own.
+const COUNT = {
+  tools: TOOLS.length,
+  demo: DEMO_TOOLS.length,
+  free: TOOLS.filter((t) => !/\b(Starter|Pro|Team) tier\b/.test(t.description)).length,
+  needKey: TOOLS.length - DEMO_TOOLS.length,
+};
 
 describe("README and registry copy", () => {
   const readme = read("README.md");
@@ -41,8 +55,9 @@ describe("README and registry copy", () => {
   it("the demo tools exist and the banner count matches", () => {
     const names = new Set(TOOLS.map((t) => t.name));
     for (const name of DEMO_TOOLS) assert.ok(names.has(name), `${name} is a tool`);
-    assert.equal(DEMO_TOOLS.length, 17);
-    assert.ok(DEMO_BANNER.includes(`${DEMO_TOOLS.length} tools work without a key`));
+    assert.equal(OLDER_DEMO_TOOLS.length, 17);
+    assert.equal(COUNT.demo, 17 + (STATS_WORKS_WITHOUT_KEY ? STATS_TOOLS.length : 0));
+    assert.ok(DEMO_BANNER.includes(`${COUNT.demo} tools work without a key`));
   });
 
   it("every demo tool's description says it works without a key", () => {
@@ -75,8 +90,39 @@ describe("README and registry copy", () => {
       const text = read(path);
       assert.ok(!/\b16 tools\b|\b16 of (which|them)\b|\(16 without|\b89 of the 105\b|\bother 89\b/.test(text), `${path} counts 16 demo tools`);
     }
-    assert.match(read("server.json"), /17 tools work under a shared daily cap/);
-    assert.match(read("SUBMISSION_ENTRY.json"), /opens 17 tools \(/);
+    assert.ok(read("server.json").includes(`${COUNT.demo} tools work under a shared daily cap`));
+    assert.ok(read("SUBMISSION_ENTRY.json").includes(`opens ${COUNT.demo} tools (`));
+  });
+
+  it("no submission, registry or launch copy still gives the 0.6 counts", () => {
+    const paths = [
+      "README.md",
+      "server.json",
+      "package.json",
+      "ANTHROPIC_SUBMISSION.md",
+      "SUBMISSION_CHECKLIST.md",
+      "SUBMISSION_ENTRY.json",
+      "docs/submissions/anthropic_mcp_directory.md",
+      "docs/submissions/eliza_registry.md",
+      "docs/submissions/virtuals_io_submission.md",
+      "docs/submissions/bedrock_agent_actionscheme.md",
+      "registry/eliza-plugin.md",
+      "registry/virtuals-manifest.json",
+      "docs/launch/hackernews_show_hn.md",
+      "docs/launch/reddit_r_MachineLearning_or_cryptodev.md",
+      "docs/launch/twitter_announcement_thread.md",
+      "docs/launch/twitter_single_tweet.md",
+      "docs/launch/linkedin_post.md",
+    ];
+    // The probe sentence is history: 92 of the 105 tools of 0.6.3 were called live.
+    const history = "92 of the 105 tools were called live";
+    for (const path of paths) {
+      const text = read(path).split(history).join("");
+      assert.ok(
+        !/\b105\b|\b17 (tools|of them|work)\b|\bthe 17\b|\(17 tools|\b52 (tools|of the)\b|opens 52\b|\b19 (tool )?categories\b/.test(text),
+        `${path} still gives a 0.6 count`,
+      );
+    }
   });
 
   it("launch and submission copy keep the owner's bio and the verified test claim", () => {
@@ -125,10 +171,9 @@ describe("README and registry copy", () => {
 
   it("the banner, README, server.json and submission copy give the free key's real reach", () => {
     // A tool on a paid plan names its tier in its description; the others are
-    // the free tier (52 of the 105 on 2026-11-01).
-    const paid = TOOLS.filter((t) => /\b(Starter|Pro|Team) tier\b/.test(t.description));
-    const free = TOOLS.length - paid.length;
-    assert.equal(free, 52);
+    // the free tier (52 of the 105 on 2026-11-01, and the Stats tools).
+    const free = COUNT.free;
+    assert.equal(free, 52 + STATS_TOOLS.length);
     assert.ok(DEMO_BANNER.includes(`A free key opens ${free} tools and paid plans open the rest`));
     assert.ok(readme.includes(`opens the ${free} free-tier tools`));
     const server = JSON.parse(read("server.json"));
@@ -145,14 +190,50 @@ describe("README and registry copy", () => {
       ),
     ];
     for (const [where, text] of copy) {
-      assert.ok(!/for all (105|tools)|opens all 105|full 105 tools/i.test(text), `${where} says a free key opens every tool`);
+      assert.ok(
+        !new RegExp(`for all (${COUNT.tools}|tools)|opens all ${COUNT.tools}|full ${COUNT.tools} tools`, "i").test(text),
+        `${where} says a free key opens every tool`,
+      );
+    }
+  });
+
+  it("the copy gives the Stats demo allowance of STATS_DEMO_ALLOWANCE", () => {
+    // The API holds the allowance (the owner's line 1). Four copy lines repeat
+    // its two numbers, and no test read them before (review finding 14).
+    const all = STATS_DEMO_ALLOWANCE.allPerDay.toLocaleString("en-US");
+    const network = String(STATS_DEMO_ALLOWANCE.perNetworkPerDay);
+    const said = /Stats tools have [^.]*?([\d,]+) calls a day[^.]*?\b(\d+) a day per network/g;
+    const copy: Array<[string, number]> = [
+      ["README.md", 1],
+      ["SUBMISSION_ENTRY.json", 1],
+      ["registry/virtuals-manifest.json", 2],
+    ];
+    for (const [path, lines] of copy) {
+      const found = [...read(path).matchAll(said)];
+      assert.equal(found.length, STATS_WORKS_WITHOUT_KEY ? lines : 0, `${path}: the Stats demo allowance`);
+      for (const m of found) assert.deepEqual([m[1], m[2]], [all, network], path);
+    }
+  });
+
+  it("the README and CHANGELOG say which Stats errors keep the API's own message", () => {
+    // They said the Stats tools never pass the API's error text on, but a
+    // missing key, a locked plan and a rate limit do (review finding 7).
+    for (const path of ["README.md", "CHANGELOG.md"]) {
+      const text = read(path);
+      assert.ok(!/never pass(es)? the API's error text on/.test(text), path);
+      assert.match(
+        text,
+        /a missing or wrong key, a locked plan and a rate limit keep the API's own message, as for every tool\./i,
+        path,
+      );
     }
   });
 
   it("README lists every demo tool and the locked count", () => {
     for (const name of DEMO_TOOLS) assert.ok(readme.includes(`\`${name}\``), `README lists ${name}`);
-    assert.match(readme, /17 tools work without a key/);
-    assert.match(readme, /88 of the 105 tools/);
+    assert.ok(readme.includes(`${COUNT.demo} tools work without a key`));
+    assert.ok(readme.includes(`${COUNT.needKey} of the ${COUNT.tools} tools`));
+    assert.ok(readme.includes(`**${COUNT.tools} tools**`));
     assert.match(readme, /clean upgrade message/);
     assert.ok(!/10 marquee|91 of the 105|89 of the 105|16 tools work|~10 tools/.test(readme));
   });

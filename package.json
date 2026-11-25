@@ -1,7 +1,7 @@
 {
   "name": "@blockchainacademics/mcp",
-  "version": "0.6.4",
-  "description": "Crypto MCP server for AI agents: cited news, prices, onchain data, sentiment and indicators. 105 tools, 17 work without a key, and every answer carries its sources and a completeness status.",
+  "version": "0.7.0",
+  "description": "Crypto MCP server for AI agents: cited news, prices, onchain data, sentiment and indicators. 113 tools, 25 work without a key, and every answer carries its sources and a completeness status.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

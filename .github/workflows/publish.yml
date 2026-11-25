@@ -4,36 +4,114 @@ name: Publish
 # long-lived token in the repo or on a laptop (the previous tokens were
 # revoked after the 2026-10-21 Railway breach). One-time setup on npmjs.com:
 # package @blockchainacademics/mcp > Settings > Trusted publishers > GitHub
-# Actions > repository blockchainacademics/bca-mcp, workflow publish.yml.
+# Actions > repository blockchainacademics/bca-mcp, workflow publish.yml
+# (and environment npm-publish, if the npm form asks for one).
+#
+# Two jobs (AGENTS-12). "build" checks out the tag, installs, builds, tests
+# and packs, and holds no publishing identity. "publish" holds the identity:
+# it waits for the approval of the npm-publish environment, downloads the
+# packed file of "build", checks its hash and publishes that file. It
+# installs no npm package and builds and tests nothing. Its one action is
+# actions/setup-node, pinned by commit.
+#
+# The approval is the owner's (line 4 of the Stats design's owner lines):
+# GitHub > Settings > Environments > npm-publish, with the owner as its
+# required reviewer. It is set up on GitHub, not here. Until it is, a run
+# would make GitHub create the environment with no rule, so no tag goes up
+# before it is checked.
+#
+# Every action is pinned by commit: the commits the workflows of Microsoft's
+# vscode-python-envs repository pin for the same releases.
 on:
   push:
     tags: ["v*"]
 
+permissions:
+  contents: read
+
 jobs:
-  publish:
+  build:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write
+    outputs:
+      tarball: ${{ steps.pack.outputs.tarball }}
+      sha256: ${{ steps.pack.outputs.sha256 }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 22
-          registry-url: https://registry.npmjs.org
       # The tag must name the version that would be published, so a stray or
       # mistyped tag (v0.6.4-rc1, say) fails here instead of publishing.
-      - run: |
+      - name: Check that the tag names the package version
+        run: |
           version="v$(node -p "require('./package.json').version")"
           if [ "$GITHUB_REF_NAME" != "$version" ]; then
             echo "::error::tag $GITHUB_REF_NAME does not match package.json version $version"
             exit 1
           fi
-      # Trusted publishing (OIDC) needs npm 11.5.1 or newer; Node 22 ships
-      # npm 10, which would fall back to a token and fail with ENEEDAUTH.
-      - run: npm install -g npm@11.21.1
-      - run: npm ci
+      # Install scripts of dependencies do not run.
+      - run: npm ci --ignore-scripts
       - run: npm run build
       - run: npm run version:check
       - run: npm test
-      - run: npm publish --provenance --access public
+      - name: Pack
+        id: pack
+        run: |
+          npm pack --ignore-scripts --json > pack.json
+          tarball="$(node -p "require('./pack.json')[0].filename")"
+          sha256="$(sha256sum "$tarball" | cut -d ' ' -f 1)"
+          echo "packed $tarball, sha256 $sha256"
+          echo "tarball=$tarball" >> "$GITHUB_OUTPUT"
+          echo "sha256=$sha256" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: npm-package
+          path: ${{ steps.pack.outputs.tarball }}
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    # GitHub holds this job until the required reviewer of npm-publish approves it.
+    environment: npm-publish
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    steps:
+      # Trusted publishing needs npm 11.5.1 or newer. Node 24 brings npm 11
+      # with it, so no npm is installed on top of it; the next step stops the
+      # job if the npm it brings is older. setup-node may download Node 24
+      # itself when the runner does not hold it.
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - name: Check that npm can publish with trusted publishing
+        run: |
+          have="$(npm --version)"
+          if [ "$(printf '%s\n' 11.5.1 "$have" | sort -V | head -n 1)" != "11.5.1" ]; then
+            echo "::error::npm $have is older than 11.5.1, which trusted publishing needs"
+            exit 1
+          fi
+      # The packed file of the build job, through the API with this run's own
+      # token, so the download needs no action: actions/setup-node, pinned by
+      # commit, is the one action in this job, and nothing is installed from npm.
+      - name: Download the packed file
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --name npm-package --dir package
+      - name: Check the hash of the packed file
+        env:
+          TARBALL: ${{ needs.build.outputs.tarball }}
+          SHA256: ${{ needs.build.outputs.sha256 }}
+        run: echo "$SHA256  package/$TARBALL" | sha256sum --check --strict
+      - name: Publish the packed file
+        env:
+          TARBALL: ${{ needs.build.outputs.tarball }}
+        run: npm publish "./package/$TARBALL" --provenance --access public --ignore-scripts
