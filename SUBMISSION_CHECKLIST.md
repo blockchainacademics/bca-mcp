@@ -1,6 +1,6 @@
 # Anthropic MCP Directory: Submission Checklist
 
-**Package:** `@blockchainacademics/mcp` v0.7.0
+**Package:** `@blockchainacademics/mcp` v0.8.0
 **npm:** https://www.npmjs.com/package/@blockchainacademics/mcp
 **Source:** https://github.com/blockchainacademics/bca-mcp
 **Target:** https://github.com/modelcontextprotocol/servers
@@ -14,15 +14,15 @@ Once the Loom is recorded, submission is ~5 minutes of copy-paste.
 ## 0. Pre-flight checklist (must be 100% green before PR)
 
 ### Package integrity
-- [ ] `package.json` `version` = `0.7.0`
-- [ ] `server.json` `version` = `0.7.0` and `packages[0].version` = `0.7.0`
-- [ ] `server.json` `_meta....tool.version` = `0.7.0`
+- [ ] `package.json` `version` = `0.8.0`
+- [ ] `server.json` `version` = `0.8.0` and `packages[0].version` = `0.8.0`
+- [ ] `server.json` `_meta....tool.version` = `0.8.0`
 - [ ] `_meta....tool_count` = `113` and `sum(tool_categories[].count) = 113` (20 categories)
-- [ ] `npm view @blockchainacademics/mcp version` returns `0.7.0` (registry propagated)
+- [ ] `npm view @blockchainacademics/mcp version` returns `0.8.0` (registry propagated)
 - [ ] `npx -y @blockchainacademics/mcp` boots clean on a non-dev shell (fresh machine); without a key it prints the demo banner (25 tools work without a key)
 - [ ] `LICENSE` present at repo root (MIT)
-- [ ] `CHANGELOG.md` has a `0.7.0` entry
-- [ ] GitHub tag `v0.7.0` pushed: `git tag -a v0.7.0 -m "v0.7.0" && git push origin v0.7.0`, then the owner approves the publish job (environment `npm-publish`)
+- [ ] `CHANGELOG.md` has a `0.8.0` entry
+- [ ] GitHub tag `v0.8.0` pushed: `git tag -a v0.8.0 -m "v0.8.0" && git push origin v0.8.0`, then the owner approves the publish job (environment `npm-publish`)
 
 ### Security
 - [ ] npm publish token **rotated** after any recent CI/debug use (manual: Wael)

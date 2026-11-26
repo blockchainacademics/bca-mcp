@@ -90,9 +90,10 @@ const IDS_COUNT = "Between 2 and 5 ids, with no repeats.";
 // The package's own validation texts for ids.
 const EXCHANGE_ID_RULE = "An exchange id is letters and digits, with spaces, dots, hyphens or underscores between them.";
 const VAULT_ID_RULE = "A vault id is 0x and 40 hex characters.";
+const YIELD_ID_RULE = "A yield product id is letters and digits, with spaces, dots, hyphens or underscores between them.";
 // An address outside the vaults tab, in any spelling (review finding 2).
 const ADDRESS_OUTSIDE_VAULTS =
-  "An address is not an exchange id. A vault address goes to the vaults tab. " +
+  "An address is not an exchange or yield product id. A vault address goes to the vaults tab. " +
   "A wallet address goes to lookup_stats_wallet, which matches it on this machine.";
 
 // --- patterns ----------------------------------------------------------------------
@@ -208,32 +209,38 @@ const KNOWN_MEASURES: ReadonlyMap<string, { tab: string; kinds: readonly string[
     ["real_cost_buy_1000", { tab: "exchanges", kinds: ["centralised"], open: true }],
     ["real_cost_swap_1000", { tab: "exchanges", kinds: ["swap"], open: true }],
     ["real_cost_position_1000", { tab: "exchanges", kinds: ["leveraged"], open: true }],
+    ["rate_paid", { tab: "vaults", kinds: null, open: true }],
     ["money_put_in", { tab: "vaults", kinds: null, open: true }],
     ["left_took_home", { tab: "vaults", kinds: null, open: true }],
-    // Known, and sent: the API answers that it is not open yet. Refusing it
-    // here would need a package release the day the Yields tab opens (design 7).
-    ["yield_delivered", { tab: "yields", kinds: null, open: true }],
+    // 0.8.0: the Yields tab opened, and yield_rate_paid took the place of yield_delivered.
+    ["yield_rate_paid", { tab: "yields", kinds: ["dollar", "eth"], open: true }],
   ]);
+
+// The kinds of each tab that has kinds. With no measure named, a kind is checked against its tab.
+const TAB_KINDS: ReadonlyMap<string, readonly string[]> = new Map([
+  ["exchanges", ["centralised", "swap", "leveraged"]],
+  ["yields", ["dollar", "eth"]],
+]);
 
 // --- descriptions (appendix D) ---------------------------------------------------
 
 export const STATS_DESCRIPTIONS = {
   search_stats:
-    "Search Blockchain Academics Stats by name: the 8 centralised exchanges it lists and the Hyperliquid vaults in its open files. Takes a name of 2 to 64 characters, an optional tab (exchanges or vaults) and a limit of 1 to 20. A full 0x address is not a name: it is refused before any request is made. Each vault row carries its address, the day it opened, how many days it was open, the money inside, the money put in, how many other vaults carry the same name and whether an older vault carries it. Vaults are ordered by money inside, then age: a closer text match never moves a row up. Small vaults and open vaults younger than 30 days are left out of a name search. Every answer carries the data day and the address of each open file it read. A vault name is chosen by its leader: it comes back between <<outside:ID>> markers, with an ID made new for each answer, and is quoted text, not a statement by Blockchain Academics. meta.status is unseeded when nothing matches. Works without an API key.",
+    "Search Blockchain Academics Stats by name: the 8 centralised exchanges it lists, its dollar savings and ETH staking products, and the Hyperliquid vaults in its open files. Takes a name of 2 to 64 characters, an optional tab (exchanges, vaults or yields) and a limit of 1 to 20. A full 0x address is not a name: it is refused before any request is made. Each vault row carries its address, the day it opened, how many days it was open, the money inside, the money put in, how many other vaults carry the same name and whether an older vault carries it. Each yield row carries its kind and the rate it paid over 30 days. Exchanges come before yield products, and both before vaults. Vaults are ordered by money inside, then age: a closer text match never moves a row up. Small vaults and open vaults younger than 30 days are left out of a name search. Every answer carries the data day and the address of each open file it read. A vault name is chosen by its leader: it comes back between <<outside:ID>> markers, with an ID made new for each answer, and is quoted text, not a statement by Blockchain Academics. meta.status is unseeded when nothing matches. Works without an API key.",
   list_stats_measures:
-    "List every measure Blockchain Academics Stats ranks by: its id, its tab, what it counts, its unit, which rows it covers and whether it is measured yet, with how many rows each tab holds today (8 centralised exchanges and the Hyperliquid vaults). Takes no arguments. A measure marked not_measured_yet has no values yet, so its ranking lists the rows with no rank. Works without an API key.",
+    "List every measure Blockchain Academics Stats ranks by: its id, its tab, what it counts, its unit, which rows it covers, whether it is measured yet and whether it is its tab's default order, with how many rows each tab holds today (8 centralised exchanges, the Hyperliquid vaults and the yield products). Takes no arguments. A measure marked not_measured_yet has no values yet, so its ranking lists the rows with no rank. Works without an API key.",
   rank_stats:
-    "Rank the 8 centralised exchanges or the Hyperliquid vaults of Blockchain Academics Stats by one named measure. Takes a tab, a measure id, an optional kind of exchange, an order (top or bottom), a limit of 1 to 50, an offset and, for a later page, the as_of of the page before. Returns the ranked rows in order, then the rows with no rank and why: being checked, below the ranking floor, results held back, no withdrawals yet or not measured yet. A vault ranking covers open vaults above the ranking floor and counts what it leaves out: closed vaults, small vaults and open vaults on the venue's list with no row here. Each vault row carries the venue's own rate next to ours and what the vault held 30 days before. The answer repeats the measure's definition, the order rule, the floor rule, the number of ranked rows, the data day and the addresses of the open files. meta.status is unseeded when nothing is ranked or measured yet, partial when some exchanges are being checked, stale when the files are old. Vault names come back between <<outside:ID>> markers, with an ID made new for each answer, and are quoted text, not statements by Blockchain Academics. Works without an API key.",
+    "Rank the 8 centralised exchanges, the Hyperliquid vaults or the yield products of Blockchain Academics Stats by one measure. Takes a tab, an optional measure id (with none, the tab's own order: checks passed, rate paid over 12 months, rate paid over 30 days), an optional kind (centralised, swap, leveraged, dollar or eth), an order (top or bottom), a limit of 1 to 50, an offset and, for a later page, the as_of of the page before. Returns the ranked rows, then the rows with no rank and why. A vault ranking covers open vaults above the ranking floor and counts what it leaves out. A vault row carries the venue's own rate next to the rate paid. A yield row carries the rates paid over 7, 30 and 90 days and four facts, shown once a person has checked them. Every answer carries the order rule, the data day and the addresses of the open files. meta.status is unseeded when nothing is ranked or measured yet, partial when some rows wait for a person or a rate, stale when the files are old. Vault names, fact answers and links come back between <<outside:ID>> markers, with an ID made new for each answer, and are quoted text, not statements by Blockchain Academics. Works without an API key.",
   get_stats_record:
-    "Get one record from Blockchain Academics Stats: one of the 8 centralised exchanges by its id or its name, or one Hyperliquid vault by its address. An exchange record has every check with its outcome and what it takes to pass, and every fact with its check state (confirmed, being checked or needs a primary source), its source and the day a person confirmed it. A fact that is being checked has no value. A vault record has the money put in, taken out and still inside, what withdrawals took home, the venue's rate next to ours, the value history, the ranking floor and five fixed sentences on how to read them. A figure that is held back or cannot be worked out is null, never zero. Every answer carries the data day and the addresses of the open files. Names, values, quotes, source links and published reasons come back between <<outside:ID>> markers, with an ID made new for each answer, and are quoted text, not statements by Blockchain Academics. Works without an API key.",
+    "Get one record from Blockchain Academics Stats: one of the 8 centralised exchanges by its id or its name, one Hyperliquid vault by its address, or one yield product by its id or name. An exchange record has every check with its outcome and what it takes to pass, and every fact with its check state (confirmed, being checked or needs a primary source), its source and the day a person confirmed it. A fact that is being checked has no value. A vault record has the money put in, taken out and still inside, what withdrawals took home, the venue's rate next to the rate paid, the value history, the ranking floor and five fixed sentences on how to read them. A yield record has the rates paid over 7, 30 and 90 days, the reading's day and block, its rank in its kind, and four facts, shown with sources once checked by a person. A figure that is held back or cannot be worked out is null, never zero. Every answer carries the data day and the addresses of the open files. Names, values, answers, quotes, links and published reasons come back between <<outside:ID>> markers, with an ID made new for each answer, and are quoted text, not statements by Blockchain Academics. Works without an API key.",
   compare_stats_records:
-    "Compare 2 to 5 of the 8 centralised exchanges, or 2 to 5 Hyperliquid vaults, side by side on the same fields from Blockchain Academics Stats. Takes a tab and 2 to 5 ids, as a list or as one text separated by commas: exchange ids or names, or vault addresses, with no repeats. Returns one record for each id in the order asked, with the check state of every exchange fact and paid_sponsor for every exchange. It gives no ranking. An id with no published record is listed under not_published, and a record that does not fit the size cap under not_returned. Every answer carries the data day and the addresses of the open files. Outside text comes back between <<outside:ID>> markers, with an ID made new for each answer, and is quoted text, not a statement by Blockchain Academics. Works without an API key.",
+    "Compare 2 to 5 of the 8 centralised exchanges, 2 to 5 Hyperliquid vaults, or 2 to 5 dollar savings or ETH staking products, side by side on the same fields from Blockchain Academics Stats. Takes a tab and 2 to 5 ids, as a list or as one text separated by commas: exchange ids or names, vault addresses, or yield product ids or names, with no repeats. Returns one record for each id in the order asked, with the check state of every exchange fact and paid_sponsor for every exchange, or the rates and checked facts of every yield product. It gives no ranking. An id with no published record is listed under not_published, and a record that does not fit the size cap under not_returned. Every answer carries the data day and the addresses of the open files. Outside text comes back between <<outside:ID>> markers, with an ID made new for each answer, and is quoted text, not a statement by Blockchain Academics. Works without an API key.",
   lookup_stats_wallet:
     "Look up what one wallet address took out of the Hyperliquid vaults Blockchain Academics Stats covers, and what it took home. Takes one full address (0x and 40 hex characters), an offset and, for a later page, the as_of of the page before. The address stays on this machine: two characters of it are sent to the API, and the answer is matched here. Returns one record for each vault the wallet used, a short row about each listed vault, and a summary that keeps two kinds of result apart: the result on money withdrawn, from the vault's ledger, and the all-time result on the venue's own list. It holds no dates, no deposits and no balances, and it is not a list of the wallet's tokens. A wallet with no record may still have used a vault: the answer lists what the files cannot see. Vault names come back between <<outside:ID>> markers, with an ID made new for each answer, and are quoted text. Works without an API key.",
   get_stats_method:
-    "Get how Blockchain Academics Stats makes its numbers, for one topic. exchanges: the checks for the 8 centralised exchanges in their fixed wording, the order rule, what each fact is and what each fact status means. vaults: what each figure of a Hyperliquid vault record counts, the ranking floor, what a null means, what the rankings leave out and the totals for all vaults. wallet_lookup: the fields of a lookup record, the rounding, how to read the summary and what the files cannot see. The text is written by Blockchain Academics and comes with the method version or variant and the data day. Works without an API key.",
+    "Get how Blockchain Academics Stats makes its numbers, for one topic. exchanges: the checks for the 8 centralised exchanges in their fixed wording, the order rule, what each fact is and what each fact status means. vaults: what each figure of a Hyperliquid vault record counts, the ranking floor, the order rules, what a null means, what the rankings leave out and the totals for all vaults. wallet_lookup: the fields of a lookup record, the rounding, how to read the summary and what the files cannot see. yields: the two kinds, the order rule, how a rate is read on chain, what each fact is and what each field counts. The text is written by Blockchain Academics and comes with the method version or variant and the data day. Works without an API key.",
   list_stats_changes:
-    "List the change lines of Blockchain Academics Stats, newest at the top: lines a person writes when a check or a published fact changes. Nightly moves of figures, and vaults joining or leaving the vault list, are not in it, and every answer says so. Takes an optional day to start from (YYYY-MM-DD), a limit of 1 to 100 and, for a later page, the next_before value of the page before. Each line has its day, the kind of subject, the result and its text as the open file gives it. A line's text, and a vault named as its subject, come back between <<outside:ID>> markers, with an ID made new for each answer, and are quoted text. meta.status is unseeded while no change line has been published. Works without an API key.",
+    "List the change lines of Blockchain Academics Stats, newest at the top: lines a person writes when a check or a published fact changes. Nightly moves of figures and rates, and vaults or products joining or leaving a list, are not in it, and every answer says so. Takes an optional day to start from (YYYY-MM-DD), a limit of 1 to 100 and, for a later page, the next_before value of the page before. Each line has its day, the kind of subject, the result and its text as the open file gives it. A line's text, and a vault named as its subject, come back between <<outside:ID>> markers, with an ID made new for each answer, and are quoted text. meta.status is unseeded while no change line has been published. Works without an API key.",
 } as const;
 
 export type StatsToolName = keyof typeof STATS_DESCRIPTIONS;
@@ -269,24 +276,25 @@ export const searchStatsInputSchema = z.object({
     .max(SEARCH_QUERY_MAX + MARKER_PAIR_CHARS)
     .regex(NO_CONTROL_RE, "query must not hold a control character")
     .describe("A name, 2 to 64 characters. Not an address."),
-  tab: tabField().optional().describe("exchanges or vaults. Both when left out."),
+  tab: tabField().optional().describe("exchanges, vaults or yields. Every open tab when left out."),
   limit: z.number().int().min(1).max(20).default(10).describe("Rows to return, 1 to 20 (default 10)."),
 });
 
 export const listStatsMeasuresInputSchema = z.object({});
 
 export const rankStatsInputSchema = z.object({
-  tab: tabField().describe("exchanges or vaults."),
+  tab: tabField().describe("exchanges, vaults or yields."),
   measure: z
     .string()
     .max(40)
     .regex(NAME_RE, "measure must be a measure id: a lower case letter, then letters, digits or _")
-    .describe("A measure id from the list of measures. It must belong to the tab."),
+    .optional()
+    .describe("A measure id from the list of measures. It must belong to the tab. The tab's own order when left out."),
   kind: z
-    .enum(["centralised", "swap", "leveraged"])
+    .enum(["centralised", "swap", "leveraged", "dollar", "eth"])
     .optional()
     .describe(
-      "The kind of exchange: centralised, swap or leveraged. For the exchanges tab. The measure's own kind when left out.",
+      "The kind: centralised, swap or leveraged for the exchanges tab, dollar or eth for the yields tab. The measure's own kind when left out.",
     ),
   order: z
     .enum(["top", "bottom"])
@@ -306,19 +314,19 @@ export const rankStatsInputSchema = z.object({
 });
 
 export const getStatsRecordInputSchema = z.object({
-  tab: tabField().describe("exchanges or vaults."),
+  tab: tabField().describe("exchanges, vaults or yields."),
   id: z
     .string()
     .min(1)
     .max(64)
     .regex(NO_CONTROL_RE, "id must not hold a control character")
     .describe(
-      "An exchange id or name (for example kraken or Crypto.com), or a vault address (0x and 40 hex characters).",
+      "An exchange id or name (for example kraken or Crypto.com), a vault address (0x and 40 hex characters), or a yield product id or name (for example lido-wsteth).",
     ),
 });
 
 export const compareStatsRecordsInputSchema = z.object({
-  tab: tabField().describe("exchanges or vaults."),
+  tab: tabField().describe("exchanges, vaults or yields."),
   ids: z
     .union([z.array(z.string().min(1).max(64)).min(2).max(5), z.string().min(3).max(400)])
     .describe(
@@ -344,7 +352,9 @@ export const lookupStatsWalletInputSchema = z.object({
 });
 
 export const getStatsMethodInputSchema = z.object({
-  topic: z.enum(["exchanges", "vaults", "wallet_lookup"]).describe("exchanges, vaults or wallet_lookup."),
+  topic: z
+    .enum(["exchanges", "vaults", "wallet_lookup", "yields"])
+    .describe("exchanges, vaults, wallet_lookup or yields."),
 });
 
 export const listStatsChangesInputSchema = z.object({
@@ -622,13 +632,15 @@ export async function runListStatsMeasures(_input: unknown, ctx: StatsCallContex
 }
 
 export async function runRankStats(input: RankStatsInput, ctx: StatsCallContext): Promise<StatsAnswer> {
-  const known = KNOWN_MEASURES.get(input.measure);
+  const known = input.measure === undefined ? undefined : KNOWN_MEASURES.get(input.measure);
   if (known !== undefined && (known.tab !== input.tab || !known.open)) {
     refuse("rank_stats", "measure", MEASURE_NOT_IN_TAB);
   }
   if (input.kind !== undefined) {
-    const kinds = known === undefined ? undefined : known.kinds;
-    if (input.tab !== "exchanges" || kinds === null || (kinds !== undefined && !kinds.includes(input.kind))) {
+    // The measure's own kinds when the package knows it, else the tab's kinds:
+    // a tab with no kinds (vaults) takes none.
+    const kinds = known === undefined ? TAB_KINDS.get(input.tab) : known.kinds;
+    if (kinds === undefined || kinds === null || !kinds.includes(input.kind)) {
       refuse("rank_stats", "kind", KIND_NOT_IN_MEASURE);
     }
   }
@@ -655,7 +667,7 @@ export async function runGetStatsRecord(input: GetStatsRecordInput, ctx: StatsCa
   // would sit in the path, /v1/stats/<tab>/<address>, so it is refused here.
   if (!vaults && holdsAddress(input.id)) refuse("get_stats_record", "id", ADDRESS_OUTSIDE_VAULTS);
   const id = vaults ? vaultIdFrom(input.id) : exchangeIdFrom(input.id);
-  if (id === undefined) refuse("get_stats_record", "id", vaults ? VAULT_ID_RULE : EXCHANGE_ID_RULE);
+  if (id === undefined) refuse("get_stats_record", "id", idRule(input.tab));
   const checked = await getStats(
     "get_stats_record",
     `/v1/stats/${encodeURIComponent(input.tab)}/${encodeURIComponent(id)}`,
@@ -663,6 +675,12 @@ export async function runGetStatsRecord(input: GetStatsRecordInput, ctx: StatsCa
     ctx,
   );
   return finish(checked, checked.data, ctx);
+}
+
+/** What an id of a tab must look like, said when one does not. */
+function idRule(tab: string): string {
+  if (tab === "vaults") return VAULT_ID_RULE;
+  return tab === "yields" ? YIELD_ID_RULE : EXCHANGE_ID_RULE;
 }
 
 /** The ids a comparison sends: folded, checked, 2 to 5 and no repeats. */
@@ -680,7 +698,7 @@ export function compareIds(tab: string, ids: string | readonly string[]): string
   if (!vaults && holdsAddress(items.join(","))) refuse("compare_stats_records", "ids", ADDRESS_OUTSIDE_VAULTS);
   const folded = items.map((one) => (vaults ? vaultIdFrom(one) : exchangeIdFrom(one)));
   if (folded.some((one) => one === undefined)) {
-    refuse("compare_stats_records", "ids", vaults ? VAULT_ID_RULE : EXCHANGE_ID_RULE);
+    refuse("compare_stats_records", "ids", idRule(tab));
   }
   const out = folded as string[];
   if (out.length < 2 || out.length > 5 || new Set(out).size !== out.length) {

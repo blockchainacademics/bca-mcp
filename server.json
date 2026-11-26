@@ -6,12 +6,12 @@
     "url": "https://github.com/blockchainacademics/bca-mcp",
     "source": "github"
   },
-  "version": "0.7.0",
+  "version": "0.8.0",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "@blockchainacademics/mcp",
-      "version": "0.7.0",
+      "version": "0.8.0",
       "transport": {
         "type": "stdio"
       },
@@ -34,7 +34,7 @@
     {
       "registryType": "pypi",
       "identifier": "bca-mcp",
-      "version": "0.7.0",
+      "version": "0.8.0",
       "runtimeHint": "uvx",
       "transport": {
         "type": "stdio"
@@ -60,7 +60,7 @@
     "io.modelcontextprotocol.registry/publisher-provided": {
       "tool": {
         "name": "BCA Crypto Brain",
-        "version": "0.7.0"
+        "version": "0.8.0"
       },
       "tool_count": 113,
       "tool_categories": [

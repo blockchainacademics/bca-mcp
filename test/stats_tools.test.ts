@@ -144,6 +144,26 @@ describe("the eight tools: names, routes and query names", () => {
       "compare_exchanges",
     ],
     ["get_stats_method", { topic: "wallet_lookup" }, "/v1/stats/method", { topic: "wallet_lookup" }, "method_wallet_lookup"],
+    // 0.8.0: the Yields tab, and the vaults by the rate paid with no measure named.
+    ["rank_stats", { tab: "vaults", limit: 3 }, "/v1/stats/rank", { tab: "vaults", order: "top", limit: "3", offset: "0" }, "rank_rate_paid"],
+    [
+      "rank_stats",
+      { tab: "yields", measure: "yield_rate_paid", kind: "eth" },
+      "/v1/stats/rank",
+      { tab: "yields", measure: "yield_rate_paid", kind: "eth", order: "top", limit: "20", offset: "0" },
+      "rank_yields_eth",
+    ],
+    ["get_stats_record", { tab: "yields", id: "Coinbase cbETH" }, "/v1/stats/yields/coinbase-cbeth", {}, "record_yield_waiting"],
+    ["get_stats_record", { tab: "yields", id: " AAVE v3 usdc " }, "/v1/stats/yields/aave-v3-usdc", {}, "record_yield_aave"],
+    [
+      "compare_stats_records",
+      { tab: "yields", ids: ["Lido-wstETH", "rocketpool-reth"] },
+      "/v1/stats/compare",
+      { tab: "yields", ids: "lido-wsteth,rocketpool-reth" },
+      "compare_yields",
+    ],
+    ["search_stats", { query: "aave", tab: "yields" }, "/v1/stats/search", { q: "aave", tab: "yields", limit: "10" }, "search_aave"],
+    ["get_stats_method", { topic: "yields" }, "/v1/stats/method", { topic: "yields" }, "method_yields"],
     ["list_stats_changes", {}, "/v1/stats/changes", { limit: "20" }, "changes_empty"],
     [
       "list_stats_changes",
@@ -208,15 +228,15 @@ describe("bounds and refusals before any request", () => {
     assert.match(await refusedLocally("get_stats_record", { tab: "vaults ", id: ADDRESS }), /tab: /);
   });
 
-  it("a known measure of the other tab, yield_delivered outside its tab, and a kind that does not apply", async () => {
+  it("a known measure of the other tab, a measure with no tab of its own, and a kind that does not apply", async () => {
     const message = (field: string, sentence: string) => `Invalid arguments for rank_stats: ${field}: ${sentence}`;
     const tab = "That measure does not belong to that tab.";
     const kind = "That kind does not apply to that measure.";
     assert.equal(await refusedLocally("rank_stats", { tab: "vaults", measure: "checks_passed" }), message("measure", tab));
     assert.equal(await refusedLocally("rank_stats", { tab: "exchanges", measure: "money_put_in" }), message("measure", tab));
-    assert.equal(await refusedLocally("rank_stats", { tab: "vaults", measure: "yield_delivered" }), message("measure", tab));
-    // In its own tab yield_delivered is sent: the API says it is not open yet, so the
-    // package needs no release the day the Yields tab opens (design section 7).
+    assert.equal(await refusedLocally("rank_stats", { tab: "exchanges", measure: "rate_paid" }), message("measure", tab));
+    assert.equal(await refusedLocally("rank_stats", { tab: "vaults", measure: "yield_rate_paid" }), message("measure", tab));
+    // 0.8.0: yield_delivered is gone. It is a measure the package does not know, so it is sent.
     const seen = serve(() => json({ detail: "That measure does not belong to that tab." }, 400));
     await failure("rank_stats", { tab: "yields", measure: "yield_delivered" });
     assert.equal(query(seen[0]!)["measure"], "yield_delivered");
@@ -232,6 +252,27 @@ describe("bounds and refusals before any request", () => {
       await refusedLocally("rank_stats", { tab: "vaults", measure: "a_new_measure", kind: "swap" }),
       message("kind", kind),
     );
+    // The kinds of the Yields tab: dollar and eth, for its measure and with no measure named.
+    assert.equal(
+      await refusedLocally("rank_stats", { tab: "yields", measure: "yield_rate_paid", kind: "centralised" }),
+      message("kind", kind),
+    );
+    assert.equal(await refusedLocally("rank_stats", { tab: "yields", kind: "swap" }), message("kind", kind));
+    assert.equal(await refusedLocally("rank_stats", { tab: "exchanges", kind: "eth" }), message("kind", kind));
+    assert.equal(await refusedLocally("rank_stats", { tab: "vaults", kind: "dollar" }), message("kind", kind));
+    assert.equal(
+      await refusedLocally("rank_stats", { tab: "vaults", measure: "rate_paid", kind: "eth" }),
+      message("kind", kind),
+    );
+  });
+
+  it("rank_stats with no measure sends none, and the API picks the tab's own order", async () => {
+    const seen = serve(() => json(envelope("rank_rate_paid")));
+    await answer("rank_stats", { tab: "vaults" });
+    assert.deepEqual(query(seen[0]!), { tab: "vaults", order: "top", limit: "20", offset: "0" });
+    const yields = serve(() => json(envelope("rank_yields_eth")));
+    await answer("rank_stats", { tab: "yields", kind: "eth" });
+    assert.deepEqual(query(yields[0]!), { tab: "yields", kind: "eth", order: "top", limit: "20", offset: "0" });
   });
 
   it("a measure the package does not know is sent, and the API's sentence comes back word for word", async () => {
@@ -385,7 +426,7 @@ describe("bounds and refusals before any request", () => {
     // Before, {tab: "wallets", id: "0x..."} sent GET /v1/stats/wallets/0x...,
     // with the full address in the path (review finding 2).
     const sentence =
-      "An address is not an exchange id. A vault address goes to the vaults tab. " +
+      "An address is not an exchange or yield product id. A vault address goes to the vaults tab. " +
       "A wallet address goes to lookup_stats_wallet, which matches it on this machine.";
     const spellings = [
       ADDRESS,
@@ -443,7 +484,7 @@ describe("bounds and refusals before any request", () => {
     assert.equal(await refusedLocally("compare_stats_records", { tab: "exchanges", ids: "crypto-com,Crypto.com" }), count);
     assert.equal(
       await refusedLocally("compare_stats_records", { tab: "exchanges", ids: ["kraken", ADDRESS] }),
-      "Invalid arguments for compare_stats_records: ids: An address is not an exchange id. A vault address goes to the vaults tab. A wallet address goes to lookup_stats_wallet, which matches it on this machine.",
+      "Invalid arguments for compare_stats_records: ids: An address is not an exchange or yield product id. A vault address goes to the vaults tab. A wallet address goes to lookup_stats_wallet, which matches it on this machine.",
     );
     assert.equal(
       await refusedLocally("compare_stats_records", { tab: "vaults", ids: ["kraken", ADDRESS] }),
@@ -877,5 +918,61 @@ describe("the shape rules the Python sibling holds too", () => {
     neutralizeFenceTokens("<" + " ".repeat(50_000) + "x");
     neutralizeFenceTokens("< /" + " ".repeat(50_000) + "x");
     assert.ok(Date.now() - start < 1000);
+  });
+});
+
+describe("the Yields tab (0.8.0)", () => {
+  it("an address in the yields tab is refused before any request", async () => {
+    const sentence =
+      "An address is not an exchange or yield product id. A vault address goes to the vaults tab. " +
+      "A wallet address goes to lookup_stats_wallet, which matches it on this machine.";
+    assert.equal(
+      await refusedLocally("get_stats_record", { tab: "yields", id: ADDRESS }),
+      `Invalid arguments for get_stats_record: id: ${sentence}`,
+    );
+    assert.equal(
+      await refusedLocally("compare_stats_records", { tab: "yields", ids: ["lido-wsteth", ADDRESS] }),
+      `Invalid arguments for compare_stats_records: ids: ${sentence}`,
+    );
+  });
+
+  it("an id with nothing usable left says what a yield product id is", async () => {
+    assert.equal(
+      await refusedLocally("get_stats_record", { tab: "yields", id: "--" }),
+      "Invalid arguments for get_stats_record: id: A yield product id is letters and digits, with spaces, dots, hyphens or underscores between them.",
+    );
+  });
+
+  it("a fact being checked reaches the model with no answer and no link; a checked one is quoted", async () => {
+    __setStatsIdsForTests({ marker: MARKER, call: CALL_ID });
+    serve(() => json(envelope("record_yield_waiting")));
+    const out = await answer("get_stats_record", { tab: "yields", id: "coinbase-cbeth" });
+    const facts = out.data.record.facts as Array<Record<string, any>>;
+    const waiting = facts.filter((f) => f.check_state === "being_checked");
+    assert.equal(waiting.length, 1);
+    for (const f of waiting) {
+      assert.equal(f.text_as_published, null);
+      assert.deepEqual(f.sources, []);
+    }
+    for (const f of facts.filter((f) => f.check_state === "confirmed")) {
+      assert.match(f.text_as_published, new RegExp(`^<<outside:${MARKER}>>.+<</outside:${MARKER}>>$`));
+      for (const source of f.sources) {
+        assert.match(source.source_url, new RegExp(`^<<outside:${MARKER}>>https://`));
+        assert.doesNotMatch(source.source_domain, /outside/); // a host is ours, checked by the API
+      }
+    }
+    assert.ok(!JSON.stringify(out).includes("Not checked yet."));
+    assert.equal(out.meta.status, "partial");
+  });
+
+  it("a product name is ours and stays outside the markers", async () => {
+    __setStatsIdsForTests({ marker: MARKER, call: CALL_ID });
+    serve(() => json(envelope("rank_yields_eth")));
+    const out = await answer("rank_stats", { tab: "yields", kind: "eth" });
+    for (const row of out.data.results) {
+      assert.doesNotMatch(row.name, /outside/);
+      assert.equal(typeof row.rank === "number" || row.rank === null, true);
+    }
+    assert.equal(out.data.results.at(-1).rank_state, "rate_not_known");
   });
 });

@@ -118,16 +118,18 @@ describe("the eight schemas", () => {
 describe("the fixed texts (appendices D and E)", () => {
   // SHA-256 of {"description": appendix D, "arguments": appendix E} for each
   // tool, as compact JSON with sorted keys, computed from design-final.md. A
-  // text changes in both packages together, and with the design.
+  // text changes in both packages together, and with the design. 0.8.0: seven
+  // of the eight changed for the Yields tab and the rate paid (design review
+  // log, "0.8.0"); lookup_stats_wallet did not.
   const PINNED: Record<string, string> = {
-    search_stats: "fe8e30ec02c3f047f14c286a5f3c1be6718d45c4a551c48b92f2d1b07f1d991e",
-    list_stats_measures: "2eeb4744e4d13697520ded412d74a9ae84f8e2bc0c88f417a045f72546bc9424",
-    rank_stats: "2aaaf1a9fb99a30b16738e92bd0d512ce8cdd1b89d847b08f1cdf3bb3d79afbf",
-    get_stats_record: "d0598a007e19e63e4406649356f3e47625190f197a2727b9f6782932fad90091",
-    compare_stats_records: "78451accbf0553e7ebcd3a831404856aa287e96bb7abe6c7d6e016131e9c4d7e",
+    search_stats: "dd4a4c4a2d872524fcb7d267033d8d05f4ac9f96365d7163f6195cc8e3e96bcb",
+    list_stats_measures: "7b4b0fac2e15de128f1708f1cefdd3ed943714a6dc97a611d4116cad3dbfd120",
+    rank_stats: "bb665339af9ae9d9ce89877f72bc9b561f5272448608fdc82c658e1068129343",
+    get_stats_record: "f08a8fb9c9bd4e7c39dbd6547501606e4a1f000be8ca21ca2749ee40b563794a",
+    compare_stats_records: "a3a1ec806849f491e6fea267b373e00feb847016b53cc485c16af1621a02ead1",
     lookup_stats_wallet: "9f3ca257b7ebde3a3ec996ed0b5fbaf7eed8ba3252a5573010dfbbcc65d85fbd",
-    get_stats_method: "5d06018a5a20db7386903940fbdfcd736cb50c4c6b166d83b24bdaf22b20946f",
-    list_stats_changes: "7dd18d1c37e164dc2518bbcee94ccb2cc71ae331bbac2362f6f0ab74be871473",
+    get_stats_method: "1f496df31ee9abd3f80bbefa2b658705f5fd819890c7362c0ceb775c975a4100",
+    list_stats_changes: "c11e59b03b3f1f023373bea805007c9ea847421e8ae136ead6104cd6b1dd833d",
   };
   const canonical = (value: unknown): string =>
     value !== null && typeof value === "object"

@@ -4,7 +4,18 @@ All notable changes to `@blockchainacademics/mcp` are documented here.
 
 This project follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## 0.7.0 (unreleased)
+## 0.8.0 (unreleased)
+
+The Stats tools follow the site's changes of 2026-11-26, in lockstep with `bca-mcp` 0.8.0 on PyPI. Same 113 tools, the same eight Stats tools.
+
+- Vaults are ranked by the rate paid: what the money inside earned over the last 12 months, as a money-weighted yearly rate. `rank_stats` takes `measure` as optional; with none, the API uses the tab's own order (checks passed for exchanges, `rate_paid` for vaults, `yield_rate_paid` for yield products). `rate_paid` is a known vault measure, and `money_put_in` and `left_took_home` stay.
+- The Yields tab: dollar savings and ETH staking products, ranked by the rate paid over 30 days, read on chain. `tab` takes `yields` in `search_stats`, `rank_stats`, `get_stats_record` and `compare_stats_records`; `kind` takes `dollar` or `eth`; `get_stats_method` takes the topic `yields`. A yield product id is folded like an exchange id, so `Coinbase cbETH` reaches `coinbase-cbeth`, and an address is refused in that tab before any request.
+- `yield_delivered` is gone. `yield_rate_paid` (kinds `dollar` and `eth`) is the known yields measure; an unknown measure is still sent, and the API answers.
+- A fact of a yield product shows its answer under `text_as_published` and each link under `source_url`, both between the markers, once a person has checked it; a fact being checked has neither. No new outside text key: the schema stays `bca.stats/1`.
+- Seven of the eight descriptions and eight argument texts say so, each at 1,200 characters or under (design review log, 0.8.0); `lookup_stats_wallet` is unchanged. The error for an address outside the vaults tab reads "An address is not an exchange or yield product id."
+- The recorded answers hold the API's dump of 34 calls (API commit `41b64a2`), the 9 new ones among them.
+
+## 0.7.0
 
 Eight Stats tools, in lockstep with `bca-mcp` 0.7.0 on PyPI: 113 tools in 20 categories. They read the open files of Blockchain Academics Stats through the API's `/v1/stats/` routes and work on the built-in demo key.
 
