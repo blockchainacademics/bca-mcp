@@ -179,6 +179,21 @@ describe("the eight tools: names, routes and query names", () => {
     ["get_stats_record", { tab: "chains", id: "bnb_chain" }, "/v1/stats/chains/bnb-chain", {}, "record_chain_solana"],
     ["search_stats", { query: "bnb", tab: "chains" }, "/v1/stats/search", { q: "bnb", tab: "chains", limit: "10" }, "search_bnb_chain"],
     ["list_stats_measures", {}, "/v1/stats/measures", {}, "measures_chains"],
+    [
+      "compare_stats_records",
+      { tab: "chains", ids: ["Solana", "BNB Chain"] },
+      "/v1/stats/compare",
+      { tab: "chains", ids: "solana,bnb-chain" },
+      "compare_chains",
+    ],
+    [
+      "compare_stats_records",
+      { tab: "chains", ids: "solana , bnb_chain" },
+      "/v1/stats/compare",
+      { tab: "chains", ids: "solana,bnb-chain" },
+      "compare_chains",
+    ],
+    ["get_stats_method", { topic: "chains" }, "/v1/stats/method", { topic: "chains" }, "method_chains"],
     ["list_stats_changes", {}, "/v1/stats/changes", { limit: "20" }, "changes_empty"],
     [
       "list_stats_changes",
@@ -374,7 +389,7 @@ describe("bounds and refusals before any request", () => {
             ["lookup_stats_wallet", { address: ADDRESS, as_of: "24-11-2026" }],
           ] as Array<[string, Record<string, unknown>]>)
         : []),
-      ["get_stats_method", { topic: "chains" }],
+      ["get_stats_method", { topic: "wallets" }],
       ["list_stats_changes", { limit: 101 }],
       ["list_stats_changes", { since: "2026-13-01" }],
       ["list_stats_changes", { before: "2026-11-22-fixture" }],
@@ -1051,6 +1066,22 @@ describe("the Chains tab (0.9.0)", () => {
       await refusedLocally("get_stats_record", { tab: "chains", id: `solana ${ADDRESS.toUpperCase()}` }),
       `Invalid arguments for get_stats_record: id: ${sentence}`,
     );
+    assert.equal(
+      await refusedLocally("compare_stats_records", { tab: "chains", ids: ["solana", ADDRESS] }),
+      `Invalid arguments for compare_stats_records: ids: ${sentence}`,
+    );
+    assert.equal(
+      await refusedLocally("compare_stats_records", { tab: "chains", ids: "solana,solana" }),
+      "Invalid arguments for compare_stats_records: ids: Between 2 and 5 ids, with no repeats.",
+    );
+  });
+
+  it("get_stats_method takes the topic chains, and no other new topic", async () => {
+    assert.match(await refusedLocally("get_stats_method", { topic: "chain" }), /^Invalid arguments for get_stats_method: topic: /);
+    const seen = serve(() => json(envelope("method_chains")));
+    const out = await answer("get_stats_method", { topic: "chains" });
+    assert.equal(query(seen[0]!)["topic"], "chains");
+    assert.equal(out.data.topic, "chains");
   });
 
   it("an id with nothing usable left says what a chain id is", async () => {

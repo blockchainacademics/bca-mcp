@@ -120,18 +120,16 @@ describe("the fixed texts (appendices D and E)", () => {
   // tool, as compact JSON with sorted keys, computed from design-final.md. A
   // text changes in both packages together, and with the design. 0.8.0: seven
   // of the eight changed for the Yields tab and the rate paid (design review
-  // log, "0.8.0"); lookup_stats_wallet did not. 0.9.0: four changed for the
-  // Chains tab (search_stats, list_stats_measures, rank_stats and
-  // get_stats_record); compare_stats_records, get_stats_method and
-  // list_stats_changes do not take chains and did not change.
+  // log, "0.8.0"); lookup_stats_wallet did not. 0.9.0: six changed for the
+  // Chains tab (all but lookup_stats_wallet and list_stats_changes).
   const PINNED: Record<string, string> = {
-    search_stats: "25f675326d2034aa7bf5f4362e64c85733905227f84e3da07820c63b56a1ce73",
+    search_stats: "fff86c3fad36c632dea6faceff3b3199afb641ed56287c6ff0685f64675a1904",
     list_stats_measures: "8f276c16b4e2528b140a9095342a64dd7e8076415c01e8a98a2ceb1f3df82d72",
-    rank_stats: "6e1f8cf82318ee35bb641e841c97ccadac90c7fa2b478d2ad6bfa29a3b4297ba",
+    rank_stats: "b87d29d9a330a778b195ae2efcc9a32b3a67da9f113130a07de48f93ae8b49a7",
     get_stats_record: "4b2271e04d7f52cd868a4a12ccca93d117a1e9c88dd537c264949545e7717af1",
-    compare_stats_records: "a3a1ec806849f491e6fea267b373e00feb847016b53cc485c16af1621a02ead1",
+    compare_stats_records: "a1505a441ac550c3227db5cab0510c8829494269ead7189dc4e0fadf66aba21f",
     lookup_stats_wallet: "9f3ca257b7ebde3a3ec996ed0b5fbaf7eed8ba3252a5573010dfbbcc65d85fbd",
-    get_stats_method: "1f496df31ee9abd3f80bbefa2b658705f5fd819890c7362c0ceb775c975a4100",
+    get_stats_method: "6c3e7e12a6abbf8e257037a69c500f4b59e9a20077eb047be75c63a2ede3d38e",
     list_stats_changes: "c11e59b03b3f1f023373bea805007c9ea847421e8ae136ead6104cd6b1dd833d",
   };
   const canonical = (value: unknown): string =>
