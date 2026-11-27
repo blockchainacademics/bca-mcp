@@ -12,7 +12,7 @@ Spec for the Eliza (elizaOS) plugin that wraps the `@blockchainacademics/mcp` MC
 |---|---|
 | Package name | `@elizaos/plugin-bca` |
 | Display name | Blockchain Academics |
-| Version | `0.1.0` (tracks `@blockchainacademics/mcp@0.7.0`) |
+| Version | `0.1.0` (tracks `@blockchainacademics/mcp@0.9.0`) |
 | Description | Wraps the Blockchain Academics MCP (113 tools: news, entities, academy, market, on-chain, sentiment, proprietary indicators, async agent-backed research, Stats) so Eliza characters can query ground-truth crypto data with full attribution. |
 | License | MIT |
 | Repository | `https://github.com/blockchainacademics/elizaos-plugin-bca` |
@@ -80,7 +80,7 @@ Spec for the Eliza (elizaOS) plugin that wraps the `@blockchainacademics/mcp` MC
     "@elizaos/core": ">=0.1.9"
   },
   "dependencies": {
-    "@blockchainacademics/mcp": "^0.7.0",
+    "@blockchainacademics/mcp": "^0.9.0",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "zod": "^3.25.0"
   },

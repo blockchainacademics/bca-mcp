@@ -1,6 +1,6 @@
 # @blockchainacademics/mcp
 
-Crypto MCP server for AI agents: cited news, prices, onchain data, sentiment and indicators. **113 tools** spanning 3,800+ editorial articles, about 150 entity dossiers, 38 academy lessons in 8 courses, aggregated market and onchain data, proprietary indicators, async agent-backed generation and the open Stats files on centralised exchanges, Hyperliquid vaults and yield products, all exposed as MCP tools your agent can call.
+Crypto MCP server for AI agents: cited news, prices, onchain data, sentiment and indicators. **113 tools** spanning 3,800+ editorial articles, about 150 entity dossiers, 38 academy lessons in 8 courses, aggregated market and onchain data, proprietary indicators, async agent-backed generation and the open Stats files on centralised exchanges, Hyperliquid vaults, yield products and chains, all exposed as MCP tools your agent can call.
 
 ## Tool categories
 
@@ -172,11 +172,13 @@ Fetch BCA Academy material (38 lessons in 8 courses). Provide exactly one of:
 
 ### Stats tools
 
-The 8 Stats tools read the open files of Blockchain Academics Stats through the API: the 8 centralised exchanges it lists, the Hyperliquid vaults it covers, the dollar savings and ETH staking products of its Yields tab, and a wallet lookup. Vaults are ranked by the rate paid over 12 months, and yield products by the rate paid over 30 days, read on chain, unless `rank_stats` names another measure. Their answers differ from the other tools in three ways:
+The 8 Stats tools read the open files of Blockchain Academics Stats through the API: the 8 centralised exchanges it lists, the Hyperliquid vaults it covers, the dollar savings and ETH staking products of its Yields tab, the chains of its Chains tab, and a wallet lookup. Vaults are ranked by the rate paid over 12 months, yield products by the rate paid over 30 days, read on chain, and chains by TVL, from DefiLlama, unless `rank_stats` names another measure. A chain's stops, freezes and rewinds come from the chain's own pages (its team, foundation, status page or validators), each with its sources. Their answers differ from the other tools in three ways:
 
 - The answer is one block of compact JSON, and the same object again as `structuredContent`.
 - Text someone outside chose or wrote, such as a vault name or a quote from a source, comes back between `<<outside:ID>>` and `<</outside:ID>>` markers, with an ID made new for each answer. `meta.outside_text` names the ID.
-- An exchange a person has not checked yet says `being_checked`, and a fact that is being checked has no value. A yield product's fact shows its answer and its sources once a person has checked it, and none before. `meta.status` is `unseeded` while nothing in the answer is confirmed, ranked or measured; the rows in `data` still say what is pending.
+- An exchange a person has not checked yet says `being_checked`, and a fact that is being checked has no value. A yield product's fact shows its answer and its sources once a person has checked it, and none before. A chain whose record is not confirmed yet reads `being_checked`, with no incident and no count. `meta.status` is `unseeded` while nothing in the answer is confirmed, ranked or measured; the rows in `data` still say what is pending.
+
+Example: `rank_stats` with `{ "tab": "chains", "measure": "stops_12m" }` ranks the chains by their stops in the last 12 months, fewest at the top, ties in TVL order, with the chains still being checked listed apart. `get_stats_record` with `{ "tab": "chains", "id": "solana" }` gives one chain's stops, freezes and rewinds with their sources, its TVL and the link to its page, `https://blockchainacademics.com/stats/chains/solana`. The chain measures are `tvl`, `stops_12m`, `longest_stop_min`, `funds_frozen` and `history_rewound`.
 
 ## Response status
 

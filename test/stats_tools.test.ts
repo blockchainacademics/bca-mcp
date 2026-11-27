@@ -164,6 +164,21 @@ describe("the eight tools: names, routes and query names", () => {
     ],
     ["search_stats", { query: "aave", tab: "yields" }, "/v1/stats/search", { q: "aave", tab: "yields", limit: "10" }, "search_aave"],
     ["get_stats_method", { topic: "yields" }, "/v1/stats/method", { topic: "yields" }, "method_yields"],
+    // 0.9.0: the Chains tab, ranked by TVL with no measure named.
+    ["rank_stats", { tab: "chains", limit: 5 }, "/v1/stats/rank", { tab: "chains", order: "top", limit: "5", offset: "0" }, "rank_chains_tvl"],
+    [
+      "rank_stats",
+      { tab: "chains", measure: "stops_12m" },
+      "/v1/stats/rank",
+      { tab: "chains", measure: "stops_12m", order: "top", limit: "20", offset: "0" },
+      "rank_chains_stops",
+    ],
+    ["get_stats_record", { tab: "chains", id: "Solana" }, "/v1/stats/chains/solana", {}, "record_chain_solana"],
+    ["get_stats_record", { tab: "chains", id: " TRON " }, "/v1/stats/chains/tron", {}, "record_chain_waiting"],
+    ["get_stats_record", { tab: "chains", id: "BNB Chain" }, "/v1/stats/chains/bnb-chain", {}, "record_chain_solana"],
+    ["get_stats_record", { tab: "chains", id: "bnb_chain" }, "/v1/stats/chains/bnb-chain", {}, "record_chain_solana"],
+    ["search_stats", { query: "bnb", tab: "chains" }, "/v1/stats/search", { q: "bnb", tab: "chains", limit: "10" }, "search_bnb_chain"],
+    ["list_stats_measures", {}, "/v1/stats/measures", {}, "measures_chains"],
     ["list_stats_changes", {}, "/v1/stats/changes", { limit: "20" }, "changes_empty"],
     [
       "list_stats_changes",
@@ -273,6 +288,52 @@ describe("bounds and refusals before any request", () => {
     const yields = serve(() => json(envelope("rank_yields_eth")));
     await answer("rank_stats", { tab: "yields", kind: "eth" });
     assert.deepEqual(query(yields[0]!), { tab: "yields", kind: "eth", order: "top", limit: "20", offset: "0" });
+    // 0.9.0: with no measure, the chains come in TVL order.
+    const chains = serve(() => json(envelope("rank_chains_tvl")));
+    await answer("rank_stats", { tab: "chains" });
+    assert.deepEqual(query(chains[0]!), { tab: "chains", order: "top", limit: "20", offset: "0" });
+  });
+
+  // 0.9.0: the five measures of the Chains tab.
+  const CHAIN_MEASURES = ["tvl", "stops_12m", "longest_stop_min", "funds_frozen", "history_rewound"];
+
+  it("each chain measure is sent in the chains tab, with its order and paging", async () => {
+    for (const measure of CHAIN_MEASURES) {
+      const seen = serve(() => json(envelope(measure === "tvl" ? "rank_chains_tvl" : "rank_chains_stops")));
+      await answer("rank_stats", { tab: "chains", measure, order: "bottom", limit: 3, offset: 3, as_of: "2026-11-24" });
+      assert.equal(seen.length, 1, measure);
+      assert.equal(seen[0]!.url.pathname, "/v1/stats/rank");
+      assert.deepEqual(query(seen[0]!), {
+        tab: "chains",
+        measure,
+        order: "bottom",
+        limit: "3",
+        offset: "3",
+        as_of: "2026-11-24",
+      });
+    }
+  });
+
+  it("each chain measure is refused in another tab, and a chain measure or the chains tab takes no kind", async () => {
+    const message = (field: string, sentence: string) => `Invalid arguments for rank_stats: ${field}: ${sentence}`;
+    const tab = "That measure does not belong to that tab.";
+    const kind = "That kind does not apply to that measure.";
+    for (const measure of CHAIN_MEASURES) {
+      for (const other of ["exchanges", "vaults", "yields"]) {
+        assert.equal(await refusedLocally("rank_stats", { tab: other, measure }), message("measure", tab), `${other} ${measure}`);
+      }
+      for (const k of ["centralised", "swap", "leveraged", "dollar", "eth"]) {
+        assert.equal(
+          await refusedLocally("rank_stats", { tab: "chains", measure, kind: k }),
+          message("kind", kind),
+          `${measure} ${k}`,
+        );
+      }
+    }
+    for (const measure of ["checks_passed", "rate_paid", "yield_rate_paid"]) {
+      assert.equal(await refusedLocally("rank_stats", { tab: "chains", measure }), message("measure", tab), measure);
+    }
+    assert.equal(await refusedLocally("rank_stats", { tab: "chains", kind: "dollar" }), message("kind", kind));
   });
 
   it("a measure the package does not know is sent, and the API's sentence comes back word for word", async () => {
@@ -426,7 +487,7 @@ describe("bounds and refusals before any request", () => {
     // Before, {tab: "wallets", id: "0x..."} sent GET /v1/stats/wallets/0x...,
     // with the full address in the path (review finding 2).
     const sentence =
-      "An address is not an exchange or yield product id. A vault address goes to the vaults tab. " +
+      "An address is not an exchange, yield product or chain id. A vault address goes to the vaults tab. " +
       "A wallet address goes to lookup_stats_wallet, which matches it on this machine.";
     const spellings = [
       ADDRESS,
@@ -484,7 +545,7 @@ describe("bounds and refusals before any request", () => {
     assert.equal(await refusedLocally("compare_stats_records", { tab: "exchanges", ids: "crypto-com,Crypto.com" }), count);
     assert.equal(
       await refusedLocally("compare_stats_records", { tab: "exchanges", ids: ["kraken", ADDRESS] }),
-      "Invalid arguments for compare_stats_records: ids: An address is not an exchange or yield product id. A vault address goes to the vaults tab. A wallet address goes to lookup_stats_wallet, which matches it on this machine.",
+      "Invalid arguments for compare_stats_records: ids: An address is not an exchange, yield product or chain id. A vault address goes to the vaults tab. A wallet address goes to lookup_stats_wallet, which matches it on this machine.",
     );
     assert.equal(
       await refusedLocally("compare_stats_records", { tab: "vaults", ids: ["kraken", ADDRESS] }),
@@ -924,7 +985,7 @@ describe("the shape rules the Python sibling holds too", () => {
 describe("the Yields tab (0.8.0)", () => {
   it("an address in the yields tab is refused before any request", async () => {
     const sentence =
-      "An address is not an exchange or yield product id. A vault address goes to the vaults tab. " +
+      "An address is not an exchange, yield product or chain id. A vault address goes to the vaults tab. " +
       "A wallet address goes to lookup_stats_wallet, which matches it on this machine.";
     assert.equal(
       await refusedLocally("get_stats_record", { tab: "yields", id: ADDRESS }),
@@ -974,5 +1035,92 @@ describe("the Yields tab (0.8.0)", () => {
       assert.equal(typeof row.rank === "number" || row.rank === null, true);
     }
     assert.equal(out.data.results.at(-1).rank_state, "rate_not_known");
+  });
+});
+
+describe("the Chains tab (0.9.0)", () => {
+  it("an address in the chains tab is refused before any request", async () => {
+    const sentence =
+      "An address is not an exchange, yield product or chain id. A vault address goes to the vaults tab. " +
+      "A wallet address goes to lookup_stats_wallet, which matches it on this machine.";
+    assert.equal(
+      await refusedLocally("get_stats_record", { tab: "chains", id: ADDRESS }),
+      `Invalid arguments for get_stats_record: id: ${sentence}`,
+    );
+    assert.equal(
+      await refusedLocally("get_stats_record", { tab: "chains", id: `solana ${ADDRESS.toUpperCase()}` }),
+      `Invalid arguments for get_stats_record: id: ${sentence}`,
+    );
+  });
+
+  it("an id with nothing usable left says what a chain id is", async () => {
+    assert.equal(
+      await refusedLocally("get_stats_record", { tab: "chains", id: "--" }),
+      "Invalid arguments for get_stats_record: id: A chain id is letters and digits, with spaces, dots, hyphens or underscores between them.",
+    );
+  });
+
+  it("a chain's incidents and their sources are quoted; its TVL source and page link are ours", async () => {
+    __setStatsIdsForTests({ marker: MARKER, call: CALL_ID });
+    serve(() => json(envelope("record_chain_solana")));
+    const out = await answer("get_stats_record", { tab: "chains", id: "solana" });
+    const record = out.data.record;
+    assert.equal(record.record_state, "confirmed");
+    assert.ok(record.incidents.length > 0);
+    for (const incident of record.incidents) {
+      assert.ok(["stop", "freeze", "rewind"].includes(incident.kind));
+      assert.match(incident.text_as_published, new RegExp(`^<<outside:${MARKER}>>.+<</outside:${MARKER}>>$`));
+      assert.match(incident.source_name, new RegExp(`^<<outside:${MARKER}>>.+<</outside:${MARKER}>>$`));
+      assert.ok(incident.sources.length >= 1);
+      for (const source of incident.sources) {
+        assert.match(source.source_url, new RegExp(`^<<outside:${MARKER}>>https://`));
+        assert.doesNotMatch(source.source_domain, /outside/);
+      }
+    }
+    assert.deepEqual(record.tvl, { usd: 4698633260, source: "DefiLlama", read_on: "2026-11-24" });
+    // The page link sits under the site prefix the package already allows: no new prefix is needed.
+    assert.equal(record.page_url, "https://blockchainacademics.com/stats/chains/solana");
+    assert.deepEqual(
+      out.attribution.citations.map((c: { cite_url: string | null }) => c.cite_url),
+      ["https://data.blockchainacademics.com/chains/v1/list.json", "https://blockchainacademics.com/stats/chains/solana"],
+    );
+    assert.equal(out.meta.status, "complete");
+  });
+
+  it("a chain whose record is not confirmed reaches the model as being checked, with no incident and no count", async () => {
+    __setStatsIdsForTests({ marker: MARKER, call: CALL_ID });
+    serve(() => json(envelope("record_chain_waiting")));
+    const out = await answer("get_stats_record", { tab: "chains", id: "tron" });
+    const record = out.data.record;
+    assert.equal(record.record_state, "being_checked");
+    assert.deepEqual(record.incidents, []);
+    for (const key of ["stops_12m", "stops_by_month", "longest_stop_min", "funds_frozen", "history_rewound"]) {
+      assert.equal(record[key], null, key);
+    }
+    assert.equal(typeof record.tvl.usd, "number");
+    assert.equal(out.meta.status, "partial");
+    assert.deepEqual(out.meta.diagnostic.missing, ["tron"]);
+  });
+
+  it("an incident measure ranks the confirmed chains, ties in TVL order, and lists the others apart", async () => {
+    __setStatsIdsForTests({ marker: MARKER, call: CALL_ID });
+    serve(() => json(envelope("rank_chains_stops")));
+    const out = await answer("rank_stats", { tab: "chains", measure: "stops_12m" });
+    const rows = out.data.results as Array<Record<string, any>>;
+    const ranked = rows.filter((r) => r.rank_state === "ranked");
+    const apart = rows.filter((r) => r.rank_state === "being_checked");
+    assert.deepEqual(rows, [...ranked, ...apart], "the chains being checked come after the ranked ones");
+    assert.deepEqual(ranked.map((r) => r.rank), ranked.map((_, i) => i + 1));
+    for (let i = 1; i < ranked.length; i++) {
+      assert.ok(ranked[i - 1]!.value <= ranked[i]!.value, "fewest first");
+      if (ranked[i - 1]!.value === ranked[i]!.value) assert.ok(ranked[i - 1]!.tvl_usd >= ranked[i]!.tvl_usd, "a tie keeps the TVL order");
+    }
+    for (const r of apart) {
+      assert.equal(r.rank, null);
+      assert.equal(r.value, null);
+      assert.equal(r.last_incident, null);
+    }
+    for (const r of rows) assert.doesNotMatch(r.name, /outside/); // a chain name is ours
+    assert.equal(out.data.measure.direction, "lowest_at_top");
   });
 });

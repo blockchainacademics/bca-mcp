@@ -6,8 +6,8 @@
     "name": "Blockchain Academics MCP",
     "slug": "blockchainacademics-mcp",
     "tagline": "The canonical crypto MCP for AI agents: 113 tools, editorial ground truth, full attribution.",
-    "description": "The canonical crypto MCP server for AI agents. 113 tools spanning 3,800+ editorial articles, 150+ entity dossiers, 38 academy lessons in 8 courses, aggregated market + on-chain data, crypto Twitter intelligence, proprietary indicators (coverage index, narrative strength, sentiment velocity, editorial premium, KOL influence, risk score), async agent-backed research generation, and the Stats files on 8 centralised exchanges and Hyperliquid vaults. Every tool response carries an attribution envelope, attribution.citations[], each entry with cite_url, as_of and source_hash; citations[0] is the primary source (the upstream page when there is one). Every response also carries meta.status (complete, partial, stale or unseeded), so an agent can tell a full answer from a thin one. Designed to eliminate LLM hallucination on crypto topics by plugging an AI agent directly into the BCA corpus with citations, timestamps, and source hashes on every response.",
-    "version": "0.7.0",
+    "description": "The canonical crypto MCP server for AI agents. 113 tools spanning 3,800+ editorial articles, 150+ entity dossiers, 38 academy lessons in 8 courses, aggregated market + on-chain data, crypto Twitter intelligence, proprietary indicators (coverage index, narrative strength, sentiment velocity, editorial premium, KOL influence, risk score), async agent-backed research generation, and the Stats files on 8 centralised exchanges, Hyperliquid vaults, yield products and chains. Every tool response carries an attribution envelope, attribution.citations[], each entry with cite_url, as_of and source_hash; citations[0] is the primary source (the upstream page when there is one). Every response also carries meta.status (complete, partial, stale or unseeded), so an agent can tell a full answer from a thin one. Designed to eliminate LLM hallucination on crypto topics by plugging an AI agent directly into the BCA corpus with citations, timestamps, and source hashes on every response.",
+    "version": "0.9.0",
     "category": "data-provider",
     "subcategories": [
       "crypto",
@@ -45,7 +45,7 @@
       "status": "live",
       "registry_type": "npm",
       "package": "@blockchainacademics/mcp",
-      "version": "0.7.0",
+      "version": "0.9.0",
       "command": "npx",
       "args": ["-y", "@blockchainacademics/mcp"],
       "notes": "Canonical transport. Works in Claude Desktop, Cursor, LangChain, Eliza, and any MCP-compatible agent host."

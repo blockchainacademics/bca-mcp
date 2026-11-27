@@ -120,12 +120,15 @@ describe("the fixed texts (appendices D and E)", () => {
   // tool, as compact JSON with sorted keys, computed from design-final.md. A
   // text changes in both packages together, and with the design. 0.8.0: seven
   // of the eight changed for the Yields tab and the rate paid (design review
-  // log, "0.8.0"); lookup_stats_wallet did not.
+  // log, "0.8.0"); lookup_stats_wallet did not. 0.9.0: four changed for the
+  // Chains tab (search_stats, list_stats_measures, rank_stats and
+  // get_stats_record); compare_stats_records, get_stats_method and
+  // list_stats_changes do not take chains and did not change.
   const PINNED: Record<string, string> = {
-    search_stats: "dd4a4c4a2d872524fcb7d267033d8d05f4ac9f96365d7163f6195cc8e3e96bcb",
-    list_stats_measures: "7b4b0fac2e15de128f1708f1cefdd3ed943714a6dc97a611d4116cad3dbfd120",
-    rank_stats: "bb665339af9ae9d9ce89877f72bc9b561f5272448608fdc82c658e1068129343",
-    get_stats_record: "f08a8fb9c9bd4e7c39dbd6547501606e4a1f000be8ca21ca2749ee40b563794a",
+    search_stats: "25f675326d2034aa7bf5f4362e64c85733905227f84e3da07820c63b56a1ce73",
+    list_stats_measures: "8f276c16b4e2528b140a9095342a64dd7e8076415c01e8a98a2ceb1f3df82d72",
+    rank_stats: "6e1f8cf82318ee35bb641e841c97ccadac90c7fa2b478d2ad6bfa29a3b4297ba",
+    get_stats_record: "4b2271e04d7f52cd868a4a12ccca93d117a1e9c88dd537c264949545e7717af1",
     compare_stats_records: "a3a1ec806849f491e6fea267b373e00feb847016b53cc485c16af1621a02ead1",
     lookup_stats_wallet: "9f3ca257b7ebde3a3ec996ed0b5fbaf7eed8ba3252a5573010dfbbcc65d85fbd",
     get_stats_method: "1f496df31ee9abd3f80bbefa2b658705f5fd819890c7362c0ceb775c975a4100",

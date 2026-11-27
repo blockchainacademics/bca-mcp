@@ -1,4 +1,4 @@
-# Anthropic MCP Directory Submission: `@blockchainacademics/mcp` v0.8.0
+# Anthropic MCP Directory Submission: `@blockchainacademics/mcp` v0.9.0
 
 **Target repo:** `github.com/modelcontextprotocol/servers`
 **Package:** https://www.npmjs.com/package/@blockchainacademics/mcp
@@ -62,8 +62,8 @@ server for AI agents that need ground-truth crypto data.
   indicators (coverage index, narrative strength, editorial premium, KOL
   influence, risk score), async agent-backed generation (due diligence,
   tokenomics, whitepaper summarization), and the Stats files (centralised
-  exchanges, Hyperliquid vaults and a wallet lookup that keeps the address
-  on the user's machine).
+  exchanges, Hyperliquid vaults, yield products, chains and a wallet lookup
+  that keeps the address on the user's machine).
 - **Attribution on every response**: each tool call returns
   `attribution.citations[]`, whose first entry is the primary source (the
   upstream page when there is one), each with `cite_url`, `as_of` and
@@ -171,15 +171,15 @@ Scroll to Claude's answer. Hover over one of the inline citations to show the `c
 Tick each before opening the PR.
 
 ### Package integrity
-- [ ] `package.json` version = `0.8.0`
-- [ ] `server.json` version = `0.8.0` and `packages[0].version` = `0.8.0`
-- [ ] `server.json` `_meta.tool.version` = `0.8.0`
+- [ ] `package.json` version = `0.9.0`
+- [ ] `server.json` version = `0.9.0` and `packages[0].version` = `0.9.0`
+- [ ] `server.json` `_meta.tool.version` = `0.9.0`
 - [ ] `server.json` `_meta.tool_count` = `113`
 - [ ] Sum of `_meta.tool_categories[].count` = 113: 7+4+4+6+6+6+16+6+4+5+5+4+4+4+2+3+4+7+8+8 = **113** across 20 categories (`npm run build` refuses to write `tools.json` when a tool is missing from the categories or the total differs)
 - [ ] README tool-category table totals to 113 across 20 rows, the same categories and counts as `server.json`
 - [ ] LICENSE present and MIT
 - [ ] Install command works clean on a fresh machine: `npx -y @blockchainacademics/mcp` (**run once from a non-dev shell to confirm**)
-- [ ] `npm view @blockchainacademics/mcp version` returns `0.8.0` (**run to confirm registry propagation**)
+- [ ] `npm view @blockchainacademics/mcp version` returns `0.9.0` (**run to confirm registry propagation**)
 
 ### Security
 - [ ] npm publish token **rotated** after any recent CI/debug use (**MANUAL, Wael must do**)
