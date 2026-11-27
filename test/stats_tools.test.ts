@@ -171,26 +171,32 @@ describe("the eight tools: names, routes and query names", () => {
       { tab: "chains", measure: "stops_12m" },
       "/v1/stats/rank",
       { tab: "chains", measure: "stops_12m", order: "top", limit: "20", offset: "0" },
-      "rank_chains_stops",
+      "rank_chains_stops_12m",
     ],
-    ["get_stats_record", { tab: "chains", id: "Solana" }, "/v1/stats/chains/solana", {}, "record_chain_solana"],
-    ["get_stats_record", { tab: "chains", id: " TRON " }, "/v1/stats/chains/tron", {}, "record_chain_waiting"],
-    ["get_stats_record", { tab: "chains", id: "BNB Chain" }, "/v1/stats/chains/bnb-chain", {}, "record_chain_solana"],
-    ["get_stats_record", { tab: "chains", id: "bnb_chain" }, "/v1/stats/chains/bnb-chain", {}, "record_chain_solana"],
-    ["search_stats", { query: "bnb", tab: "chains" }, "/v1/stats/search", { q: "bnb", tab: "chains", limit: "10" }, "search_bnb_chain"],
-    ["list_stats_measures", {}, "/v1/stats/measures", {}, "measures_chains"],
+    [
+      "rank_stats",
+      { tab: "chains", measure: "funds_frozen", order: "bottom", limit: 5 },
+      "/v1/stats/rank",
+      { tab: "chains", measure: "funds_frozen", order: "bottom", limit: "5", offset: "0" },
+      "rank_chains_funds_frozen_bottom",
+    ],
+    ["get_stats_record", { tab: "chains", id: "Sui" }, "/v1/stats/chains/sui", {}, "record_chain_sui"],
+    ["get_stats_record", { tab: "chains", id: " TRON " }, "/v1/stats/chains/tron", {}, "record_chain_being_checked"],
+    ["get_stats_record", { tab: "chains", id: "BNB Chain" }, "/v1/stats/chains/bnb-chain", {}, "record_chain_sui"],
+    ["get_stats_record", { tab: "chains", id: "bnb_chain" }, "/v1/stats/chains/bnb-chain", {}, "record_chain_sui"],
+    ["search_stats", { query: "network", tab: "chains" }, "/v1/stats/search", { q: "network", tab: "chains", limit: "10" }, "search_chains"],
     [
       "compare_stats_records",
-      { tab: "chains", ids: ["Solana", "BNB Chain"] },
+      { tab: "chains", ids: ["Ethereum", " solana", "TRON"] },
       "/v1/stats/compare",
-      { tab: "chains", ids: "solana,bnb-chain" },
+      { tab: "chains", ids: "ethereum,solana,tron" },
       "compare_chains",
     ],
     [
       "compare_stats_records",
-      { tab: "chains", ids: "solana , bnb_chain" },
+      { tab: "chains", ids: "ethereum , Solana,tron" },
       "/v1/stats/compare",
-      { tab: "chains", ids: "solana,bnb-chain" },
+      { tab: "chains", ids: "ethereum,solana,tron" },
       "compare_chains",
     ],
     ["get_stats_method", { topic: "chains" }, "/v1/stats/method", { topic: "chains" }, "method_chains"],
@@ -314,7 +320,7 @@ describe("bounds and refusals before any request", () => {
 
   it("each chain measure is sent in the chains tab, with its order and paging", async () => {
     for (const measure of CHAIN_MEASURES) {
-      const seen = serve(() => json(envelope(measure === "tvl" ? "rank_chains_tvl" : "rank_chains_stops")));
+      const seen = serve(() => json(envelope(measure === "tvl" ? "rank_chains_tvl" : "rank_chains_stops_12m")));
       await answer("rank_stats", { tab: "chains", measure, order: "bottom", limit: 3, offset: 3, as_of: "2026-11-24" });
       assert.equal(seen.length, 1, measure);
       assert.equal(seen[0]!.url.pathname, "/v1/stats/rank");
@@ -1093,8 +1099,8 @@ describe("the Chains tab (0.9.0)", () => {
 
   it("a chain's incidents and their sources are quoted; its TVL source and page link are ours", async () => {
     __setStatsIdsForTests({ marker: MARKER, call: CALL_ID });
-    serve(() => json(envelope("record_chain_solana")));
-    const out = await answer("get_stats_record", { tab: "chains", id: "solana" });
+    serve(() => json(envelope("record_chain_sui")));
+    const out = await answer("get_stats_record", { tab: "chains", id: "sui" });
     const record = out.data.record;
     assert.equal(record.check_state, "confirmed");
     assert.ok(record.incidents.length > 0);
@@ -1108,20 +1114,38 @@ describe("the Chains tab (0.9.0)", () => {
         assert.doesNotMatch(source.source_domain, /outside/);
       }
     }
-    assert.equal(record.tvl_usd, 4698633260);
+    assert.equal(record.tvl_usd, 396972902);
+    assert.equal(record.tvl_rank, 11);
     assert.deepEqual(out.data.tvl, { source: "DefiLlama", read_on: "2026-11-24" });
+    assert.equal(record.stops_by_month.length, 12);
+    for (const m of record.stops_by_month) assert.deepEqual(Object.keys(m), ["month", "stops"]);
+    assert.deepEqual(Object.keys(record.last_incident), ["on", "text_as_published", "source_name", "sources"]);
+    assert.match(record.last_incident.text_as_published, new RegExp(`^<<outside:${MARKER}>>`));
     // The page link sits under the site prefix the package already allows: no new prefix is needed.
-    assert.equal(record.page_url, "https://blockchainacademics.com/stats/chains/solana");
+    assert.equal(record.page_url, "https://blockchainacademics.com/stats/chains/sui");
     assert.deepEqual(
       out.attribution.citations.map((c: { cite_url: string | null }) => c.cite_url),
-      ["https://data.blockchainacademics.com/chains/v1/list.json", "https://blockchainacademics.com/stats/chains/solana"],
+      ["https://data.blockchainacademics.com/chains/v1/list.json"],
     );
     assert.equal(out.meta.status, "complete");
   });
 
+  it("a citation of the chain's page on the site is kept, with no new prefix", async () => {
+    __setStatsIdsForTests({ marker: MARKER, call: CALL_ID });
+    const env = envelope("record_chain_sui");
+    env.attribution.citations.push({
+      cite_url: "https://blockchainacademics.com/stats/chains/sui",
+      as_of: "2026-11-24T00:00:00Z",
+      source_hash: null,
+    });
+    serve(() => json(env));
+    const out = await answer("get_stats_record", { tab: "chains", id: "sui" });
+    assert.equal(out.attribution.citations[1].cite_url, "https://blockchainacademics.com/stats/chains/sui");
+  });
+
   it("a chain whose record is not confirmed reaches the model as being checked, with no incident and no count", async () => {
     __setStatsIdsForTests({ marker: MARKER, call: CALL_ID });
-    serve(() => json(envelope("record_chain_waiting")));
+    serve(() => json(envelope("record_chain_being_checked")));
     const out = await answer("get_stats_record", { tab: "chains", id: "tron" });
     const record = out.data.record;
     assert.equal(record.check_state, "being_checked");
@@ -1136,7 +1160,7 @@ describe("the Chains tab (0.9.0)", () => {
 
   it("an incident measure ranks the confirmed chains, ties in TVL order, and lists the others apart", async () => {
     __setStatsIdsForTests({ marker: MARKER, call: CALL_ID });
-    serve(() => json(envelope("rank_chains_stops")));
+    serve(() => json(envelope("rank_chains_stops_12m")));
     const out = await answer("rank_stats", { tab: "chains", measure: "stops_12m" });
     const rows = out.data.results as Array<Record<string, any>>;
     const ranked = rows.filter((r) => r.rank_state === "ranked");
@@ -1145,7 +1169,8 @@ describe("the Chains tab (0.9.0)", () => {
     assert.deepEqual(ranked.map((r) => r.rank), ranked.map((_, i) => i + 1));
     for (let i = 1; i < ranked.length; i++) {
       assert.ok(ranked[i - 1]!.value <= ranked[i]!.value, "fewest first");
-      if (ranked[i - 1]!.value === ranked[i]!.value) assert.ok(ranked[i - 1]!.tvl_usd >= ranked[i]!.tvl_usd, "a tie keeps the TVL order");
+      const tvlPlace = (r: Record<string, any>) => r.tvl_rank ?? Number.POSITIVE_INFINITY;
+      if (ranked[i - 1]!.value === ranked[i]!.value) assert.ok(tvlPlace(ranked[i - 1]!) <= tvlPlace(ranked[i]!), "a tie keeps the TVL order");
     }
     for (const r of apart) {
       assert.equal(r.rank, null);
@@ -1154,5 +1179,54 @@ describe("the Chains tab (0.9.0)", () => {
     }
     for (const r of rows) assert.doesNotMatch(r.name, /outside/); // a chain name is ours
     assert.equal(out.data.measure.direction, "lowest_at_top");
+    assert.deepEqual(out.data.tvl, { source: "DefiLlama", read_on: "2026-11-24" });
+    // Chains that have not launched sit in the upcoming block, never among the results.
+    const upcoming = out.data.upcoming.rows as Array<Record<string, any>>;
+    assert.ok(upcoming.length > 0);
+    const resultIds = new Set(rows.map((r) => r.id));
+    for (const u of upcoming) {
+      assert.ok(!resultIds.has(u.id), u.id);
+      assert.match(u.text_as_published, new RegExp(`^<<outside:${MARKER}>>.+<</outside:${MARKER}>>$`));
+      assert.match(u.expected.text_as_published, new RegExp(`^<<outside:${MARKER}>>`));
+      for (const s of u.sources) assert.match(s.source_url, new RegExp(`^<<outside:${MARKER}>>https://`));
+    }
+  });
+
+  it("the TVL order: ranked by value_usd, a chain being checked keeps its place, one with no reading is tvl_not_known", async () => {
+    __setStatsIdsForTests({ marker: MARKER, call: CALL_ID });
+    const env = envelope("rank_chains_tvl");
+    serve(() => json(env));
+    const out = await answer("rank_stats", { tab: "chains", limit: 5 });
+    const rows = out.data.results as Array<Record<string, any>>;
+    for (let i = 1; i < rows.length; i++) assert.ok(rows[i - 1]!.value_usd >= rows[i]!.value_usd);
+    assert.ok(rows.every((r) => r.rank_state === "ranked" && typeof r.value_usd === "number"));
+    // A being-checked chain keeps its TVL rank: only its counts are null.
+    const tron = rows.find((r) => r.id === "tron")!;
+    assert.equal(tron.check_state, "being_checked");
+    assert.equal(tron.stops_12m, null);
+    assert.equal(typeof tron.rank, "number");
+    assert.equal(out.data.counts.tvl_not_known, 1);
+    assert.deepEqual(out.meta.diagnostic.missing, ["fixture-chain-no-tvl.tvl_usd"]);
+    assert.equal(out.meta.status, "partial");
+    // The row with no reading, as the API gives it at the end of the list.
+    const last = structuredClone(env);
+    last.data.results = [{ ...env.data.results[0], rank: null, rank_state: "tvl_not_known", value_usd: null, tvl_usd: null, tvl_rank: null }];
+    serve(() => json(last));
+    const tail = await answer("rank_stats", { tab: "chains", limit: 5 });
+    assert.equal(tail.data.results[0].rank_state, "tvl_not_known");
+    assert.equal(tail.data.results[0].value_usd, null);
+  });
+
+  it("a search for a chain that has not launched gives upcoming_chain rows, their window quoted", async () => {
+    __setStatsIdsForTests({ marker: MARKER, call: CALL_ID });
+    serve(() => json(envelope("search_chains")));
+    const out = await answer("search_stats", { query: "network", tab: "chains" });
+    const rows = out.data.results as Array<Record<string, any>>;
+    assert.ok(rows.length > 0);
+    for (const r of rows) {
+      assert.equal(r.record_type, "upcoming_chain");
+      assert.match(r.expected.text_as_published, new RegExp(`^<<outside:${MARKER}>>.+<</outside:${MARKER}>>$`));
+      assert.doesNotMatch(r.name, /outside/);
+    }
   });
 });
