@@ -1065,7 +1065,7 @@ describe("the Chains tab (0.9.0)", () => {
     serve(() => json(envelope("record_chain_solana")));
     const out = await answer("get_stats_record", { tab: "chains", id: "solana" });
     const record = out.data.record;
-    assert.equal(record.record_state, "confirmed");
+    assert.equal(record.check_state, "confirmed");
     assert.ok(record.incidents.length > 0);
     for (const incident of record.incidents) {
       assert.ok(["stop", "freeze", "rewind"].includes(incident.kind));
@@ -1077,7 +1077,8 @@ describe("the Chains tab (0.9.0)", () => {
         assert.doesNotMatch(source.source_domain, /outside/);
       }
     }
-    assert.deepEqual(record.tvl, { usd: 4698633260, source: "DefiLlama", read_on: "2026-11-24" });
+    assert.equal(record.tvl_usd, 4698633260);
+    assert.deepEqual(out.data.tvl, { source: "DefiLlama", read_on: "2026-11-24" });
     // The page link sits under the site prefix the package already allows: no new prefix is needed.
     assert.equal(record.page_url, "https://blockchainacademics.com/stats/chains/solana");
     assert.deepEqual(
@@ -1092,12 +1093,12 @@ describe("the Chains tab (0.9.0)", () => {
     serve(() => json(envelope("record_chain_waiting")));
     const out = await answer("get_stats_record", { tab: "chains", id: "tron" });
     const record = out.data.record;
-    assert.equal(record.record_state, "being_checked");
+    assert.equal(record.check_state, "being_checked");
     assert.deepEqual(record.incidents, []);
     for (const key of ["stops_12m", "stops_by_month", "longest_stop_min", "funds_frozen", "history_rewound"]) {
       assert.equal(record[key], null, key);
     }
-    assert.equal(typeof record.tvl.usd, "number");
+    assert.equal(typeof record.tvl_usd, "number");
     assert.equal(out.meta.status, "partial");
     assert.deepEqual(out.meta.diagnostic.missing, ["tron"]);
   });
